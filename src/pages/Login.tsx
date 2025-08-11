@@ -11,10 +11,13 @@ import { loginSchema } from "@/types/formSchema";
 import { toast } from "sonner";
 import { invoke } from "@tauri-apps/api/core";
 import { useEffect } from "react";
+import { useLogin } from "@/features/api/auth/useLogin";
+import { ErrorLoginResponse, LoginResponse } from "@/service/api/auth/login";
 
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const loginMutation = useLogin()
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -24,41 +27,42 @@ export default function LoginPage() {
   })
 
   async function onSubmit(values: z.infer<typeof loginSchema>) {
-    // Bypass with master credentials
-    if (values.username === "juan" && values.password === "juan123") {
-      toast.success("Logged in with master credentials");
-      localStorage.setItem("username", values.username);
-      navigate("/dashboard");
-      return;
-    }
-    try {
-      const isValid = await invoke<boolean>("verify_user_credentials_command", {
+    toast.promise(
+      loginMutation.mutateAsync({
+        role: values.username,
         username: values.username,
-        password: values.password,
-      });
-
-      if (isValid) {
-        toast.success("Login Successful!");
-        localStorage.setItem("username", values.username);
-        navigate("/dashboard");
-      } else {
-        toast.error("Invalid username or password.");
+        password: values.password
+      }),
+      {
+        loading: "Loggin in",
+        success: (data: LoginResponse) => {
+          window.sessionStorage.setItem("user", JSON.stringify(data))
+          navigate("/dashboard")
+          return {
+            message: data.message,
+            description: `Welcome to BMS ${data.user.Username}`
+          }
+        },
+        error: (error: ErrorLoginResponse) => {
+          console.log(error)
+          return {
+            message: "Login Failed",
+            description: `${error.error}`
+          }
+        }
       }
-    } catch (error) {
-      console.error("Failed to verify login:", error);
-      toast.error("Login failed. Please try again.");
-    }
+    )
   }
 
-useEffect(() => {
-  invoke("test_db_connection")
-    .then((res) => {
-      console.log("✅ DB test:", res);
-    })
-    .catch((err) => {
-      console.error("❌ DB test error:", err);
-    });
-}, []);
+  useEffect(() => {
+    invoke("test_db_connection")
+      .then((res) => {
+        console.log("✅ DB test:", res);
+      })
+      .catch((err) => {
+        console.error("❌ DB test error:", err);
+      });
+  }, []);
 
 
 
