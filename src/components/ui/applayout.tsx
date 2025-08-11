@@ -9,11 +9,16 @@ export default function AppLayout() {
   return <>
     <SidebarProvider open={open} onOpenChange={setOpen} >
       <div className="fixed">
-        <AppSidebar />
+        <AppSidebar onHover={() => setOpen(true)} />
         <div className="flex flex-col min-h-screen max-h-screen overflow-hidden">
           <Header />
-          <main className="flex-1 overflow-auto font-redhat bg-red  text-black mx-[10rem] my-[2rem]">
+          <main className="flex-1 overflow-auto font-redhat bg-red  text-black mx-[10rem] my-[2rem]"
+            onClick={() => setOpen(false)}
+          >
             <Outlet />
+            {open && (
+              <div className="z-30 fixed inset-0 bg-black/30 pointer-events-none transition-opacity duration-300 ease-in-out" />
+            )}
           </main >
         </div >
       </div >

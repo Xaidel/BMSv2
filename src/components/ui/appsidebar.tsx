@@ -1,6 +1,7 @@
 import { LayoutDashboard, Calendar, Users, House, FileBadge2, TrendingUp, BanknoteArrowUpIcon, Files, Settings, LogOut } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger } from "./sidebar";
 import { NavLink, useLocation } from "react-router-dom";
+import { Button } from "./button";
 
 const items = [
   {
@@ -50,7 +51,11 @@ const items = [
   },
 ]
 
-export default function AppSidebar() {
+type SidebarProps = {
+  onHover: () => void
+}
+
+export default function AppSidebar({ onHover }: SidebarProps) {
   const location = useLocation()
   const currentPath = location.pathname
   const isActive = (currentPath: string, targetPath: string): boolean => {
@@ -59,7 +64,7 @@ export default function AppSidebar() {
     return false
   }
   return (
-    <Sidebar collapsible="icon" className="z-100">
+    <Sidebar collapsible="icon" className="z-100" onMouseEnter={onHover}>
       <SidebarHeader className="mt-2">
         <SidebarTrigger className=" hover:bg-primary hover:text-foreground "
           size="lg"
@@ -74,11 +79,13 @@ export default function AppSidebar() {
                 className=" font-redhat text-black max-w-[10rem] hover:max-w-[10rem]">
                 <SidebarMenuButton
                   asChild
+                  disabled
                   className="hover:bg-primary hover:text-foreground "
                   size="lg"
                   isActive={isActive(currentPath, item.url)}
                 >
-                  <NavLink to={item.url}>
+                  <NavLink to={item.url}
+                  >
                     <item.icon className="group-data-[collapsible=icon]:mx-auto" />
                     <span className={"group-data-[collapsible=icon]:hidden"}>{item.title}</span>
                   </NavLink>
