@@ -9,7 +9,8 @@ export default function AppLayout() {
   return <>
     <SidebarProvider open={open} onOpenChange={setOpen} >
       <div className="fixed">
-        <AppSidebar onHover={() => setOpen(true)} />
+        <AppSidebar onHover={() => setOpen(true)}
+          onOut={() => setOpen(false)} />
         <div className="flex flex-col min-h-screen max-h-screen overflow-hidden">
           <Header />
           <main className="flex-1 overflow-auto font-redhat bg-red  text-black mx-[10rem] my-[2rem]"

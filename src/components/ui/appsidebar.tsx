@@ -53,9 +53,10 @@ const items = [
 
 type SidebarProps = {
   onHover: () => void
+  onOut: () => void
 }
 
-export default function AppSidebar({ onHover }: SidebarProps) {
+export default function AppSidebar({ onHover, onOut }: SidebarProps) {
   const location = useLocation()
   const currentPath = location.pathname
   const isActive = (currentPath: string, targetPath: string): boolean => {
@@ -64,7 +65,7 @@ export default function AppSidebar({ onHover }: SidebarProps) {
     return false
   }
   return (
-    <Sidebar collapsible="icon" className="z-100" onMouseEnter={onHover}>
+    <Sidebar collapsible="icon" className="z-100" onMouseEnter={onHover} onMouseLeave={onOut}>
       <SidebarHeader className="mt-2">
         <SidebarTrigger className=" hover:bg-primary hover:text-foreground "
           size="lg"
@@ -79,7 +80,6 @@ export default function AppSidebar({ onHover }: SidebarProps) {
                 className=" font-redhat text-black max-w-[10rem] hover:max-w-[10rem]">
                 <SidebarMenuButton
                   asChild
-                  disabled
                   className="hover:bg-primary hover:text-foreground "
                   size="lg"
                   isActive={isActive(currentPath, item.url)}
