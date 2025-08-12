@@ -13,86 +13,99 @@ import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { toast } from "sonner";
-import { invoke } from '@tauri-apps/api/core'
+import { useAddEvent } from "../api/event/useAddEvent";
+import { Event } from "@/types/apitypes";
+import { useQueryClient } from "@tanstack/react-query";
+import { ErrorResponse } from "@/service/api/auth/login";
 
 const selectOption: string[] = [
-  "Seminar",
   "Assembly",
+  "Health and Social Services",
+  "Disater Preparedness and Environmental",
+  "Education and Skill Development",
+  "Cultural, Recreational, and Sports",
+  "Law Enforcement and Community Safety",
+  "Humanitarian Assistance"
+
 ]
 
 const statusOption = ["Upcoming", "Ongoing", "Finished", "Cancelled"] as const;
 
 const formSchema = z.object({
-  name: z.string().min(2, {
+  Name: z.string().min(2, {
     message: "Event name is too short"
   }).max(50, {
     message: "Event name is too long, put other details on the 'details' form"
   }),
-  type_: z.string().min(2, {
+  Type: z.string().min(2, {
     message: "Event type is too short"
   }).max(50, {
     message: "Event type is too long."
   }),
-  date: z.date({
+  Date: z.date({
     required_error: "Please specify the event date"
   }),
-  venue: z.string().min(2, {
+  Venue: z.string().min(2, {
     message: "Event venue is too short"
   }).max(50, {
     message: "Event venue is too long"
   }),
-  attendee: z.string().min(2, {
+  Audience: z.string().min(2, {
     message: "Attendee too long"
   }).max(50, {
     message: "Event venue is too long"
   }),
-  notes: z.string().max(1000, {
+  Notes: z.string().max(1000, {
     message: "Important notes is too long"
   }),
-  status: z.enum(statusOption)
+  Status: z.enum(statusOption)
 })
 
-type AddEventModalProps = {
-  onSave?: () => void;
-};
 
-export default function AddEventModal({ onSave }: AddEventModalProps) {
+export default function AddEventModal() {
+  const addMutation = useAddEvent()
+  const queryClient = useQueryClient()
+
+  const handleAdd = async (values: z.infer<typeof formSchema>) => {
+    toast.promise(
+      addMutation.mutateAsync(values as Event), {
+      loading: "Adding Event please wait...",
+      success: (data) => {
+        const e = data.event
+        setOpenModal(false)
+        queryClient.invalidateQueries({ queryKey: ['events'] })
+        return {
+          message: "Event added successfully",
+          description: `${e.Name} was added`
+        }
+      },
+      error: (error: ErrorResponse) => {
+        return {
+          message: "Adding event failed",
+          description: `${error.error}`
+        }
+      }
+    }
+    )
+  }
   const [openCalendar, setOpenCalendar] = useState(false)
   const [openModal, setOpenModal] = useState(false)
+
+  const user = sessionStorage.getItem("user")
+  const parsedUser = JSON.parse(user)
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      type_: "",
-      date: undefined,
-      venue: "",
-      attendee: "",
-      notes: "",
-      status: "Upcoming"
+      Name: "",
+      Type: "",
+      Date: new Date(),
+      Venue: "",
+      Audience: "",
+      Notes: "",
+      Status: "Upcoming"
     }
   })
-
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      await invoke("insert_event_command", {
-        event: {
-          ...values,
-          date: values.date.toISOString()
-        }
-      });
-
-      toast.success("Event added successfully", {
-        description: `${values.name} was added`
-      });
-
-      setOpenModal(false);
-      form.reset();
-      onSave?.();
-    } catch (error) {
-      console.error("Insert event failed:", error);
-      toast.error("Failed to add event.");
-    }
-  }
 
   return (
     <>
@@ -101,14 +114,16 @@ export default function AddEventModal({ onSave }: AddEventModalProps) {
         onOpenChange={setOpenModal}
       >
         <DialogTrigger asChild>
-          <Button size="lg" >
+          <Button size="lg"
+            disabled={parsedUser.user.Role !== "secretary"}
+          >
             <Plus />
             Add Event
           </Button>
         </DialogTrigger>
         <DialogContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
+            <form onSubmit={form.handleSubmit(handleAdd)}>
               <DialogHeader>
                 <DialogTitle className="text-black">Create Event</DialogTitle>
                 <DialogDescription className="text-sm">
@@ -120,13 +135,13 @@ export default function AddEventModal({ onSave }: AddEventModalProps) {
                 <div>
                   <FormField
                     control={form.control}
-                    name="name"
+                    name="Name"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel htmlFor="name" className="text-black font-bold text-xs">Name</FormLabel>
                         <FormControl>
                           <Input
-                            id="name"
+                            id="Name"
                             type="text"
                             placeholder="Enter event name"
                             required
@@ -142,10 +157,10 @@ export default function AddEventModal({ onSave }: AddEventModalProps) {
                 <div>
                   <FormField
                     control={form.control}
-                    name="type_"
+                    name="Type"
                     render={({ field }) => (
                       <FormItem className="w-full">
-                        <FormLabel htmlFor="type_" className="text-black font-bold text-xs">Type</FormLabel>
+                        <FormLabel htmlFor="Type" className="text-black font-bold text-xs">Type</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger className="w-full text-black border-black/15">
@@ -166,7 +181,7 @@ export default function AddEventModal({ onSave }: AddEventModalProps) {
                 <div>
                   <FormField
                     control={form.control}
-                    name="date"
+                    name="Date"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel htmlFor="date" className="text-black font-bold text-xs">Date</FormLabel>
@@ -209,13 +224,13 @@ export default function AddEventModal({ onSave }: AddEventModalProps) {
                 <div>
                   <FormField
                     control={form.control}
-                    name="venue"
+                    name="Venue"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel htmlFor="name" className="text-black font-bold text-xs">Venue</FormLabel>
                         <FormControl>
                           <Input
-                            id="venue"
+                            id="Venue"
                             type="text"
                             placeholder="Enter Venue Location"
                             required
@@ -231,13 +246,13 @@ export default function AddEventModal({ onSave }: AddEventModalProps) {
                 <div>
                   <FormField
                     control={form.control}
-                    name="attendee"
+                    name="Audience"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel htmlFor="name" className="text-black font-bold text-xs">Attendee</FormLabel>
                         <FormControl>
                           <Input
-                            id="attendee"
+                            id="Audience"
                             type="text"
                             placeholder="Enter Attendees"
                             required
@@ -253,14 +268,14 @@ export default function AddEventModal({ onSave }: AddEventModalProps) {
                 <div>
                   <FormField
                     control={form.control}
-                    name="notes"
+                    name="Notes"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel htmlFor="name" className="text-black font-bold text-xs">Important Notes</FormLabel>
                         <FormControl>
                           <Textarea
-                            id="notes"
-                            name="notes"
+                            id="Notes"
+                            name="Notes"
                             placeholder="Enter important notes"
                             required
                             className="text-black"
@@ -275,7 +290,7 @@ export default function AddEventModal({ onSave }: AddEventModalProps) {
                 <div>
                   <FormField
                     control={form.control}
-                    name="status"
+                    name="Status"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel htmlFor="status" className="text-black font-bold text-xs">Status</FormLabel>
@@ -297,7 +312,7 @@ export default function AddEventModal({ onSave }: AddEventModalProps) {
                 </div>
               </div>
               <div className="mt-4 flex justify-end">
-                <Button>Save Event</Button>
+                <Button type="submit">Save Event</Button>
               </div>
             </form>
           </Form>

@@ -1,4 +1,3 @@
-import type { Event as EventType } from "@/types/types";
 import { Button } from "@/components/ui/button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { eventSchema } from "@/types/formSchema";
@@ -14,61 +13,42 @@ import { format } from "date-fns"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { useState } from "react";
-import { toast } from "sonner";
-import { invoke } from "@tauri-apps/api/core";
+import { Event } from "@/types/apitypes";
 
 const selectOption: string[] = [
-  "Seminar",
   "Assembly",
+  "Health and Social Services",
+  "Disater Preparedness and Environmental",
+  "Education and Skill Development",
+  "Cultural, Recreational, and Sports",
+  "Law Enforcement and Community Safety",
+  "Humanitarian Assistance"
 ]
 
-export default function ViewEventModal(props: EventType & { onSave: () => void }) {
+export default function ViewEventModal({ event, open, onClose }: { event: Event, open: boolean, onClose: () => void }) {
   const [openCalendar, setOpenCalendar] = useState(false)
-  const [openModal, setOpenModal] = useState(false)
+  // const [openModal, setOpenModal] = useState(false)
   const form = useForm<z.infer<typeof eventSchema>>({
     resolver: zodResolver(eventSchema),
     defaultValues: {
-      name: props.name,
-      type_: props.type_,
-      status: props.status,
+      Name: event.Name,
+      Type: event.Type,
+      Status: event.Status,
       // Ensure date is always a Date object, even if props.date is already a Date or a string
-      date: props.date instanceof Date ? props.date : new Date(props.date),
-      venue: props.venue,
-      attendee: props.attendee,
-      notes: props.notes
+      Date: event.Date instanceof Date ? event.Date : new Date(event.Date),
+      Venue: event.Venue,
+      Audience: event.Audience,
+      Notes: event.Notes
     }
   })
 
   async function onSubmit(values: z.infer<typeof eventSchema>) {
-    try {
-      // Ensure date is passed as ISO string, and id is attached
-      const eventWithId = {
-        ...values,
-        id: props.id,
-        date: values.date instanceof Date ? values.date.toISOString() : new Date(values.date).toISOString(),
-        status: values.status,
-      };
-
-      await invoke("save_event_command", { event: eventWithId });
-
-      toast.success("Event updated successfully", {
-        description: `${values.name} was updated.`,
-      });
-
-      setOpenModal(false);
-      props.onSave();
-    } catch (error) {
-      toast.error("Update failed", {
-        description: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
   }
-  
   return (
     <>
       <Dialog
-        open={openModal}
-        onOpenChange={setOpenModal}
+        open={open}
+        onOpenChange={onClose}
       >
         <DialogTrigger asChild>
           <Button>
@@ -86,12 +66,11 @@ export default function ViewEventModal(props: EventType & { onSave: () => void }
                 </DialogDescription>
                 <p className="text-md font-bold text-black">Basic Event Information</p>
               </DialogHeader>
-                {/* Status field - only show if NOT Finished */}
               <div className="flex flex-col gap-3">
                 <div>
                   <FormField
                     control={form.control}
-                    name="name"
+                    name="Name"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel htmlFor="name" className="text-black font-bold text-xs">Name</FormLabel>
@@ -113,7 +92,7 @@ export default function ViewEventModal(props: EventType & { onSave: () => void }
                 <div>
                   <FormField
                     control={form.control}
-                    name="type_"
+                    name="Type"
                     render={({ field }) => (
                       <FormItem className="w-full">
                         <FormLabel htmlFor="type" className="text-black font-bold text-xs">Type</FormLabel>
@@ -140,7 +119,7 @@ export default function ViewEventModal(props: EventType & { onSave: () => void }
                 <div>
                   <FormField
                     control={form.control}
-                    name="date"
+                    name="Date"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel htmlFor="date" className="text-black font-bold text-xs">Date</FormLabel>
@@ -186,7 +165,7 @@ export default function ViewEventModal(props: EventType & { onSave: () => void }
                 <div>
                   <FormField
                     control={form.control}
-                    name="venue"
+                    name="Venue"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel htmlFor="name" className="text-black font-bold text-xs">Venue</FormLabel>
@@ -208,7 +187,7 @@ export default function ViewEventModal(props: EventType & { onSave: () => void }
                 <div>
                   <FormField
                     control={form.control}
-                    name="attendee"
+                    name="Audience"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel htmlFor="name" className="text-black font-bold text-xs">Attendee</FormLabel>
@@ -230,7 +209,7 @@ export default function ViewEventModal(props: EventType & { onSave: () => void }
                 <div>
                   <FormField
                     control={form.control}
-                    name="notes"
+                    name="Notes"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel htmlFor="name" className="text-black font-bold text-xs">Important Notes</FormLabel>
@@ -251,7 +230,7 @@ export default function ViewEventModal(props: EventType & { onSave: () => void }
                   <div>
                     <FormField
                       control={form.control}
-                      name="status"
+                      name="Status"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel htmlFor="status" className="text-black font-bold text-xs">Status</FormLabel>
@@ -259,7 +238,7 @@ export default function ViewEventModal(props: EventType & { onSave: () => void }
                             defaultValue={field.value}
                             onValueChange={(value) => {
                               field.onChange(value);
-                              form.setValue("status", value as any);
+                              form.setValue("Status", value as any);
                             }}
                           >
                             <FormControl>
@@ -279,13 +258,13 @@ export default function ViewEventModal(props: EventType & { onSave: () => void }
                       )}
                     />
                   </div>
-                
+
                 </div>
               </div>
               <div className="mt-4 flex justify-end">
-                  <Button type="submit">
-                    Save
-                  </Button>
+                <Button type="submit">
+                  Save
+                </Button>
               </div>
             </form>
           </Form>

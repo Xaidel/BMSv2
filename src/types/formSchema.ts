@@ -13,36 +13,35 @@ export const loginSchema = z.object({
   })
 })
 
+const statusOption = ["Upcoming", "Ongoing", "Finished", "Cancelled"] as const;
 export const eventSchema = z.object({
-  name: z.string().min(2, {
+  Name: z.string().min(2, {
     message: "Event name is too short"
   }).max(50, {
-    message: "Event name is too long, put other details in the notes"
+    message: "Event name is too long, put other details on the 'details' form"
   }),
-  type_: z.string().min(2, {
+  Type: z.string().min(2, {
     message: "Event type is too short"
   }).max(50, {
-    message: "Event type is too long"
+    message: "Event type is too long."
   }),
-  status: z.enum(["Upcoming", "Finished", "Ongoing", "Cancelled"], {
-    required_error: "Status is required"
-  }),
-  date: z.date({
+  Date: z.date({
     required_error: "Please specify the event date"
   }),
-  venue: z.string().min(2, {
+  Venue: z.string().min(2, {
     message: "Event venue is too short"
   }).max(50, {
     message: "Event venue is too long"
   }),
-  attendee: z.string().min(2, {
-    message: "Attendee name is too short"
+  Audience: z.string().min(2, {
+    message: "Attendee too long"
   }).max(50, {
-    message: "Attendee name is too long"
+    message: "Event venue is too long"
   }),
-  notes: z.string().max(1000, {
-    message: "Notes field is too long"
-  })
+  Notes: z.string().max(1000, {
+    message: "Important notes is too long"
+  }),
+  Status: z.enum(statusOption)
 })
 
 export const residentSchema = z.object({

@@ -1,4 +1,4 @@
-import { Event } from "@/types/types";
+import { Event } from "@/types/apitypes"
 
 export function sort(data: Event[], term: string): Event[] {
   switch (term) {
@@ -22,23 +22,23 @@ export function sort(data: Event[], term: string): Event[] {
 }
 
 function sortDateAsc(data: Event[]): Event[] {
-  return [...data].sort((a, b) => a.date.getTime() - b.date.getTime())
+  return [...data].sort((a, b) => new Date(a.Date).getTime() - new Date(b.Date).getTime())
 }
 function sortDateDesc(data: Event[]): Event[] {
-  return [...data].sort((a, b) => b.date.getTime() - a.date.getTime())
+  return [...data].sort((a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime())
 }
 function sortByVenue(data: Event[]): Event[] {
-  return [...data].sort((a, b) => a.venue.localeCompare(b.venue, undefined, { sensitivity: 'base' }))
+  return [...data].sort((a, b) => a.Venue.localeCompare(b.Venue, undefined, { sensitivity: 'base' }))
 }
 function filterByUpcoming(data: Event[]): Event[] {
-  return data.filter((event) => event.status === "Upcoming")
+  return data.filter((event) => event.Status === "Upcoming")
 }
 function filterByFinished(data: Event[]): Event[] {
-  return data.filter((event) => event.status === "Finished")
+  return data.filter((event) => event.Status === "Finished")
 }
 function filterByCancelled(data: Event[]): Event[] {
-  return data.filter((event) => event.status === "Cancelled")
+  return data.filter((event) => event.Status === "Cancelled")
 }
 function filterByOngoing(data: Event[]): Event[] {
-  return data.filter((event) => event.status === "Ongoing")
+  return data.filter((event) => event.Status === "Ongoing")
 }

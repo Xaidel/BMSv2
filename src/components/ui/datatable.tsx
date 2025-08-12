@@ -15,7 +15,7 @@ type TableProps<T> = {
   columns: ColumnDef<T>[];
   classname?: string;
   height?: string;
-  rowSelection?: Record<string, boolean>;
+  rowSelection?: Record<number, boolean>;
   onRowSelectionChange?: (
     updater:
       | Record<string, boolean>

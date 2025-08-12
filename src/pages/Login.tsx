@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { invoke } from "@tauri-apps/api/core";
 import { useEffect } from "react";
 import { useLogin } from "@/features/api/auth/useLogin";
-import { ErrorLoginResponse, LoginResponse } from "@/service/api/auth/login";
+import { ErrorResponse, LoginResponse } from "@/service/api/auth/login";
 
 
 export default function LoginPage() {
@@ -43,7 +43,7 @@ export default function LoginPage() {
             description: `Welcome to BMS ${data.user.Username}`
           }
         },
-        error: (error: ErrorLoginResponse) => {
+        error: (error: ErrorResponse) => {
           console.log(error)
           return {
             message: "Login Failed",

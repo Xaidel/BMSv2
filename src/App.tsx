@@ -50,9 +50,18 @@ function App() {
           <Route index element={<LoginPage />}></Route>
         </Routes>
         <Toaster
-          position="top-center"
+          position="bottom-right"
           richColors
           closeButton
+          toastOptions={{
+            classNames: {
+              success: "!bg-white !border !border-[#00a545] !rounded-xl !shadow-lg !p-4 !gap-5",
+              error: "!bg-white !border !border-[#C4060F] !rounded-xl !shadow-lg !p-4 !gap-5",
+              title: "!text-[#0F151D] !font-semibold !text-sm",
+              closeButton:
+                "!right-2 !w-5 !h-5 !flex !items-center !justify-center !rounded-md !bg-gray-100 hover:!bg-gray-200 !border !border-gray-300 !text-gray-600 hover:!text-gray-800 !transition-colors", description: "!text-[#0F151D] !text-sm !mt-1 !opacity-70",
+            }
+          }}
         />
       </Router >
     </QueryClientProvider>

@@ -1,7 +1,7 @@
 import { api } from "@/service/api";
 import { User } from "@/types/apitypes";
 
-export interface ErrorLoginResponse {
+export interface ErrorResponse {
   error: string
 }
 export interface LoginResponse {
@@ -9,7 +9,7 @@ export interface LoginResponse {
   user: User
 }
 
-export default async function Login(role: string, username: string, password: string): Promise<LoginResponse | ErrorLoginResponse> {
+export default async function Login(role: string, username: string, password: string): Promise<LoginResponse | ErrorResponse> {
   try {
 
     const res = await fetch(`${api}/auth/login`, {
@@ -25,7 +25,7 @@ export default async function Login(role: string, username: string, password: st
       })
     })
     if (!res.ok) {
-      const error = await res.json() as ErrorLoginResponse
+      const error = await res.json() as ErrorResponse
       throw error
     }
     return res.json() as Promise<LoginResponse>

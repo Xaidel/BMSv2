@@ -5,7 +5,6 @@ import Filter from "@/components/ui/filter";
 import Searchbar from "@/components/ui/searchbar";
 import SummaryCardEvent from "@/components/summary-card/event";
 import AddEventModal from "@/features/event/addEventModal";
-import DeleteEventModal from "@/features/event/deleteEventModal";
 import ViewEventModal from "@/features/event/viewEventModal";
 import { sort } from "@/service/event/eventSort";
 import searchEvent from "@/service/event/searchEvent";
@@ -17,11 +16,16 @@ import {
   CalendarCheck,
   CalendarX2,
   CalendarClock,
+  Eye,
 } from "lucide-react";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { invoke } from "@tauri-apps/api/core";
+import { useEvent } from "@/features/api/event/useEvent";
+import { Event } from "@/types/apitypes";
 import { toast } from "sonner";
+import { useDeleteEvent } from "@/features/api/event/useDeleteEvent";
+import { useQueryClient } from "@tanstack/react-query";
+import { ErrorResponse } from "@/service/api/auth/login";
 
 
 const filters = [
@@ -35,67 +39,32 @@ const filters = [
   "Cancelled",
 ];
 
-type Event = {
-  id: number;
-  name: string;
-  type_: string;
-  status: "Upcoming" | "Finished" | "Ongoing" | "Cancelled";
-  date: Date;
-  venue: string;
-  attendee: string;
-  notes: string;
-};
 
 const columns: ColumnDef<Event>[] = [
   {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected()
-            ? true
-            : table.getIsSomePageRowsSelected()
-              ? "indeterminate"
-              : false
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        className="flex items-center justify-center"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        className="flex items-center justify-center"
-      />
-    ),
-  },
-  {
     header: "Name",
-    accessorKey: "name",
+    accessorKey: "Name",
   },
   {
     header: "Type",
-    accessorKey: "type_",
+    accessorKey: "Type",
   },
   {
     header: "Date",
-    accessorKey: "date",
+    accessorKey: "Date",
     cell: ({ row }) => {
-      return <div>{format(row.original.date, "MMMM do, yyyy")}</div>;
+      return <div>{format(row.original.Date, "MMMM do, yyyy")}</div>;
     },
   },
   {
     header: "Venue",
-    accessorKey: "venue",
+    accessorKey: "Venue",
   },
   {
     header: "Status",
-    accessorKey: "status",
+    accessorKey: "Status",
     cell: ({ row }) => {
-      const status = row.original.status;
+      const status = row.original.Status;
       let color: string;
       switch (status) {
         case "Upcoming": {
@@ -124,27 +93,18 @@ const columns: ColumnDef<Event>[] = [
 ];
 
 export default function Events() {
-  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
+  const user = sessionStorage.getItem("user")
+  const parsedUser = JSON.parse(user)
+  const [rowSelection, setRowSelection] = useState<Record<number, boolean>>({});
+  const [selectedEvent, setSelectedEvent] = useState<number[]>([])
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
-  const [data, setData] = useState<Event[]>([]);
-  const fetchEvents = () => {
-    invoke<Event[]>("fetch_all_events_command")
-      .then((fetched) => {
-        const parsed = fetched.map((event) => ({
-          ...event,
-          date: new Date(event.date),
-        }));
-        setData(parsed);
-      })
-      .catch((err) => console.error("Failed to fetch events:", err));
-  };
-
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
-  <AddEventModal onSave={fetchEvents} />;
+  const { data: eventResponse, isFetching } = useEvent()
+  const queryClient = useQueryClient()
+  const deleteMutation = useDeleteEvent()
+  const event = useMemo(() => {
+    return eventResponse?.events ?? []
+  }, [eventResponse])
 
   const handleSortChange = (sortValue: string) => {
     searchParams.set("sort", sortValue);
@@ -156,47 +116,19 @@ export default function Events() {
   };
 
   const filteredData = useMemo(() => {
-    const sortedData = sort(data, searchParams.get("sort") ?? "All Events");
+    const sortedData = sort(event, searchParams.get("sort") ?? "All Events");
 
     if (searchQuery.trim()) {
       return searchEvent(searchQuery, sortedData);
     }
 
     return sortedData;
-  }, [searchParams, data, searchQuery]);
-
-  const total = data.length;
-  const finished = data.filter((d) => d.status === "Finished").length;
-  const upcoming = data.filter((d) => d.status === "Upcoming").length;
-  const cancelled = data.filter((d) => d.status === "Cancelled").length;
-
-  const handleDeleteSelected = async () => {
-    const selectedIds = Object.keys(rowSelection)
-      .map((key) => filteredData[parseInt(key)])
-      .filter((row) => !!row)
-      .map((row) => row.id);
-
-    if (selectedIds.length === 0) {
-      toast.error("No events selected.");
-      return;
-    }
-
-    try {
-      for (const id of selectedIds) {
-        if (id !== undefined) {
-          await invoke("delete_event_command", { id });
-        }
-      }
-      toast.success("Selected events deleted.");
-      fetchEvents(); // Refresh the table
-      setRowSelection({}); // Reset selection
-    } catch (err) {
-      toast.error("Failed to delete selected events");
-      console.error("Delete error:", err);
-    }
-  };
-
-
+  }, [searchParams, event, searchQuery]);
+  const total = event.length;
+  const finished = event.filter((d) => d.Status === "Finished").length;
+  const upcoming = event.filter((d) => d.Status === "Upcoming").length;
+  const cancelled = event.filter((d) => d.Status === "Cancelled").length;
+  const [viewEventId, setViewEventId] = useState<number | null>(null);
   return (
     <>
       <div className="flex flex-wrap gap-5 justify-around mb-5 mt-1">
@@ -210,7 +142,7 @@ export default function Events() {
             const { toast } = await import("sonner");
             const { EventPDF } = await import("@/components/pdf/eventpdf");
 
-            const blob = await pdf(<EventPDF filter="All Events" events={data} />).toBlob();
+            const blob = await pdf(<EventPDF filter="All Events" events={[]} />).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
             try {
@@ -232,13 +164,13 @@ export default function Events() {
           value={upcoming}
           icon={<CalendarPlus size={50} />}
           onClick={async () => {
-            const filtered = data.filter((d) => d.status === "Upcoming");
+            //  const filtered = event.filter((d) => d.Status === "Upcoming");
             const { pdf } = await import("@react-pdf/renderer");
             const { writeFile, BaseDirectory } = await import("@tauri-apps/plugin-fs");
             const { toast } = await import("sonner");
             const { EventPDF } = await import("@/components/pdf/eventpdf");
 
-            const blob = await pdf(<EventPDF filter="Upcoming Events" events={filtered} />).toBlob();
+            const blob = await pdf(<EventPDF filter="Upcoming Events" events={[]} />).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
             try {
@@ -260,13 +192,13 @@ export default function Events() {
           value={finished}
           icon={<CalendarCheck size={50} />}
           onClick={async () => {
-            const filtered = data.filter((d) => d.status === "Finished");
+            //           const filtered = event.filter((d) => d.Status === "Finished");
             const { pdf } = await import("@react-pdf/renderer");
             const { writeFile, BaseDirectory } = await import("@tauri-apps/plugin-fs");
             const { toast } = await import("sonner");
             const { EventPDF } = await import("@/components/pdf/eventpdf");
 
-            const blob = await pdf(<EventPDF filter="Finished Events" events={filtered} />).toBlob();
+            const blob = await pdf(<EventPDF filter="Finished Events" events={[]} />).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
             try {
@@ -288,13 +220,13 @@ export default function Events() {
           value={cancelled}
           icon={<CalendarX2 size={50} />}
           onClick={async () => {
-            const filtered = data.filter((d) => d.status === "Cancelled");
+            //           const filtered = event.filter((d) => d.Status === "Cancelled");
             const { pdf } = await import("@react-pdf/renderer");
             const { writeFile, BaseDirectory } = await import("@tauri-apps/plugin-fs");
             const { toast } = await import("sonner");
             const { EventPDF } = await import("@/components/pdf/eventpdf");
 
-            const blob = await pdf(<EventPDF filter="Cancelled Events" events={filtered} />).toBlob();
+            const blob = await pdf(<EventPDF filter="Cancelled Events" events={[]} />).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
             try {
@@ -328,13 +260,46 @@ export default function Events() {
         <Button
           variant="destructive"
           size="lg"
-          disabled={Object.keys(rowSelection).length === 0}
-          onClick={handleDeleteSelected}
+          disabled={
+            Object.keys(rowSelection).length === 0 || parsedUser.user.Role !== "secretary"
+          }
+          onClick={() => {
+            console.log(parsedUser.user.Role)
+            if (selectedEvent) {
+              toast.promise(
+                deleteMutation.mutateAsync(selectedEvent),
+                {
+                  loading: "Deleting events. Please wait",
+                  success: () => {
+                    queryClient.invalidateQueries({ queryKey: ['events'] })
+                    setRowSelection((prevSelection) => {
+                      const newSelection = { ...prevSelection };
+                      selectedEvent.forEach((_, i) => {
+                        delete newSelection[i]; // remove key for deleted event id
+                      });
+                      console.log(newSelection)
+                      return newSelection;
+                    });
+                    setSelectedEvent([])
+                    return {
+                      message: "Event successfully deleted"
+                    }
+                  },
+                  error: (error: ErrorResponse) => {
+                    return {
+                      message: "Failed to delete event",
+                      description: error.error
+                    }
+                  }
+                }
+              )
+            }
+          }}
         >
           <Trash />
           Delete Selected
         </Button>
-        <AddEventModal onSave={fetchEvents} />
+        <AddEventModal />
       </div>
 
       <DataTable<Event>
@@ -342,21 +307,67 @@ export default function Events() {
         height="43.3rem"
         data={filteredData}
         columns={[
+          {
+            id: "select",
+            header: ({ table }) => (
+              <Checkbox
+                checked={
+                  table.getIsAllPageRowsSelected()
+                    ? true
+                    : table.getIsSomePageRowsSelected()
+                      ? "indeterminate"
+                      : false
+                }
+                onCheckedChange={(value) => {
+                  table.toggleAllPageRowsSelected(!!value)
+
+                  if (value) {
+                    const allVisibleRows = table.getRowModel().rows.map(row => row.original.ID)
+                    setSelectedEvent(allVisibleRows)
+                  } else {
+                    setSelectedEvent([])
+                  }
+                }}
+                aria-label="Select all"
+                className="flex items-center justify-center"
+              />
+            ),
+            cell: ({ row }) => (
+              <Checkbox
+                checked={row.getIsSelected()}
+                onCheckedChange={(value) => {
+                  row.toggleSelected(!!value)
+
+                  if (value) {
+                    setSelectedEvent(prev => [...prev, row.original.ID])
+                  } else {
+                    setSelectedEvent(prev =>
+                      prev.filter(event => event !== row.original.ID)
+                    )
+                  }
+                }}
+                aria-label="Select row"
+                className="flex items-center justify-center"
+              />
+            ),
+          },
           ...columns,
           {
             id: "view",
             header: "",
             cell: ({ row }) => {
-              const status = row.original.status;
+              //             const status = row.original.Status;
               return (
                 <div className="flex gap-3">
-                  <ViewEventModal {...row.original} onSave={fetchEvents} />
-                  {status !== "Upcoming" && status !== "Ongoing" && status !== "Finished" && (
-                    <DeleteEventModal
+                  <Button onClick={() => setViewEventId(row.original.ID)}>
+                    <Eye /> View Event
+                  </Button>
+                  {/*                {status !== "Upcoming" && status !== "Ongoing" && status !== "Finished" && (
+                    < DeleteEventModal
                       {...row.original}
-                      onDelete={fetchEvents}
+                  onDelete={ }
                     />
-                  )}
+                  )}*/}
                 </div>
               );
             },
@@ -365,6 +376,13 @@ export default function Events() {
         rowSelection={rowSelection}
         onRowSelectionChange={setRowSelection}
       />
+      {viewEventId !== null && (
+        <ViewEventModal
+          event={event.find((e => e.ID === viewEventId))}
+          open={true}
+          onClose={() => setViewEventId(null)}
+        />
+      )}
     </>
   );
 }
