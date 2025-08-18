@@ -52,7 +52,6 @@ export default function ViewEventModal({ event, open, onClose }: { event: Event,
     type EventPatch = Partial<Omit<z.infer<typeof eventSchema>, "Date"> & { Date: string }>
 
     const updated: EventPatch = {}
-
     Object.keys(values).forEach((key) => {
       const formValue = values[key as keyof typeof values]
       let eventValue = event[key as keyof Event]
@@ -69,7 +68,6 @@ export default function ViewEventModal({ event, open, onClose }: { event: Event,
         }
       }
     })
-
     toast.promise(
       editMutation.mutateAsync({ event_id: event.ID, updated }), {
       loading: "Editing new event please wait...",

@@ -60,7 +60,6 @@ export const residentSchema = z.object({
   mobile_number: z.string().regex(/^09\d{9}$/, "Invalid mobile number").optional(),
   date_of_birth: z.coerce.date({ required_error: "Birthday required" }),
   town_of_birth: z.string().min(1),
-  province_of_birth: z.string().min(1),
   zone: z.string().min(1),
   educAttainment: z.string().min(1),
   religion: z.string().min(1),

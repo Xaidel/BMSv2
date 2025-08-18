@@ -33,7 +33,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { residentSchema } from "@/types/formSchema";
 import { useAddResident } from "../api/resident/useAddResident";
 import { toast } from "sonner";
@@ -68,8 +68,6 @@ export default function AddResidentModal() {
      loadDefaultLocation();
    }, []); */
 
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
-
   const form = useForm<z.infer<typeof residentSchema>>({
     resolver: zodResolver(residentSchema),
     defaultValues: {
@@ -83,7 +81,6 @@ export default function AddResidentModal() {
       mobile_number: "",
       date_of_birth: undefined,
       town_of_birth: "",
-      province_of_birth: "",
       nationality: "",
       zone: "",
       educAttainment: "",
@@ -115,8 +112,12 @@ export default function AddResidentModal() {
         EducationalAttainment: values.educAttainment,
         Birthday: values.date_of_birth,
         IsVoter: values.is_registered_voter,
+        IsPwd: values.is_pwd,
         Image: null,
         Zone: Number(values.zone),
+        Barangay: values.barangay,
+        Town: values.town,
+        Province: values.province,
         Suffix: values.suffix,
         Occupation: values.occupation,
         AvgIncome: values.income,
@@ -184,7 +185,6 @@ export default function AddResidentModal() {
                                     field.onChange(file);
                                     const reader = new FileReader();
                                     reader.onload = () => {
-                                      setCapturedImage(reader.result as string);
                                     };
                                     reader.readAsDataURL(file);
                                   }
@@ -627,33 +627,12 @@ export default function AddResidentModal() {
                       name="town_of_birth"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>City/Town</FormLabel>
+                          <FormLabel>Birthplace</FormLabel>
                           <FormControl>
                             <Input
                               id="townOfBirth"
                               type="text"
                               placeholder="Enter town/city of birth"
-                              required
-                              {...field}
-                              className="text-black"
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="col-span-2">
-                    <FormField
-                      control={form.control}
-                      name="province_of_birth"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Province</FormLabel>
-                          <FormControl>
-                            <Input
-                              id="provinceOfBirth"
-                              type="text"
-                              placeholder="Enter province of birth"
                               required
                               {...field}
                               className="text-black"

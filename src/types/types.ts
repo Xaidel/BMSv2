@@ -19,9 +19,9 @@ export type Resident = {
   middle_name?: string;
   last_name: string;
   suffix?: string;
-  full_name?: string; // can be generated later
+  full_name?: string;
   civil_status: string;
-  gender: string;
+  gender: "Male" | "Female";
   nationality: string;
   mobile_number: string;
   date_of_birth: Date;

@@ -6,7 +6,7 @@ import Searchbar from "@/components/ui/searchbar";
 import AddResidentModal from "@/features/residents/addResidentModal";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { Trash, Users, UserCheck, UserMinus, Mars, Venus, User, Accessibility, Fingerprint } from "lucide-react";
+import { Trash, Users, UserCheck, UserMinus, Mars, Venus, User, Accessibility, Fingerprint, Eye } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { sort } from "@/service/resident/residentSort";
@@ -17,6 +17,7 @@ import { Resident } from "@/types/apitypes";
 import { useDeleteResident } from "@/features/api/resident/useDeleteResident";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import ViewResidentModal from "@/features/residents/viewResidentModal";
 
 const filters = ["All Residents", "Alphabetical", "Moved Out", "Active", "Dead", "Missing"];
 
@@ -72,6 +73,7 @@ export default function Residents() {
   const deleteMutation = useDeleteResident()
   const { data: residents } = useResident()
   const queryClient = useQueryClient()
+  const [viewResidentId, setViewResidentId] = useState<number | null>(null)
   const handleSortChange = (sortValue: string) => {
     searchParams.set("sort", sortValue);
     setSearchParams(searchParams);
@@ -446,7 +448,9 @@ export default function Residents() {
             header: "",
             cell: ({ row }) => (
               <div className="flex gap-3">
-                {/*  <ViewResidentModal {...row.original} /> */}
+                <Button onClick={() => setViewResidentId(row.original.ID)}>
+                  <Eye /> View Resident
+                </Button>
                 {/* <DeleteResidentModal
                   id={row.original.id}
                   full_name={row.original.full_name}
@@ -458,6 +462,13 @@ export default function Residents() {
         rowSelection={rowSelection}
         onRowSelectionChange={setRowSelection}
       />
+      {viewResidentId !== null && (
+        <ViewResidentModal
+          resident={residents.residents.find((e => e.ID === viewResidentId))}
+          open={true}
+          onClose={() => setViewResidentId(null)}
+        />
+      )}
     </>
   );
 }

@@ -24,16 +24,20 @@ export type Resident = {
   Gender: "Male" | "Female" | ""
   Nationality: string
   Religion: string
+  Barangay: string
   Occupation: string
   Zone: number
+  Town: string,
+  Province: string,
   Status: "Active" | "Dead" | "Missing" | "Moved Out" | ""
   Birthplace: string
   EducationalAttainment: string
   Birthday: Date
   IsVoter: boolean
+  IsPWD: boolean
   Image: File | null
   AvgIncome: number
   MobileNumber: string
-  ID: number
+  ID?: number
 }
 
