@@ -14,6 +14,7 @@ export const loginSchema = z.object({
 })
 
 const statusOption = ["Upcoming", "Ongoing", "Finished", "Cancelled"] as const;
+
 export const eventSchema = z.object({
   Name: z.string().min(2, {
     message: "Event name is too short"
@@ -45,36 +46,36 @@ export const eventSchema = z.object({
 })
 
 export const residentSchema = z.object({
-  prefix: z.string(),
   first_name: z.string().min(1),
-  middle_name: z.string().optional(),
+  middle_name: z.string().nullable().optional(),
   last_name: z.string().min(1),
-  suffix: z.string().optional().nullable(),
+  suffix: z.string().nullable().optional(),
   civil_status: z.string().min(1),
-  gender: z.string().min(1),
+  gender: z.union([
+    z.enum(["Male", "Female"]),
+    z.literal("")
+  ]),
   nationality: z.string().min(1),
-  mobile_number: z.string().min(1),
-  date_of_birth: z.date(),
+  occupation: z.string().min(1),
+  mobile_number: z.string().regex(/^09\d{9}$/, "Invalid mobile number").optional(),
+  date_of_birth: z.coerce.date({ required_error: "Birthday required" }),
   town_of_birth: z.string().min(1),
   province_of_birth: z.string().min(1),
   zone: z.string().min(1),
+  educAttainment: z.string().min(1),
+  religion: z.string().min(1),
   barangay: z.string().min(1),
   town: z.string().min(1),
   province: z.string().min(1),
-  father_prefix: z.string().min(1),
-  father_first_name: z.string().min(1),
-  father_middle_name: z.string().min(1),
-  father_last_name: z.string().min(1),
-  father_suffix: z.string().optional().nullable(),
-  mother_prefix: z.string().min(1),
-  mother_first_name: z.string().min(1),
-  mother_middle_name: z.string().min(1),
-  mother_last_name: z.string().min(1),
-  status: z.string().min(1),
-  photo: z.any(),
+  status: z.union([
+    z.enum(["Active", "Dead", "Missing", "Moved Out"]),
+    z.literal("")
+  ]),
+  photo: z.instanceof(File).optional().nullable(),
   is_registered_voter: z.boolean().default(false),
   is_pwd: z.boolean().default(false),
   is_senior: z.boolean().default(false),
+  income: z.coerce.number()
 });
 
 export const householdSchema = z.object({

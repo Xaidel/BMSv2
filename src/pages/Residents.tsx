@@ -1,25 +1,19 @@
-// Residents page implemented by mirroring Household logic
-// (Code inserted here reflects working data table, filter, summary, and modal handling for Resident records)
-
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import DataTable from "@/components/ui/datatable";
 import Filter from "@/components/ui/filter";
 import Searchbar from "@/components/ui/searchbar";
 import AddResidentModal from "@/features/residents/addResidentModal";
-import DeleteResidentModal from "@/features/residents/deleteResidentModal";
-import ViewResidentModal from "@/features/residents/viewResidentModal";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { Trash, Users, UserCheck, UserMinus, Mars, Venus, User, Accessibility, Fingerprint } from "lucide-react";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Resident } from "@/types/types";
 import { sort } from "@/service/resident/residentSort";
 import searchResident from "@/service/resident/searchResident";
 import SummaryCardResidents from "@/components/summary-card/residents";
-import { invoke } from "@tauri-apps/api/core";
-import { toast } from "sonner";
+import { useResident } from "@/features/api/resident/useResident";
+import { Resident } from "@/types/apitypes";
 
 const filters = ["All Residents", "Alphabetical", "Moved Out", "Active", "Dead", "Missing"];
 
@@ -53,34 +47,34 @@ const columns: ColumnDef<Resident>[] = [
     header: "Full Name",
     cell: ({ row }) => {
       const r = row.original;
-      const fullName = [r.last_name ? r.last_name + "," : "", r.first_name, r.middle_name, r.suffix].filter(Boolean).join(" ");
+      const middleName = r.Middlename ? r.Middlename : ""
+      const fullName = `${r.Lastname} ${r.Firstname} ${middleName}`
       return <div>{fullName}</div>;
     },
   },
   {
     header: "Civil Status",
-    accessorKey: "civil_status",
+    accessorKey: "CivilStatus",
   },
   {
     header: "Birthday",
-    accessorKey: "date_of_birth",
     cell: ({ row }) => (
-      <div>{format(new Date(row.original.date_of_birth), "MMMM do, yyyy")}</div>
+      <div>{format(new Date(row.original.Birthday), "MMMM do, yyyy")}</div>
     ),
   },
   {
     header: "Gender",
-    accessorKey: "gender",
+    accessorKey: "Gender",
   },
   {
     header: "Zone",
-    accessorKey: "zone",
+    accessorKey: "Zone",
   },
   {
     header: "Status",
     accessorKey: "status",
     cell: ({ row }) => {
-      const status = row.original.status;
+      const status = row.original.Status;
       let color = {
         "Moved Out": "#BD0000",
         "Active": "#00BD29",
@@ -97,6 +91,7 @@ export default function Residents() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [data, setData] = useState<Resident[]>([]);
+  const { data: residents } = useResident()
 
   const handleSortChange = (sortValue: string) => {
     searchParams.set("sort", sortValue);
@@ -105,8 +100,9 @@ export default function Residents() {
 
 
   const filteredData = useMemo(() => {
+    if (!residents) return []
     const sortValue = searchParams.get("sort") ?? "All Residents";
-    let sorted = sort(data, sortValue);
+    let sorted = sort(residents.residents, sortValue);
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -114,21 +110,21 @@ export default function Residents() {
     }
 
     return sorted;
-  }, [searchParams, searchQuery, data]);
+  }, [searchParams, searchQuery, residents]);
 
-  const fetchResidents = () => {
-    invoke<Resident[]>("fetch_all_residents_command")
-      .then((fetched) => {
-        setData(fetched);
-      })
-      .catch((err) => console.error("Failed to fetch residents:", err));
-  };
+  /* const fetchResidents = () => {
+     invoke<Resident[]>("fetch_all_residents_command")
+       .then((fetched) => {
+         setData(fetched);
+       })
+       .catch((err) => console.error("Failed to fetch residents:", err));
+   };
+ 
+   useEffect(() => {
+     fetchResidents();
+   }, []); */
 
-  useEffect(() => {
-    fetchResidents();
-  }, []);
-
-  const handleDeleteSelected = async () => {
+  /*const handleDeleteSelected = async () => {
     const selectedIds = Object.keys(rowSelection)
       .map((key) => filteredData[parseInt(key)])
       .filter((row) => !!row)
@@ -152,16 +148,27 @@ export default function Residents() {
       toast.error("Failed to delete selected residents");
       console.error("Delete error:", err);
     }
-  };
+  }; */
 
-  const total = data.length;
-  const active = data.filter((r) => r.status === "Active").length;
-  const movedOut = data.filter((r) => r.status === "Moved Out").length;
-  const male = data.filter((r) => r.gender === "Male").length;
-  const female = data.filter((r) => r.gender === "Female").length;
-  const senior = data.filter((r) => r.is_senior).length;
-  const pwd = data.filter((r) => r.is_pwd).length;
-  const registered = data.filter((r) => r.is_registered_voter).length;
+  const res = residents?.residents || []
+  const total = res.length;
+  const active = res.filter((r) => r.Status === "Active").length;
+  const movedOut = res.filter((r) => r.Status === "Moved Out").length;
+  const male = res.filter((r) => r.Gender === "Male").length;
+  const female = res.filter((r) => r.Gender === "Female").length;
+  const today = new Date()
+  const senior = res.filter((r) => {
+    const birthDate = new Date(r.Birthday);
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+
+    const realAge = m < 0 || (m === 0 && today.getDate() < birthDate.getDate())
+      ? age - 1
+      : age;
+
+    return realAge >= 60; // for example, senior = 60+
+  }).length;
+  const registered = res.filter((r) => r.IsVoter).length;
 
   return (
     <>
@@ -178,7 +185,7 @@ export default function Residents() {
 
             const casted: Resident[] = data.map((r) => ({
               ...r,
-              date_of_birth: typeof r.date_of_birth === "string" ? new Date(r.date_of_birth) : r.date_of_birth,
+              date_of_birth: typeof r.Birthday === "string" ? new Date(r.Birthday) : r.Birthday,
             })) as Resident[];
 
             const blob = await pdf(<ResidentPDF filter="All Residents" residents={casted} />).toBlob();
@@ -282,34 +289,6 @@ export default function Residents() {
             });
           }
         }} />
-        <SummaryCardResidents title="PWD" value={pwd} icon={<Accessibility size={50} />} onClick={async () => {
-          const { pdf } = await import("@react-pdf/renderer");
-          const { writeFile, BaseDirectory } = await import("@tauri-apps/plugin-fs");
-          const { toast } = await import("sonner");
-          const { ResidentPDF } = await import("@/components/pdf/residentpdf");
-
-          const filtered = data.filter((r) => r.is_pwd === true);
-          const casted: Resident[] = filtered.map((r) => ({
-            ...r,
-            date_of_birth: typeof r.date_of_birth === "string" ? new Date(r.date_of_birth) : r.date_of_birth,
-          }));
-
-          const blob = await pdf(<ResidentPDF filter="PWD Residents" residents={casted} />).toBlob();
-          const buffer = await blob.arrayBuffer();
-          const contents = new Uint8Array(buffer);
-          try {
-            await writeFile("PWDResidents.pdf", contents, {
-              baseDir: BaseDirectory.Document,
-            });
-            toast.success("PWD Resident PDF downloaded", {
-              description: "Saved in Documents folder",
-            });
-          } catch (e) {
-            toast.error("Error", {
-              description: "Failed to save PWD Resident PDF",
-            });
-          }
-        }} />
         <SummaryCardResidents title="Registered Voters" value={registered} icon={<Fingerprint size={50} />} onClick={async () => {
           const { pdf } = await import("@react-pdf/renderer");
           const { writeFile, BaseDirectory } = await import("@tauri-apps/plugin-fs");
@@ -399,10 +378,10 @@ export default function Residents() {
       <div className="flex gap-5 w-full items-center justify-center">
         <Searchbar onChange={(value) => setSearchQuery(value)} placeholder="Search Resident" classname="flex flex-5" />
         <Filter onChange={handleSortChange} filters={filters} initial="All Residents" classname="flex-1" />
-        <Button variant="destructive" size="lg" disabled={Object.keys(rowSelection).length === 0} onClick={handleDeleteSelected}>
+        <Button variant="destructive" size="lg" disabled={Object.keys(rowSelection).length === 0} >
           <Trash /> Delete Selected
         </Button>
-        <AddResidentModal onSave={fetchResidents} />
+        <AddResidentModal />
       </div>
 
       <DataTable<Resident>
@@ -416,11 +395,11 @@ export default function Residents() {
             header: "",
             cell: ({ row }) => (
               <div className="flex gap-3">
-                <ViewResidentModal {...row.original} onSave={fetchResidents} />
-                <DeleteResidentModal
+                {/*  <ViewResidentModal {...row.original} /> */}
+                {/* <DeleteResidentModal
                   id={row.original.id}
                   full_name={row.original.full_name}
-                />
+                /> */}
               </div>
             ),
           },

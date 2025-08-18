@@ -1,4 +1,4 @@
-import { Resident } from "@/types/types";
+import { Resident } from "@/types/apitypes"
 
 export function sort(data: Resident[], term: string): Resident[] {
   switch (term) {
@@ -18,19 +18,19 @@ export function sort(data: Resident[], term: string): Resident[] {
 }
 
 function sortAlphabetical(data: Resident[]): Resident[] {
-  return [...data].sort((a, b) => a.last_name.localeCompare(b.last_name, undefined, { sensitivity: "base" }))
+  return [...data].sort((a, b) => a.Lastname.localeCompare(b.Lastname, undefined, { sensitivity: "base" }))
 }
 function filterMovedOut(data: Resident[]): Resident[] {
-  return data.filter((resident) => resident.status === "Moved Out")
+  return data.filter((resident) => resident.Status === "Moved Out")
 }
 function filterActive(data: Resident[]): Resident[] {
-  return data.filter((resident) => resident.status === "Active")
+  return data.filter((resident) => resident.Status === "Active")
 }
 function filterDead(data: Resident[]): Resident[] {
-  return data.filter((resident) => resident.status === "Dead")
+  return data.filter((resident) => resident.Status === "Dead")
 }
 function filterMissing(data: Resident[]): Resident[] {
-  return data.filter((resident) => resident.status === "Missing")
+  return data.filter((resident) => resident.Status === "Missing")
 }
 
 

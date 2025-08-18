@@ -48,7 +48,7 @@ const prefixOptions = ["Mr.", "Mrs.", "Ms."];
 
 
 export default function ViewResidentModal(
-  props: Resident & { onSave: () => void }
+  props: Resident
 ) {
   const [openCalendar, setOpenCalendar] = useState(false);
   const [openModal, setOpenModal] = useState(false);
@@ -84,7 +84,6 @@ export default function ViewResidentModal(
       });
 
       setOpenModal(false);
-      props.onSave();
     } catch (error) {
       toast.error("Update failed", {
         description: error instanceof Error ? error.message : "Unknown error",

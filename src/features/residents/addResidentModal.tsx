@@ -31,47 +31,48 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarIcon, Plus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { settingsSchema } from "@/types/formSchema";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { useState, useEffect } from "react";
-import { toast } from "sonner";
-import { invoke } from "@tauri-apps/api/core";
 import { residentSchema } from "@/types/formSchema";
+import { useAddResident } from "../api/resident/useAddResident";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { ErrorResponse } from "@/service/api/auth/login";
 
 const civilStatusOptions = ["Single", "Married", "Widowed", "Separated"];
 const statusOption = ["Active", "Dead", "Missing", "Moved Out"];
 const genderOptions = ["Male", "Female"];
 const suffixOptions = ["Jr.", "Sr.", "II", "III"];
-const prefixOptions = ["Mr.", "Mrs.", "Ms."];
+const educAttainment = ["Elementary Graduate", "Highschool Graduate", "Senior Highschool Graduate", "College Graduate", "Masteral Degree", "Doctorate Degree"]
 
-export default function AddResidentModal({ onSave }: { onSave: () => void }) {
+export default function AddResidentModal() {
   const [openCalendar, setOpenCalendar] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [step, setStep] = useState(1);
 
-  useEffect(() => {
-    async function loadDefaultLocation() {
-      try {
-        const settings = await invoke("fetch_settings_command") as z.infer<typeof settingsSchema>;
-        if (settings) {
-          form.setValue("barangay", settings.barangay || "");
-          form.setValue("town", settings.municipality || "");
-          form.setValue("province", settings.province || "");
-        }
-      } catch (error) {
-        console.error("Failed to load default location from settings:", error);
-      }
-    }
+  /* useEffect(() => {
+     async function loadDefaultLocation() {
+       try {
+         const settings = await invoke("fetch_settings_command") as z.infer<typeof settingsSchema>;
+         if (settings) {
+           form.setValue("barangay", settings.barangay || "");
+           form.setValue("town", settings.municipality || "");
+           form.setValue("province", settings.province || "");
+         }
+       } catch (error) {
+         console.error("Failed to load default location from settings:", error);
+       }
+     }
+ 
+     loadDefaultLocation();
+   }, []); */
 
-    loadDefaultLocation();
-  }, []);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof residentSchema>>({
     resolver: zodResolver(residentSchema),
     defaultValues: {
-      prefix: "",
       first_name: "",
       middle_name: "",
       last_name: "",
@@ -85,18 +86,10 @@ export default function AddResidentModal({ onSave }: { onSave: () => void }) {
       province_of_birth: "",
       nationality: "",
       zone: "",
+      educAttainment: "",
       barangay: "",
       town: "",
       province: "",
-      father_suffix: "",
-      father_first_name: "",
-      father_middle_name: "",
-      father_last_name: "",
-      father_prefix: "",
-      mother_prefix: "",
-      mother_first_name: "",
-      mother_middle_name: "",
-      mother_last_name: "",
       photo: null,
       is_registered_voter: false,
       is_pwd: false,
@@ -104,29 +97,49 @@ export default function AddResidentModal({ onSave }: { onSave: () => void }) {
     },
   });
 
-  async function onSubmit(values: z.infer<typeof residentSchema>) {
-    try {
-      await invoke("insert_resident_command", {
-        resident: {
-          ...values,
-          photo: capturedImage || "",
-          dateOfBirth: values.date_of_birth
-            ? values.date_of_birth.toISOString().split("T")[0]
-            : "",
-        },
-      });
+  const addMutation = useAddResident()
+  const queryClient = useQueryClient()
 
-      toast.success("Resident added successfully", {
-        description: `${values.first_name} ${values.last_name}`,
-      });
-
-      setOpenModal(false);
-      form.reset();
-      onSave?.(); // trigger refresh if provided
-    } catch (error) {
-      console.error("Insert resident failed:", error);
-      toast.error("Failed to add resident.");
+  const onSubmit = async (values: z.infer<typeof residentSchema>) => {
+    toast.promise(
+      addMutation.mutateAsync({
+        Firstname: values.first_name,
+        Middlename: values.middle_name,
+        Lastname: values.last_name,
+        CivilStatus: values.civil_status,
+        Gender: values.gender,
+        Nationality: values.nationality,
+        Religion: values.religion,
+        Status: values.status,
+        Birthplace: values.town_of_birth,
+        EducationalAttainment: values.educAttainment,
+        Birthday: values.date_of_birth,
+        IsVoter: values.is_registered_voter,
+        Image: values.photo,
+        Zone: Number(values.zone),
+        Suffix: values.suffix,
+        Occupation: values.occupation,
+        AvgIncome: values.income,
+        MobileNumber: values.mobile_number
+      }), {
+      loading: "Adding Resident please wait...",
+      success: (data) => {
+        const r = data.resident
+        queryClient.invalidateQueries({ queryKey: ["residents"] })
+        setOpenModal(false)
+        return {
+          message: "Resident Added successfully",
+          description: `${r.Firstname} ${r.Lastname} was added`
+        }
+      },
+      error: (error: ErrorResponse) => {
+        return {
+          message: "Adding resident failed",
+          description: `${error.error}`
+        }
+      }
     }
+    )
   }
 
   return (
@@ -146,41 +159,12 @@ export default function AddResidentModal({ onSave }: { onSave: () => void }) {
               </DialogDescription>
             </DialogHeader>
 
-            {/* --- Your step-based fields go here (Step 1, 2, 3) --- */}
             {step === 1 && (
               <>
                 <h2 className="text-md font-semibold text-gray-900 mt-2">
                   Personal Information
                 </h2>
                 <div className="grid grid-cols-4 gap-4">
-                  <div className="col-span-2">
-                    <FormField
-                      control={form.control}
-                      name="prefix"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Prefix</FormLabel>
-                          <FormControl>
-                            <Select
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select Prefix" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {prefixOptions.map((option) => (
-                                  <SelectItem key={option} value={option}>
-                                    {option}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
 
                   <div className="col-span-2">
                     <FormField
@@ -280,7 +264,7 @@ export default function AddResidentModal({ onSave }: { onSave: () => void }) {
                     />
                   </div>
 
-                  <div className="col-span-1">
+                  <div className="col-span-2">
                     <FormField
                       control={form.control}
                       name="suffix"
@@ -338,7 +322,7 @@ export default function AddResidentModal({ onSave }: { onSave: () => void }) {
                     />
                   </div>
 
-                  <div className="col-span-1">
+                  <div className="col-span-2">
                     <FormField
                       control={form.control}
                       name="gender"
@@ -441,6 +425,7 @@ export default function AddResidentModal({ onSave }: { onSave: () => void }) {
                                 captionLayout="dropdown"
                                 fromYear={1900}
                                 toYear={new Date().getFullYear()}
+                                disabled={(date) => date > new Date()}
                               />
                             </PopoverContent>
                           </Popover>
@@ -476,60 +461,151 @@ export default function AddResidentModal({ onSave }: { onSave: () => void }) {
                       )}
                     />
                   </div>
+                  <div className="col-span-2">
+                    <FormField
+                      control={form.control}
+                      name="educAttainment"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Educational Attainment</FormLabel>
+                          <FormControl>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select Education Attainment" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {educAttainment.map((option) => (
+                                  <SelectItem key={option} value={option}>
+                                    {option}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <FormField
+                      control={form.control}
+                      name="religion"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Religion</FormLabel>
+                          <FormControl>
+                            <Input
+                              id="religion"
+                              type="text"
+                              placeholder="Enter Religion"
+                              required
+                              {...field}
+                              className="text-black"
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <FormField
+                      control={form.control}
+                      name="occupation"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Occupation</FormLabel>
+                          <FormControl>
+                            <Input
+                              id="occupation"
+                              type="text"
+                              placeholder="Enter Occupation"
+                              required
+                              {...field}
+                              className="text-black"
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <FormField
+                      control={form.control}
+                      name="income"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Estimated Income</FormLabel>
+                          <FormControl>
+                            <Input
+                              id="income"
+                              type="number"
+                              placeholder="Enter Estimated Income"
+                              required
+                              {...field}
+                              className="text-black"
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
                 <div className="col-span-4 grid grid-cols-3 gap-4 mt-4">
-  <FormField
-    control={form.control}
-    name="is_registered_voter"
-    render={({ field }) => (
-      <FormItem className="flex items-center space-x-2">
-        <FormControl>
-          <input
-            type="checkbox"
-            checked={field.value}
-            onChange={field.onChange}
-            className="mr-2"
-          />
-        </FormControl>
-        <FormLabel className="text-black">Registered Voter</FormLabel>
-      </FormItem>
-    )}
-  />
-  <FormField
-    control={form.control}
-    name="is_pwd"
-    render={({ field }) => (
-      <FormItem className="flex items-center space-x-2">
-        <FormControl>
-          <input
-            type="checkbox"
-            checked={field.value}
-            onChange={field.onChange}
-            className="mr-2"
-          />
-        </FormControl>
-        <FormLabel className="text-black">PWD</FormLabel>
-      </FormItem>
-    )}
-  />
-  <FormField
-    control={form.control}
-    name="is_senior"
-    render={({ field }) => (
-      <FormItem className="flex items-center space-x-2">
-        <FormControl>
-          <input
-            type="checkbox"
-            checked={field.value}
-            onChange={field.onChange}
-            className="mr-2"
-          />
-        </FormControl>
-        <FormLabel className="text-black">Senior Citizen</FormLabel>
-      </FormItem>
-    )}
-  />
-</div>
+                  <FormField
+                    control={form.control}
+                    name="is_registered_voter"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-2">
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            checked={field.value}
+                            onChange={field.onChange}
+                            className="mr-2"
+                          />
+                        </FormControl>
+                        <FormLabel className="text-black">Registered Voter</FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="is_pwd"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-2">
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            checked={field.value}
+                            onChange={field.onChange}
+                            className="mr-2"
+                          />
+                        </FormControl>
+                        <FormLabel className="text-black">PWD</FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="is_senior"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-2">
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            checked={field.value}
+                            onChange={field.onChange}
+                            className="mr-2"
+                          />
+                        </FormControl>
+                        <FormLabel className="text-black">Senior Citizen</FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
                 <div className="flex justify-end pt-4">
                   <Button type="button" onClick={() => setStep(2)}>
@@ -681,249 +757,6 @@ export default function AddResidentModal({ onSave }: { onSave: () => void }) {
                 </div>
                 <div className="flex justify-between pt-4">
                   <Button type="button" onClick={() => setStep(1)}>
-                    Back
-                  </Button>
-                  <Button type="button" onClick={() => setStep(3)}>
-                    Next
-                  </Button>
-                </div>
-              </>
-            )}
-            {step === 3 && (
-              <>
-                <h2 className="text-md font-semibold text-gray-900 mt-2">
-                  Family Information
-                </h2>
-                <h2 className="text-sm font-semibold text-gray-700 mt-2">
-                  Name of Father
-                </h2>
-                <div className="grid grid-cols-4 gap-4">
-                  <div className="col-span-4">
-                    <FormField
-                      control={form.control}
-                      name="father_prefix"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Prefix</FormLabel>
-                          <FormControl>
-                            <Select
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select Prefix" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {prefixOptions.map((option) => (
-                                  <SelectItem key={option} value={option}>
-                                    {option}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="col-span-2">
-                    <FormField
-                      control={form.control}
-                      name="father_first_name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>First Name</FormLabel>
-                          <FormControl>
-                            <Input
-                              id="father_firstName"
-                              type="text"
-                              placeholder="Enter first name"
-                              required
-                              {...field}
-                              className="text-black"
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="col-span-2">
-                    <FormField
-                      control={form.control}
-                      name="father_middle_name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Middle Name</FormLabel>
-                          <FormControl>
-                            <Input
-                              id="father_middleName"
-                              type="text"
-                              placeholder="Enter middle name"
-                              required
-                              {...field}
-                              className="text-black"
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="col-span-2">
-                    <FormField
-                      control={form.control}
-                      name="father_last_name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Last Name</FormLabel>
-                          <FormControl>
-                            <Input
-                              id="father_last_name"
-                              type="text"
-                              placeholder="Enter last name"
-                              required
-                              {...field}
-                              className="text-black"
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="col-span-1">
-                    <FormField
-                      control={form.control}
-                      name="father_suffix"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Suffix</FormLabel>
-                          <FormControl>
-                            <Select
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select Suffix" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {suffixOptions.map((option) => (
-                                  <SelectItem key={option} value={option}>
-                                    {option}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-                <h2 className="text-sm font-semibold text-gray-700 mt-2">
-                  Name of Mother
-                </h2>
-                <div className="grid grid-cols-4 gap-2">
-                  <div className="col-span-4">
-                    <FormField
-                      control={form.control}
-                      name="mother_prefix"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Prefix</FormLabel>
-                          <FormControl>
-                            <Select
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select Prefix" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {prefixOptions.map((option) => (
-                                  <SelectItem key={option} value={option}>
-                                    {option}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="col-span-2">
-                    <FormField
-                      control={form.control}
-                      name="mother_first_name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>First Name</FormLabel>
-                          <FormControl>
-                            <Input
-                              id="mother_firstName"
-                              type="text"
-                              placeholder="Enter first name"
-                              required
-                              {...field}
-                              className="text-black"
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="col-span-2">
-                    <FormField
-                      control={form.control}
-                      name="mother_middle_name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Middle Name</FormLabel>
-                          <FormControl>
-                            <Input
-                              id="mothermiddleName"
-                              type="text"
-                              placeholder="Enter middle name"
-                              required
-                              {...field}
-                              className="text-black"
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="col-span-2">
-                    <FormField
-                      control={form.control}
-                      name="mother_last_name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Last Name</FormLabel>
-                          <FormControl>
-                            <Input
-                              id="mother_last_name"
-                              type="text"
-                              placeholder="Enter last name"
-                              required
-                              {...field}
-                              className="text-black"
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-between pt-4">
-                  <Button type="button" onClick={() => setStep(2)}>
                     Back
                   </Button>
                   <Button type="submit">Save Resident</Button>

@@ -99,12 +99,14 @@ export default function Events() {
   const [selectedEvent, setSelectedEvent] = useState<number[]>([])
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
-  const { data: eventResponse, isFetching } = useEvent()
+  const { data: eventResponse } = useEvent()
   const queryClient = useQueryClient()
   const deleteMutation = useDeleteEvent()
+
   const event = useMemo(() => {
     return eventResponse?.events ?? []
   }, [eventResponse])
+
 
   const handleSortChange = (sortValue: string) => {
     searchParams.set("sort", sortValue);

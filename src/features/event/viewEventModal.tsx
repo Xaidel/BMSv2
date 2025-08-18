@@ -14,6 +14,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { useState } from "react";
 import { Event } from "@/types/apitypes";
+import { useEditEvent } from "../api/event/useEditEvent";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 const selectOption: string[] = [
   "Assembly",
@@ -28,6 +31,7 @@ const selectOption: string[] = [
 export default function ViewEventModal({ event, open, onClose }: { event: Event, open: boolean, onClose: () => void }) {
   const [openCalendar, setOpenCalendar] = useState(false)
   // const [openModal, setOpenModal] = useState(false)
+  const queryClient = useQueryClient()
   const form = useForm<z.infer<typeof eventSchema>>({
     resolver: zodResolver(eventSchema),
     defaultValues: {
@@ -42,7 +46,49 @@ export default function ViewEventModal({ event, open, onClose }: { event: Event,
     }
   })
 
+  const editMutation = useEditEvent()
+
   async function onSubmit(values: z.infer<typeof eventSchema>) {
+    type EventPatch = Partial<Omit<z.infer<typeof eventSchema>, "Date"> & { Date: string }>
+
+    const updated: EventPatch = {}
+
+    Object.keys(values).forEach((key) => {
+      const formValue = values[key as keyof typeof values]
+      let eventValue = event[key as keyof Event]
+
+      if (key === "Date" && typeof eventValue === "string") {
+        eventValue = new Date(eventValue) as any
+      }
+
+      if (formValue !== eventValue) {
+        if (key === "Date" && formValue instanceof Date) {
+          updated.Date = formValue.toISOString()
+        } else {
+          updated[key as keyof EventPatch] = formValue as any
+        }
+      }
+    })
+
+    toast.promise(
+      editMutation.mutateAsync({ event_id: event.ID, updated }), {
+      loading: "Editing new event please wait...",
+      success: (data) => {
+        queryClient.invalidateQueries({ queryKey: ['events'] })
+        onClose()
+        return {
+          message: "Event edited successfully",
+          description: `${event.Name} was edited`
+        }
+      },
+      error: (error: { error: string }) => {
+        return {
+          message: "Editing event failed",
+          description: `${error.error}`
+        }
+      }
+    }
+    )
   }
   return (
     <>
@@ -168,7 +214,7 @@ export default function ViewEventModal({ event, open, onClose }: { event: Event,
                     name="Venue"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel htmlFor="name" className="text-black font-bold text-xs">Venue</FormLabel>
+                        <FormLabel htmlFor="venue" className="text-black font-bold text-xs">Venue</FormLabel>
                         <FormControl>
                           <Input
                             id="venue"
@@ -190,10 +236,10 @@ export default function ViewEventModal({ event, open, onClose }: { event: Event,
                     name="Audience"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel htmlFor="name" className="text-black font-bold text-xs">Attendee</FormLabel>
+                        <FormLabel htmlFor="audience" className="text-black font-bold text-xs">Attendee</FormLabel>
                         <FormControl>
                           <Input
-                            id="attendee"
+                            id="audience"
                             type="text"
                             placeholder="Enter Attendees"
                             required
@@ -212,7 +258,7 @@ export default function ViewEventModal({ event, open, onClose }: { event: Event,
                     name="Notes"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel htmlFor="name" className="text-black font-bold text-xs">Important Notes</FormLabel>
+                        <FormLabel htmlFor="notes" className="text-black font-bold text-xs">Important Notes</FormLabel>
                         <FormControl>
                           <Textarea
                             id="notes"

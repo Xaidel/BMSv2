@@ -15,3 +15,24 @@ export type Event = {
   ID: number
 }
 
+export type Resident = {
+  Firstname: string
+  Middlename: string
+  Lastname: string
+  Suffix: string
+  CivilStatus: string
+  Gender: "Male" | "Female" | ""
+  Nationality: string
+  Religion: string
+  Occupation: string
+  Zone: number
+  Status: "Active" | "Dead" | "Missing" | "Moved Out" | ""
+  Birthplace: string
+  EducationalAttainment: string
+  Birthday: Date
+  IsVoter: boolean
+  Image: File | null
+  AvgIncome: number
+  MobileNumber: string
+}
+

@@ -1,4 +1,4 @@
-import { Resident } from "@/types/types";
+import { Resident } from "@/types/apitypes";
 import sanitize from "../sanitize";
 
 export default function searchResident(term: string, data: Resident[]) {
@@ -7,17 +7,16 @@ export default function searchResident(term: string, data: Resident[]) {
 
   return data.filter((resident) => {
     const searchableFields = [
-      resident.first_name,
-      resident.middle_name,
-      resident.last_name,
-      resident.gender,
-      resident.status,
-      resident.zone,
-      resident.civil_status,
+      resident.Firstname,
+      resident.Middlename,
+      resident.Lastname,
+      resident.Gender,
+      resident.Status,
+      resident.Zone,
+      resident.CivilStatus,
     ];
 
-    const fullName = `${resident.first_name} ${resident.middle_name ?? ""} ${resident.last_name}`.trim();
-console.log(searchableFields.find(field => field && pattern.test(field)) || pattern.test(fullName))
+    const fullName = `${resident.Firstname} ${resident.Middlename ?? ""} ${resident.Lastname}`.trim();
     return searchableFields.some(field => field && pattern.test(field)) || pattern.test(fullName);
   });
 }
