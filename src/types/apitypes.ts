@@ -34,5 +34,6 @@ export type Resident = {
   Image: File | null
   AvgIncome: number
   MobileNumber: string
+  ID: number
 }
 

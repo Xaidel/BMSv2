@@ -115,7 +115,7 @@ export default function AddResidentModal() {
         EducationalAttainment: values.educAttainment,
         Birthday: values.date_of_birth,
         IsVoter: values.is_registered_voter,
-        Image: values.photo,
+        Image: null,
         Zone: Number(values.zone),
         Suffix: values.suffix,
         Occupation: values.occupation,

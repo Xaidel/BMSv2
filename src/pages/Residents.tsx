@@ -14,35 +14,13 @@ import searchResident from "@/service/resident/searchResident";
 import SummaryCardResidents from "@/components/summary-card/residents";
 import { useResident } from "@/features/api/resident/useResident";
 import { Resident } from "@/types/apitypes";
+import { useDeleteResident } from "@/features/api/resident/useDeleteResident";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 const filters = ["All Residents", "Alphabetical", "Moved Out", "Active", "Dead", "Missing"];
 
 const columns: ColumnDef<Resident>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected()
-            ? true
-            : table.getIsSomePageRowsSelected()
-              ? "indeterminate"
-              : false
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        className="flex items-center justify-center"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        className="flex items-center justify-center"
-      />
-    ),
-  },
   {
     header: "Full Name",
     cell: ({ row }) => {
@@ -90,9 +68,10 @@ export default function Residents() {
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
-  const [data, setData] = useState<Resident[]>([]);
+  const [selectedResidents, setSelectedResidents] = useState<number[]>([])
+  const deleteMutation = useDeleteResident()
   const { data: residents } = useResident()
-
+  const queryClient = useQueryClient()
   const handleSortChange = (sortValue: string) => {
     searchParams.set("sort", sortValue);
     setSearchParams(searchParams);
@@ -378,17 +357,89 @@ export default function Residents() {
       <div className="flex gap-5 w-full items-center justify-center">
         <Searchbar onChange={(value) => setSearchQuery(value)} placeholder="Search Resident" classname="flex flex-5" />
         <Filter onChange={handleSortChange} filters={filters} initial="All Residents" classname="flex-1" />
-        <Button variant="destructive" size="lg" disabled={Object.keys(rowSelection).length === 0} >
+        <Button variant="destructive" size="lg" disabled={Object.keys(rowSelection).length === 0}
+
+          onClick={() => {
+            if (selectedResidents) {
+              toast.promise(
+                deleteMutation.mutateAsync(selectedResidents), {
+                loading: "Deleting residents, Please wait...",
+                success: () => {
+                  queryClient.invalidateQueries({ queryKey: ["residents"] })
+                  setRowSelection((prevSelection) => {
+                    const newSelection = { ...prevSelection }
+                    selectedResidents.forEach((_, i) => {
+                      delete newSelection[i]
+                    })
+                    return newSelection
+                  })
+                  setSelectedResidents([])
+                  return {
+                    message: "Resident successfully deleted"
+                  }
+                },
+                error: (error: { error: string }) => {
+                  return {
+                    message: "Failed to delete residents",
+                    description: error.error
+                  }
+                }
+              }
+              )
+            }
+          }}
+        >
           <Trash /> Delete Selected
         </Button>
         <AddResidentModal />
-      </div>
+      </div >
 
       <DataTable<Resident>
         classname="py-5"
         height="43.3rem"
         data={filteredData}
         columns={[
+          {
+            id: "select",
+            header: ({ table }) => (
+              <Checkbox
+                checked={
+                  table.getIsAllPageRowsSelected()
+                    ? true
+                    : table.getIsSomePageRowsSelected()
+                      ? "indeterminate"
+                      : false
+                }
+                onCheckedChange={(value) => {
+                  table.toggleAllPageRowsSelected(!!value)
+                  if (value) {
+                    const allVisibileRows = table.getRowModel().rows.map(row => row.original.ID)
+                    setSelectedResidents(allVisibileRows)
+                  } else {
+                    setSelectedResidents([])
+                  }
+                }}
+                aria-label="Select all"
+                className="flex items-center justify-center"
+              />
+            ),
+            cell: ({ row }) => (
+              <Checkbox
+                checked={row.getIsSelected()}
+                onCheckedChange={(value) => {
+                  row.toggleSelected(!!value)
+                  if (value) {
+                    setSelectedResidents(prev => [...prev, row.original.ID])
+                  } else {
+                    setSelectedResidents(prev =>
+                      prev.filter(res => res !== row.original.ID))
+                  }
+                }}
+                aria-label="Select row"
+                className="flex items-center justify-center"
+              />
+            ),
+          },
           ...columns,
           {
             id: "view",
