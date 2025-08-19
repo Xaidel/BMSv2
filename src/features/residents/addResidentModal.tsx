@@ -112,7 +112,7 @@ export default function AddResidentModal() {
         EducationalAttainment: values.educAttainment,
         Birthday: values.date_of_birth,
         IsVoter: values.is_registered_voter,
-        IsPwd: values.is_pwd,
+        IsPWD: values.is_pwd,
         Image: null,
         Zone: Number(values.zone),
         Barangay: values.barangay,
@@ -174,7 +174,7 @@ export default function AddResidentModal() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Upload Profile Picture</FormLabel>
-                          <FormControl>
+                          <FormControl >
                             <>
                               <Input
                                 type="file"
@@ -189,7 +189,7 @@ export default function AddResidentModal() {
                                     reader.readAsDataURL(file);
                                   }
                                 }}
-                                className="mt-2"
+                                className="mt-2 "
                               />
                             </>
                           </FormControl>

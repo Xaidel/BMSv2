@@ -1,419 +1,588 @@
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarIcon, Plus, ChevronsUpDown, Check } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { z } from "zod"
-import { useState, useEffect, useMemo } from "react";
-import { toast } from "sonner";
-import { invoke } from '@tauri-apps/api/core'
-import { householdSchema } from "@/types/formSchema";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { Calendar } from "@/components/ui/calendar";
-import { Command, CommandInput, CommandEmpty, CommandItem } from "@/components/ui/command";
-import { Virtuoso } from "react-virtuoso";
-import { cn } from "@/lib/utils";
+import type React from "react"
 
-const selectOption: string[] = ["Renter", "Owner"];
+import { useMemo, useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { X, Plus, Search, Crown, Heart, Baby, User, Users, CalendarIcon, Shield, CircleQuestionMark } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { TooltipProvider } from "@/components/ui/tooltip"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { format } from "date-fns"
+import { cn, getAge } from "@/lib/utils"
+import { toast } from "sonner"
+import { useResident } from "../api/resident/useResident"
+import { useAddHousehold } from "../api/household/useAddHousehold"
+import { HouseholdProps } from "@/service/api/household/postHousehold"
 
-const zone: string[] = [
-  "Zone 1",
-  "Zone 2",
-  "Zone 3",
-  "Zone 4",
-  "Zone 5",
-  "Zone 6",
-  "Zone 7",
+// Mock data for residents
+const mockResidents = [
+  { id: "1", name: "John Smith", age: 45 },
+  { id: "2", name: "Jane Smith", age: 42 },
+  { id: "3", name: "Michael Smith", age: 18 },
+  { id: "4", name: "Sarah Smith", age: 16 },
+  { id: "5", name: "Robert Johnson", age: 35 },
+  { id: "6", name: "Emily Johnson", age: 32 },
+  { id: "7", name: "David Brown", age: 28 },
+  { id: "8", name: "Lisa Brown", age: 26 },
 ]
 
-const status: string[] = [
-  "Active",
-  "Moved Out"
+const householdRoles = [
+  "Head",
+  "Adopted Daughter",
+  "Adopted Son",
+  "Auntie",
+  "Brother",
+  "Brother in law",
+  "Cousin",
+  "Daughter",
+  "Daughter in law",
+  "Father",
+  "Father in law",
+  "Friend",
+  "Granddaughter",
+  "Granddaughter in law",
+  "Grandfather",
+  "Grandmother",
+  "Grandson",
+  "Grandson in law",
+  "House maid/helper",
+  "Mother",
+  "Mother in law",
+  "Nephew",
+  "Niece",
+  "Partner",
+  "Sister",
+  "Son",
+  "Son in law",
+  "Spouse",
+  "Stepbrother",
+  "Stepdaughter",
+  "Stepdaughter in law",
+  "Stepfather",
+  "Stepmother",
+  "Stepgranddaughter",
+  "Stepgranddaughter in law",
+  "Stepgrandson",
+  "Stepgrandson in law",
+  "Stepsister",
+  "Stepson",
+  "Stepson in law",
+  "Tenant",
+  "Uncle",
+  "Others",
 ]
 
-export default function AddHouseholdModal({ onSave }: { onSave: () => void }) {
-  const [openCalendar, setOpenCalendar] = useState(false)
-  const [openModal, setOpenModal] = useState(false)
-  const [selectedResidents, setSelectedResidents] = useState<string[]>([]);
-  const [residentSearch, setResidentSearch] = useState("");
-  const [residentOptions, setResidentOptions] = useState<string[]>([]);
-  // For head of household popover
-  const [headOpen, setHeadOpen] = useState(false);
-  const [headSearch, setHeadSearch] = useState("");
-  const [allResidents, setAllResidents] = useState<{ label: string; value: string }[]>([]);
+const roleDefinitions: Record<string, string> = {
+  Head: "Primary household member responsible for major decisions and household management",
+  "Adopted Daughter": "Female child who has been legally adopted into the family",
+  "Adopted Son": "Male child who has been legally adopted into the family",
+  Auntie: "Sister of a parent or spouse of an uncle",
+  Brother: "Male sibling sharing the same parents",
+  "Brother in law": "Brother of spouse or husband of sibling",
+  Cousin: "Child of an aunt or uncle",
+  Daughter: "Female offspring of the household head or spouse",
+  "Daughter in law": "Wife of a son",
+  Father: "Male parent of household members",
+  "Father in law": "Father of spouse",
+  Friend: "Non-family member living in the household",
+  Granddaughter: "Daughter of a son or daughter",
+  "Granddaughter in law": "Wife of a grandson",
+  Grandfather: "Father of a parent",
+  Grandmother: "Mother of a parent",
+  Grandson: "Son of a son or daughter",
+  "Grandson in law": "Husband of a granddaughter",
+  "House maid/helper": "Domestic worker living in the household",
+  Mother: "Female parent of household members",
+  "Mother in law": "Mother of spouse",
+  Nephew: "Son of a sibling",
+  Niece: "Daughter of a sibling",
+  Partner: "Unmarried romantic partner",
+  Sister: "Female sibling sharing the same parents",
+  Son: "Male offspring of the household head or spouse",
+  "Son in law": "Husband of a daughter",
+  Spouse: "Married partner of the household head",
+  Stepbrother: "Son of stepparent from previous relationship",
+  Stepdaughter: "Daughter of spouse from previous relationship",
+  "Stepdaughter in law": "Wife of a stepson",
+  Stepfather: "Male spouse of mother who is not biological father",
+  Stepmother: "Female spouse of father who is not biological mother",
+  Stepgranddaughter: "Granddaughter through step-relationship",
+  "Stepgranddaughter in law": "Wife of a stepgrandson",
+  Stepgrandson: "Grandson through step-relationship",
+  "Stepgrandson in law": "Husband of a stepgranddaughter",
+  Stepsister: "Daughter of stepparent from previous relationship",
+  Stepson: "Son of spouse from previous relationship",
+  "Stepson in law": "Husband of a stepdaughter",
+  Tenant: "Person renting space in the household",
+  Uncle: "Brother of a parent or husband of an aunt",
+  Others: "Other family members or relationships not listed above",
+}
 
-  const form = useForm<z.infer<typeof householdSchema>>({
-    resolver: zodResolver(householdSchema),
-    defaultValues: {
-      household_number: 0,
-      type_: "",
-      members: 0,
-      head: "",
-      zone: "",
-      date: undefined,
-      status: ""
+const getRoleIcon = (role: string) => {
+  const iconMap: Record<string, any> = {
+    Head: Crown,
+    Spouse: Heart,
+    Partner: Heart,
+    Son: Baby,
+    Daughter: Baby,
+    "Adopted Son": Baby,
+    "Adopted Daughter": Baby,
+    Stepson: Baby,
+    Stepdaughter: Baby,
+    Father: Shield,
+    Mother: Shield,
+    Stepfather: Shield,
+    Stepmother: Shield,
+    Grandfather: Shield,
+    Grandmother: Shield,
+    Brother: Users,
+    Sister: Users,
+    "Brother in law": Users,
+    Stepbrother: Users,
+    Stepsister: Users,
+    Uncle: Users,
+    Auntie: Users,
+    Cousin: Users,
+    Nephew: Users,
+    Niece: Users,
+    "Son in law": Users,
+    "Daughter in law": Users,
+    "Father in law": Shield,
+    "Mother in law": Shield,
+    Grandson: Baby,
+    Granddaughter: Baby,
+    "Grandson in law": Users,
+    "Granddaughter in law": Users,
+    Stepgrandson: Baby,
+    Stepgranddaughter: Baby,
+    "Stepgrandson in law": Users,
+    "Stepgranddaughter in law": Users,
+    "Stepdaughter in law": Users,
+    "Stepson in law": Users,
+    Friend: User,
+    "House maid/helper": User,
+    Tenant: User,
+    Others: CircleQuestionMark,
+  }
+
+  return iconMap[role] || User
+}
+
+interface SelectedMember {
+  id: string
+  name: string
+  role: string
+  age: number
+}
+
+export default function AddHouseholdModal() {
+  const [householdNumber, setHouseholdNumber] = useState("0")
+  const [householdType, setHouseholdType] = useState("")
+  const [selectedMembers, setSelectedMembers] = useState<SelectedMember[]>([])
+  const [zone, setZone] = useState("")
+  const [dateOfResidency, setDateOfResidency] = useState<Date>()
+  const [status, setStatus] = useState("")
+  const [showMemberSelection, setShowMemberSelection] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [roleSearchQuery, setRoleSearchQuery] = useState("")
+  const { data: residents } = useResident()
+  const addMutation = useAddHousehold()
+
+  const res = useMemo<SelectedMember[]>(() => {
+    if (!residents?.residents) return []
+
+    return residents.residents.map((r) => {
+      const middleInitial = r.Middlename
+        ? ` ${r.Middlename.charAt(0).toUpperCase()}.`
+        : ""
+
+      return {
+        id: r.ID.toString(),
+        name: `${r.Firstname}${middleInitial} ${r.Lastname}`.trim(),
+        role: "",
+        age: getAge(r.Birthday.toString())
+      }
+    })
+  }, [residents])
+  const filteredResidents = res.filter((resident) =>
+    resident.name.toLowerCase().includes(searchQuery.toLowerCase()),
+  )
+
+  const filteredRoles = householdRoles.filter((role) => role.toLowerCase().includes(roleSearchQuery.toLowerCase()))
+
+  const toggleMember = (resident: (typeof mockResidents)[0], checked: boolean) => {
+    if (checked) {
+      setSelectedMembers([
+        ...selectedMembers,
+        {
+          id: resident.id,
+          name: resident.name,
+          role: "Others", // Default role
+          age: 0
+        },
+      ])
+    } else {
+      setSelectedMembers(selectedMembers.filter((member) => member.id !== resident.id))
     }
-  })
+  }
 
-  // Fetch all residents for dropdowns (head, members)
-  useEffect(() => {
-    invoke("fetch_all_residents_command")
-      .then((res) => {
-        if (Array.isArray(res)) {
-          const all = res as {
-            id?: number;
-            first_name: string;
-            middle_name?: string;
-            last_name: string;
-            suffix?: string;
-          }[];
-          const mapped = all.map((r) => ({
-            label: `${r.last_name}, ${r.first_name}${r.middle_name ? " " + r.middle_name : ""}${r.suffix ? " " + r.suffix : ""}`,
-            value: `${r.last_name}, ${r.first_name}${r.middle_name ? " " + r.middle_name : ""}${r.suffix ? " " + r.suffix : ""}`,
-          }));
-          setAllResidents(mapped);
+  const updateMemberRole = (memberId: string, role: string) => {
+    setSelectedMembers(selectedMembers.map((member) => (member.id === memberId ? { ...member, role } : member)))
+    setRoleSearchQuery("")
+  }
+
+  const hasHeadOfHousehold = () => {
+    return selectedMembers.some((member) => member.role === "Head")
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!householdNumber || !householdType || !zone || !dateOfResidency || !status) {
+      toast.error("Please fill in all required fields")
+      return
+    }
+
+    if (selectedMembers.length === 0) {
+      toast.error("Please add at least one family member")
+      return
+    }
+
+    const formData: HouseholdProps = {
+      householdNumber,
+      householdType,
+      members: selectedMembers.map(m => ({
+        id: Number(m.id),      // or m.value, depending on your state
+        role: m.role,  // make sure role is provided in UI
+      })),
+      zone,
+      dateOfResidency: dateOfResidency instanceof Date
+        ? dateOfResidency.toISOString()
+        : "",
+      status,
+    }
+    toast.promise(
+      addMutation.mutateAsync(formData), {
+      loading: "Inserting household",
+      success: () => {
+        return {
+          message: "Household added successfully",
+          description: "New Household registered"
         }
-      })
-      .catch(() => setAllResidents([]));
-  }, []);
-
-  // Search logic for residentOptions (Add Members input)
-  useEffect(() => {
-    if (!residentSearch) {
-      setResidentOptions([]);
-      return;
-    }
-    const matches = allResidents
-      .filter((r) =>
-        r.label.toLowerCase().includes(residentSearch.toLowerCase())
-      )
-      .map((r) => r.label);
-    setResidentOptions(matches);
-  }, [residentSearch, allResidents]);
-
-  // Filtered residents for head dropdown
-  const filteredResidents = useMemo(() => {
-    if (!headSearch) return allResidents;
-    return allResidents.filter((r) =>
-      r.label.toLowerCase().includes(headSearch.toLowerCase())
-    );
-  }, [allResidents, headSearch]);
-
-  async function onSubmit(values: z.infer<typeof householdSchema>) {
-    toast.success("Household added sucessfully", {
-      description: `${values.household_number} was added`
-    });
-    setOpenModal(false);
-    await invoke("insert_household_command", {
-      household: {
-        household_number: values.household_number,
-        type_: values.type_,
-        members: values.members,
-        head: values.head,
-        zone: values.zone,
-        date: values.date.toISOString().split("T")[0],
-        status: values.status,
-        selected_residents: selectedResidents,
       },
-    });
-    onSave();
-    form.reset();
-    setSelectedResidents([]);
+      error: (error: { error: string }) => {
+        return {
+          message: "Error Adding Household",
+          description: `${error.error}`
+        }
+      }
+    }
+    )
+
   }
 
   return (
-    <>
-      <Dialog
-        open={openModal}
-        onOpenChange={setOpenModal}
-      >
+    <TooltipProvider>
+      <Dialog>
         <DialogTrigger asChild>
-          <Button size="lg" >
+          <Button>
             <Plus />
             Add Household
           </Button>
         </DialogTrigger>
-        <DialogContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
-              <DialogHeader>
-                <DialogTitle className="text-black">Create Household</DialogTitle>
-                <DialogDescription className="text-sm">
-                  All the fields are required unless it is mentioned otherwise
-                </DialogDescription>
-                <p className="text-md font-bold text-black">Basic Household Information</p>
-              </DialogHeader>
-              <div className="flex flex-col gap-3">
+        <DialogContent className="text-black max-h-[90vh] flex flex-col p-0">
+          <div className="sticky top-0  px-6 pt-4 z-10">
+            <DialogHeader>
+              <DialogTitle>Add Household</DialogTitle>
+              <DialogDescription className="text-sm text-gray-600">
+                Fill out all fields to create a new household
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-6">
+            <form onSubmit={handleSubmit} className="flex flex-col">
+              <div className="space-y-6 py-4">
                 <div>
-                  <FormField
-                    control={form.control}
-                    name="household_number"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel htmlFor="name" className="text-black font-bold text-xs">Household Number</FormLabel>
-                        <FormControl>
-                          <Input
-                            id="name"
-                            type="number"
-                            placeholder="Enter Household name"
-                            required
-                            {...field}
-                            className="text-black"
-                            onChange={(e) => field.onChange(+e.target.value)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <h3 className="font-semibold text-lg mb-4">Basic Information</h3>
+
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="household-number" className="text-sm font-medium">
+                        Household Number <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="household-number"
+                        name="householdNumber"
+                        value={householdNumber}
+                        onChange={(e) => setHouseholdNumber(e.target.value)}
+                        className="mt-1"
+                        placeholder="Enter household number"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="type" className="text-sm font-medium">
+                        Household Type <span className="text-red-500">*</span>
+                      </Label>
+                      <Select value={householdType} onValueChange={setHouseholdType} required>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Choose household type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="owner">Owner</SelectItem>
+                          <SelectItem value="renter">Renter</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
+
                 <div>
-                  <FormField
-                    control={form.control}
-                    name="type_"
-                    render={({ field }) => (
-                      <FormItem className="w-full">
-                        <FormLabel htmlFor="type" className="text-black font-bold text-xs">Type</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="w-full text-black border-black/15">
-                              <SelectValue placeholder={"Please select the household type"} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {selectOption.map((option, i) => (
-                              <SelectItem value={option} key={i} className="text-black">{option}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <FormField
-                    control={form.control}
-                    name="head"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-black font-bold text-xs">Head of Household</FormLabel>
-                        <Popover open={headOpen} onOpenChange={setHeadOpen}>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              role="combobox"
-                              aria-expanded={headOpen}
-                              className="w-full justify-between text-black"
-                            >
-                              {field.value
-                                ? allResidents.find((res) => res.value === field.value)?.label
-                                : "Select Head of Household"}
-                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="p-0">
-                            <Command>
-                              <CommandInput
-                                placeholder="Search Head of Household..."
-                                className="h-9"
-                                value={headSearch}
-                                onValueChange={setHeadSearch}
-                              />
-                              <CommandEmpty>No Residents Found</CommandEmpty>
-                              <div className="h-60 overflow-hidden">
-                                <Virtuoso
-                                  style={{ height: "100%" }}
-                                  totalCount={filteredResidents.length}
-                                  itemContent={(index) => {
-                                    const res = filteredResidents[index];
-                                    return (
-                                      <CommandItem
-                                        key={res.value}
-                                        value={res.value}
-                                        className="text-black"
-                                        onSelect={(currentValue) => {
-                                          field.onChange(currentValue);
-                                          setHeadOpen(false);
-                                        }}
-                                      >
-                                        {res.label}
-                                        <Check
-                                          className={cn(
-                                            "ml-auto",
-                                            field.value === res.value ? "opacity-100" : "opacity-0"
-                                          )}
-                                        />
-                                      </CommandItem>
-                                    );
-                                  }}
+                  <h3 className="font-semibold text-lg mb-4">
+                    Add Family Members <span className="text-red-500">*</span>
+                  </h3>
+
+                  {!showMemberSelection ? (
+                    <Button
+                      onClick={() => setShowMemberSelection(true)}
+                      variant="outline"
+                      className="w-full h-12 text-base"
+                    >
+                      <Plus className="mr-2 h-5 w-5" />
+                      Click to Add Members ({selectedMembers.length} selected)
+                    </Button>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-medium">Select People to Add:</Label>
+                        <Button onClick={() => setShowMemberSelection(false)} variant="ghost" size="sm">
+                          Done
+                        </Button>
+                      </div>
+
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          placeholder="Search residents by name..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="pl-10"
+                        />
+                      </div>
+
+                      <div className="space-y-3 max-h-48 overflow-y-auto border rounded-md p-3">
+                        {filteredResidents.length === 0 ? (
+                          <div className="text-center text-gray-500 py-4">
+                            {searchQuery ? "No residents found matching your search" : "No residents available"}
+                          </div>
+                        ) : (
+                          filteredResidents.map((resident) => {
+                            const isSelected = selectedMembers.some((member) => member.id === resident.id)
+                            return (
+                              <div key={resident.id} className="flex items-center space-x-3">
+                                <Checkbox
+                                  id={resident.id}
+                                  checked={isSelected}
+                                  onCheckedChange={(checked) => toggleMember(resident, checked as boolean)}
                                 />
+                                <Label htmlFor={resident.id} className="flex-1 cursor-pointer">
+                                  <div>
+                                    <div className="font-medium">{resident.name}</div>
+                                    <div className="text-sm text-gray-500">Age: {resident.age}</div>
+                                  </div>
+                                </Label>
                               </div>
-                            </Command>
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                <div>
-                  <FormField
-                    control={form.control}
-                    name="members"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel htmlFor="members" className="text-black font-bold text-xs">Family Members</FormLabel>
-                        <FormControl>
-                          <Input
-                            id="members"
-                            type="number"
-                            placeholder="How many family members"
-                            required
-                            {...field}
-                            className="text-black"
-                            onChange={(e) => field.onChange(+e.target.value)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div>
-                <FormLabel className="text-black font-bold text-xs">Add Members</FormLabel>
-                <Input
-                  type="text"
-                  placeholder={
-                    selectedResidents.length > 0
-                      ? selectedResidents.join(", ")
-                      : "Search resident name"
-                  }
-                  value={residentSearch}
-                  onChange={(e) => setResidentSearch(e.target.value)}
-                  className="text-black"
-                />
-                {residentOptions.length > 0 && (
-                  <ul className="bg-white border rounded shadow mt-1 max-h-32 overflow-y-auto">
-                    {residentOptions.map((name, i) => (
-                      <li
-                        key={i}
-                        className="px-2 py-1 hover:bg-gray-100 cursor-pointer text-black"
-                        onClick={() => {
-                          if (!selectedResidents.includes(name)) {
-                            setSelectedResidents([...selectedResidents, name]);
-                          }
-                          setResidentSearch("");
-                          setResidentOptions([]);
-                        }}
-                      >
-                        {name}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-                <div>
-                </div>
-                <div>
-                  <FormField
-                    control={form.control}
-                    name="zone"
-                    render={({ field }) => (
-                      <FormItem className="w-full">
-                        <FormLabel htmlFor="type" className="text-black font-bold text-xs">Zone</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="w-full text-black border-black/15">
-                              <SelectValue placeholder={"Please select the household type"} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {zone.map((option, i) => (
-                              <SelectItem value={option} key={i} className="text-black">{option}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div>
-                  <FormField
-                    control={form.control}
-                    name="date"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel htmlFor="date" className="text-black font-bold text-xs">Date of Residency</FormLabel>
-                        <Popover
-                          open={openCalendar}
-                          onOpenChange={setOpenCalendar}
-                        >
-                          <FormControl>
-                            <PopoverTrigger asChild className="w-full text-black hover:bg-primary hover:text-white">
-                              <Button
-                                variant="outline"
-                                className="text-black"
+                            )
+                          })
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedMembers.length > 0 && (
+                    <div className="mt-4 space-y-3">
+                      <Label className="text-sm font-medium">Selected Members:</Label>
+                      <div className="flex flex-wrap gap-2 p-3 border rounded-md bg-gray-50 min-h-[50px]">
+                        {selectedMembers.map((member) => {
+                          const IconComponent = getRoleIcon(member.role)
+                          return (
+                            <div
+                              key={member.id}
+                              className="flex items-center gap-1.5 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs border border-blue-200"
+                            >
+                              <span className="font-medium">{member.name}</span>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <button
+                                    type="button"
+                                    className="flex items-center gap-1 p-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+                                  >
+                                    <IconComponent className="h-3 w-3" />
+                                  </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="start" className="w-80 max-h-96 overflow-y-auto p-0">
+                                  <div className="sticky top-0 bg-white border-b p-2 z-10">
+                                    <div className="relative">
+                                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                      <Input
+                                        placeholder="Search roles..."
+                                        className="h-8 text-sm pl-10"
+                                        value={roleSearchQuery}
+                                        onChange={(e) => setRoleSearchQuery(e.target.value)}
+                                        onClick={(e) => e.stopPropagation()}
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="max-h-80 overflow-y-auto">
+                                    {filteredRoles.length === 0 ? (
+                                      <div className="p-4 text-center text-gray-500 text-sm">
+                                        No roles found matching "{roleSearchQuery}"
+                                      </div>
+                                    ) : (
+                                      filteredRoles.map((role) => {
+                                        const RoleIcon = getRoleIcon(role)
+                                        const isSelected = member.role === role
+                                        const isHeadDisabled =
+                                          role === "Head" && hasHeadOfHousehold() && member.role !== "Head"
+
+                                        return (
+                                          <DropdownMenuItem
+                                            key={role}
+                                            onClick={() => !isHeadDisabled && updateMemberRole(member.id, role)}
+                                            className={`flex items-start gap-3 p-3 cursor-pointer ${isSelected ? "bg-blue-50 text-blue-700" : ""
+                                              } ${isHeadDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                                            disabled={isHeadDisabled}
+                                          >
+                                            <RoleIcon className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                                            <div className="flex-1">
+                                              <div className="font-medium text-sm flex items-center gap-2">
+                                                {role}
+                                                {isHeadDisabled && (
+                                                  <span className="text-xs text-gray-400">(Already assigned)</span>
+                                                )}
+                                              </div>
+                                              <div className="text-xs text-gray-600 mt-1 leading-relaxed">
+                                                {roleDefinitions[role] || "Family member or household resident"}
+                                              </div>
+                                            </div>
+                                          </DropdownMenuItem>
+                                        )
+                                      })
+                                    )}
+                                  </div>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                              <button
+                                onClick={() => setSelectedMembers(selectedMembers.filter((m) => m.id !== member.id))}
+                                className="ml-1 hover:bg-blue-200 rounded-full p-0.5 transition-colors"
+                                type="button"
                               >
-                                {field.value ? (
-                                  format(field.value, "PPP")
-                                ) : (
-                                  <span>Pick a date</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4  hover:text-white" />
-                              </Button>
-                            </PopoverTrigger>
-                          </FormControl>
-                          <PopoverContent className="w-auto p-0" align="center">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              captionLayout="dropdown"
-                              onDayClick={() => setOpenCalendar(false)}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                                <X className="h-2.5 w-2.5" />
+                              </button>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
+
                 <div>
-                  <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                      <FormItem className="w-full">
-                        <FormLabel htmlFor="type" className="text-black font-bold text-xs">Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="w-full text-black border-black/15">
-                              <SelectValue placeholder={"Please select the household type"} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {status.map((option, i) => (
-                              <SelectItem value={option} key={i} className="text-black">{option}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <h3 className="font-semibold text-lg mb-4">Additional Details</h3>
+
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="zone" className="text-sm font-medium">
+                        Zone <span className="text-red-500">*</span>
+                      </Label>
+                      <Select value={zone} onValueChange={setZone} required>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Choose zone" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">Zone 1</SelectItem>
+                          <SelectItem value="2">Zone 2</SelectItem>
+                          <SelectItem value="3">Zone 3</SelectItem>
+                          <SelectItem value="4">Zone 4</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="date" className="text-sm font-medium">
+                        Date of Residency <span className="text-red-500">*</span>
+                      </Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full mt-1 justify-start text-left font-normal",
+                              !dateOfResidency && "text-muted-foreground",
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {dateOfResidency ? format(dateOfResidency, "PPP") : "Pick a date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={dateOfResidency}
+                            onSelect={setDateOfResidency}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="status" className="text-sm font-medium">
+                        Status <span className="text-red-500">*</span>
+                      </Label>
+                      <Select value={status} onValueChange={setStatus} required>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Choose status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="moved">Moved Out</SelectItem>
+                          <SelectItem value="absent">Temporarily Absent</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="mt-4 flex justify-end">
-                <Button>Save Household</Button>
               </div>
             </form>
-          </Form>
+          </div>
+
+          <div className="sticky bottom-0  px-6 py-4">
+            <Button
+              type="submit"
+              className="w-full h-12 text-base bg-blue-600 hover:bg-blue-700"
+              onClick={handleSubmit}
+            >
+              Save Household
+            </Button>
+          </div>
         </DialogContent>
-      </Dialog >
-    </>
+      </Dialog>
+    </TooltipProvider>
   )
 }
