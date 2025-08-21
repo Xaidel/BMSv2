@@ -1,3 +1,5 @@
+import { ResProps } from "@/service/api/household/getHousehold";
+
 export type Event = {
   id: number;
   name: string,
@@ -46,13 +48,13 @@ export type Resident = {
 
 export type Household = {
   id?: number;
-  household_number: number;
+  household_number: string;
   type_: string;
-  members: number;
+  members: ResProps[];
   head: string;
   zone: string;
   date: Date;
-  status: "Moved Out" | "Active";
+  status: "Moved Out" | "Active" | string;
   selectedResidents?: string[]; // optional list of selected members
 };
 

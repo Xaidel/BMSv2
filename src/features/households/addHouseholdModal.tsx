@@ -25,18 +25,8 @@ import { toast } from "sonner"
 import { useResident } from "../api/resident/useResident"
 import { useAddHousehold } from "../api/household/useAddHousehold"
 import { HouseholdProps } from "@/service/api/household/postHousehold"
+import { useQueryClient } from "@tanstack/react-query"
 
-// Mock data for residents
-const mockResidents = [
-  { id: "1", name: "John Smith", age: 45 },
-  { id: "2", name: "Jane Smith", age: 42 },
-  { id: "3", name: "Michael Smith", age: 18 },
-  { id: "4", name: "Sarah Smith", age: 16 },
-  { id: "5", name: "Robert Johnson", age: 35 },
-  { id: "6", name: "Emily Johnson", age: 32 },
-  { id: "7", name: "David Brown", age: 28 },
-  { id: "8", name: "Lisa Brown", age: 26 },
-]
 
 const householdRoles = [
   "Head",
@@ -130,7 +120,7 @@ const roleDefinitions: Record<string, string> = {
   Others: "Other family members or relationships not listed above",
 }
 
-const getRoleIcon = (role: string) => {
+export const getRoleIcon = (role: string) => {
   const iconMap: Record<string, any> = {
     Head: Crown,
     Spouse: Heart,
@@ -184,6 +174,7 @@ interface SelectedMember {
   id: string
   name: string
   role: string
+  income: number
   age: number
 }
 
@@ -212,6 +203,7 @@ export default function AddHouseholdModal() {
         id: r.ID.toString(),
         name: `${r.Firstname}${middleInitial} ${r.Lastname}`.trim(),
         role: "",
+        income: r.AvgIncome,
         age: getAge(r.Birthday.toString())
       }
     })
@@ -222,7 +214,7 @@ export default function AddHouseholdModal() {
 
   const filteredRoles = householdRoles.filter((role) => role.toLowerCase().includes(roleSearchQuery.toLowerCase()))
 
-  const toggleMember = (resident: (typeof mockResidents)[0], checked: boolean) => {
+  const toggleMember = (resident: (typeof res)[0], checked: boolean) => {
     if (checked) {
       setSelectedMembers([
         ...selectedMembers,
@@ -230,6 +222,7 @@ export default function AddHouseholdModal() {
           id: resident.id,
           name: resident.name,
           role: "Others", // Default role
+          income: 0,
           age: 0
         },
       ])
@@ -246,7 +239,7 @@ export default function AddHouseholdModal() {
   const hasHeadOfHousehold = () => {
     return selectedMembers.some((member) => member.role === "Head")
   }
-
+  const queryClient = useQueryClient()
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -277,6 +270,7 @@ export default function AddHouseholdModal() {
       addMutation.mutateAsync(formData), {
       loading: "Inserting household",
       success: () => {
+        queryClient.invalidateQueries({ queryKey: ['household'] })
         return {
           message: "Household added successfully",
           description: "New Household registered"
@@ -290,7 +284,6 @@ export default function AddHouseholdModal() {
       }
     }
     )
-
   }
 
   return (

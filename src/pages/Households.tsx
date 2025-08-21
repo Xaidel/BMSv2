@@ -4,21 +4,20 @@ import DataTable from "@/components/ui/datatable";
 import Filter from "@/components/ui/filter";
 import Searchbar from "@/components/ui/searchbar";
 import AddHouseholdModal from "@/features/households/addHouseholdModal";
-import DeleteHouseholdModal from "@/features/households/deleteHouseholdModal";
-import ViewHouseholdModal from "@/features/households/viewHouseholdModal";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { Trash, Home, HomeIcon, UserCheck, Users } from "lucide-react";
-import { useMemo, useState, useEffect } from "react";
+import { Trash, Home, HomeIcon, UserCheck, Users, Eye } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Household } from "@/types/types";
 import { sort } from "@/service/household/householdSort";
 import SummaryCard from "@/components/summary-card/household";
-import { invoke } from "@tauri-apps/api/core";
 import { pdf } from "@react-pdf/renderer";
 import { writeFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 import { HouseholdPDF } from "@/components/pdf/householdpdf";
 import { toast } from "sonner";
+import { useHousehold } from "@/features/api/household/useHousehold";
+import ViewHouseholdModal from "@/features/households/viewHouseholdModal";
 
 const filters = ["All Households", "Numerical", "Renter", "Owner"];
 
@@ -55,10 +54,6 @@ const columns: ColumnDef<Household>[] = [
   {
     header: "Type of Household",
     accessorKey: "type_",
-  },
-  {
-    header: "Family Members",
-    accessorKey: "members",
   },
   {
     header: "Head of Household",
@@ -104,78 +99,54 @@ export default function Households() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [data, setData] = useState<Household[]>([]);
+  const { data: household, isFetching } = useHousehold()
+  const [viewHouseholdId, setViewHouseholdId] = useState<number | null>(null)
+  const parsedData = useMemo(() => {
+    if (isFetching || !household || !household.households) return []
+    return household.households.map((household) => {
+      const members = household.residents
+      const head = household.residents.find(r => r.role.toLowerCase() === "head");
+      return {
+        id: household.id,
+        household_number: household.household_number,
+        type_: household.type.toUpperCase(),
+        members,
+        head: head ? `${head.firstname} ${head.lastname}` : "N/A",
+        zone: household.zone,
+        date: new Date(household.date_of_residency),
+        status: household.status.charAt(0).toUpperCase() + household.status.slice(1),
+      };
+    });
+  }, [household, isFetching]);
 
   const handleSortChange = (sortValue: string) => {
     searchParams.set("sort", sortValue);
     setSearchParams(searchParams);
   };
 
-
   const filteredData = useMemo(() => {
     const sortValue = searchParams.get("sort") ?? "All Households";
-    let sorted = sort(data, sortValue);
+    let sorted = sort(parsedData, sortValue);
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       sorted = sorted.filter(
         (item) =>
+          item.household_number.includes(query) ||
           item.type_?.toLowerCase().includes(query) ||
           item.head?.toLowerCase().includes(query)
       );
     }
 
     return sorted;
-  }, [searchParams, searchQuery, data]);
-
-  const fetchHouseholds = () => {
-    invoke<Household[]>("fetch_all_households_command")
-      .then((fetched) => {
-        const parsed = fetched.map((household) => ({
-          ...household,
-          date: new Date(household.date),
-        }));
-        setData(parsed);
-      })
-      .catch((err) => console.error("Failed to fetch households:", err));
-  };
-
-  useEffect(() => {
-    fetchHouseholds();
-  }, []);
-
-  const handleDeleteSelected = async () => {
-    const selectedIds = Object.keys(rowSelection)
-      .map((key) => filteredData[parseInt(key)])
-      .filter((row) => !!row)
-      .map((row) => row.id);
-
-    if (selectedIds.length === 0) {
-      console.error("No household records selected.");
-      return;
-    }
-
-    try {
-      for (const id of selectedIds) {
-        if (id !== undefined) {
-          await invoke("delete_household_command", { id });
-        }
-      }
-      console.log("Selected households deleted.");
-      fetchHouseholds();
-      setRowSelection({});
-    } catch (err) {
-      console.error("Failed to delete selected households", err);
-    }
-  };
-
-  <AddHouseholdModal onSave={fetchHouseholds} />;
+  }, [searchParams, searchQuery, parsedData]);
 
 
-  const totalActive = data.filter((item) => item.status === "Active").length;
-  const totalRenter = data.filter((item) => item.type_ === "Renter").length;
-  const totalOwner = data.filter((item) => item.type_ === "Owner").length;
-  const total = data.length;
 
+  const totalActive = parsedData.filter((item) => item.status === "Active").length;
+  const totalRenter = parsedData.filter((item) => item.type_ === "RENTER").length;
+  const totalOwner = parsedData.filter((item) => item.type_ === "OWNER").length;
+  const total = parsedData.length;
   return (
     <>
       <div className="flex flex-wrap gap-5 justify-around mb-5 mt-1">
@@ -289,12 +260,11 @@ export default function Households() {
           variant="destructive"
           size="lg"
           disabled={Object.keys(rowSelection).length === 0}
-          onClick={handleDeleteSelected}
         >
           <Trash />
           Delete Selected
         </Button>
-        <AddHouseholdModal onSave={fetchHouseholds} />
+        <AddHouseholdModal />
       </div>
       <DataTable<Household>
         classname="py-5"
@@ -307,13 +277,9 @@ export default function Households() {
             header: "",
             cell: ({ row }) => (
               <div className="flex gap-3">
-                <ViewHouseholdModal {...row.original} onSave={fetchHouseholds} />
-                <DeleteHouseholdModal
-                  id={row.original.id!}
-                  type_={row.original.type_}
-                  household_number={row.original.household_number}
-                  onDelete={fetchHouseholds}
-                />
+                <Button onClick={() => setViewHouseholdId(row.original.id)}>
+                  <Eye />View Household
+                </Button>
               </div>
             ),
           },
@@ -321,6 +287,13 @@ export default function Households() {
         rowSelection={rowSelection}
         onRowSelectionChange={setRowSelection}
       />
+      {viewHouseholdId !== null && (
+        <ViewHouseholdModal
+          household={parsedData.find((e => e.id === viewHouseholdId))}
+          open={true}
+          onClose={() => setViewHouseholdId(null)}
+        />
+      )}
     </>
   );
 }

@@ -14,12 +14,12 @@ export function sort(data: Household[], term: string): Household[] {
 }
 
 function sortNumerical(data: Household[]): Household[] {
-  return [...data].sort((a, b) => a.household_number - b.household_number)
+  return [...data].sort((a, b) => Number(a.household_number) - Number(b.household_number))
 }
 
 function filterRenter(data: Household[]): Household[] {
-  return data.filter((household) => household.type_ === "Renter")
+  return data.filter((household) => household.type_ === "RENTER")
 }
 function filterOwner(data: Household[]): Household[] {
-  return data.filter((household) => household.type_ === "Owner")
+  return data.filter((household) => household.type_ === "OWNER")
 }
