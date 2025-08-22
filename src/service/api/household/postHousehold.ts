@@ -13,7 +13,7 @@ export type HouseholdProps = {
 };
 export default async function postHousehold(props: HouseholdProps) {
   try {
-    const res = await fetch(`${api}/household`, {
+    const res = await fetch(`${api}/households`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

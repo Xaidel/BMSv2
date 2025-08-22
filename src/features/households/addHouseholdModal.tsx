@@ -179,6 +179,7 @@ interface SelectedMember {
 }
 
 export default function AddHouseholdModal() {
+  const [openModal, setOpenModal] = useState(false)
   const [householdNumber, setHouseholdNumber] = useState("0")
   const [householdType, setHouseholdType] = useState("")
   const [selectedMembers, setSelectedMembers] = useState<SelectedMember[]>([])
@@ -221,7 +222,7 @@ export default function AddHouseholdModal() {
         {
           id: resident.id,
           name: resident.name,
-          role: "Others", // Default role
+          role: "Others",
           income: 0,
           age: 0
         },
@@ -257,8 +258,8 @@ export default function AddHouseholdModal() {
       householdNumber,
       householdType,
       members: selectedMembers.map(m => ({
-        id: Number(m.id),      // or m.value, depending on your state
-        role: m.role,  // make sure role is provided in UI
+        id: Number(m.id),
+        role: m.role,
       })),
       zone,
       dateOfResidency: dateOfResidency instanceof Date
@@ -269,8 +270,9 @@ export default function AddHouseholdModal() {
     toast.promise(
       addMutation.mutateAsync(formData), {
       loading: "Inserting household",
-      success: () => {
+      success: (data) => {
         queryClient.invalidateQueries({ queryKey: ['household'] })
+        setOpenModal(false)
         return {
           message: "Household added successfully",
           description: "New Household registered"
@@ -288,7 +290,7 @@ export default function AddHouseholdModal() {
 
   return (
     <TooltipProvider>
-      <Dialog>
+      <Dialog open={openModal} onOpenChange={setOpenModal}>
         <DialogTrigger asChild>
           <Button>
             <Plus />

@@ -22,7 +22,7 @@ export type HouseholdResponse = {
 }
 export default async function getHousehold() {
   try {
-    const res = await fetch(`${api}/household`, {
+    const res = await fetch(`${api}/households`, {
       method: "GET",
       headers: {
         Accept: "application/json"

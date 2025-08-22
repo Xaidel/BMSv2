@@ -256,7 +256,7 @@ export default function Households() {
                   })
                   setSelectedHousehold([])
                   return {
-                    message: "Household sueccfully deleted"
+                    message: "Household sucessfully deleted"
                   }
                 },
                 error: (error: { error: string }) => {
