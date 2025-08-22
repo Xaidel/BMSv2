@@ -18,35 +18,12 @@ import { HouseholdPDF } from "@/components/pdf/householdpdf";
 import { toast } from "sonner";
 import { useHousehold } from "@/features/api/household/useHousehold";
 import ViewHouseholdModal from "@/features/households/viewHouseholdModal";
+import { useDeleteHousehold } from "@/features/api/household/useDeleteHousehold";
+import { useQueryClient } from "@tanstack/react-query";
 
 const filters = ["All Households", "Numerical", "Renter", "Owner"];
 
 const columns: ColumnDef<Household>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected()
-            ? true
-            : table.getIsSomePageRowsSelected()
-              ? "indeterminate"
-              : false
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        className="flex items-center justify-center"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        className="flex items-center justify-center"
-      />
-    ),
-  },
   {
     header: "House Number",
     accessorKey: "household_number",
@@ -101,6 +78,9 @@ export default function Households() {
   const [data, setData] = useState<Household[]>([]);
   const { data: household, isFetching } = useHousehold()
   const [viewHouseholdId, setViewHouseholdId] = useState<number | null>(null)
+  const [selectedHousehold, setSelectedHousehold] = useState<number[]>([])
+  const deleteMutation = useDeleteHousehold()
+  const queryClient = useQueryClient()
   const parsedData = useMemo(() => {
     if (isFetching || !household || !household.households) return []
     return household.households.map((household) => {
@@ -260,6 +240,35 @@ export default function Households() {
           variant="destructive"
           size="lg"
           disabled={Object.keys(rowSelection).length === 0}
+          onClick={() => {
+            if (selectedHousehold) {
+              toast.promise(
+                deleteMutation.mutateAsync(selectedHousehold), {
+                loading: "Deleting household, Please wait...",
+                success: () => {
+                  queryClient.invalidateQueries({ queryKey: ['household'] })
+                  setRowSelection((prevSelection) => {
+                    const newSelection = { ...prevSelection }
+                    selectedHousehold.forEach((_, i) => {
+                      delete newSelection[i]
+                    })
+                    return newSelection
+                  })
+                  setSelectedHousehold([])
+                  return {
+                    message: "Household sueccfully deleted"
+                  }
+                },
+                error: (error: { error: string }) => {
+                  return {
+                    message: "Failed to delete households",
+                    description: error.error
+                  }
+                }
+              }
+              )
+            }
+          }}
         >
           <Trash />
           Delete Selected
@@ -271,6 +280,46 @@ export default function Households() {
         height="43.3rem"
         data={filteredData}
         columns={[
+          {
+            id: "select",
+            header: ({ table }) => (
+              <Checkbox
+                checked={
+                  table.getIsAllPageRowsSelected()
+                    ? true
+                    : table.getIsSomePageRowsSelected()
+                      ? "indeterminate"
+                      : false
+                }
+                onCheckedChange={(value) => {
+                  table.toggleAllPageRowsSelected(!!value)
+                  if (value) {
+                    const allVisibleRows = table.getRowModel().rows.map(row => row.original.id)
+                    setSelectedHousehold(allVisibleRows)
+                  } else {
+                    setSelectedHousehold([])
+                  }
+                }}
+                aria-label="Select all"
+                className="flex items-center justify-center"
+              />
+            ),
+            cell: ({ row }) => (
+              <Checkbox
+                checked={row.getIsSelected()}
+                onCheckedChange={(value) => {
+                  row.toggleSelected(!!value)
+                  if (value) {
+                    setSelectedHousehold(prev => [...prev, row.original.id])
+                  } else {
+                    setSelectedHousehold(prev => prev.filter(res => res !== row.original.id))
+                  }
+                }}
+                aria-label="Select row"
+                className="flex items-center justify-center"
+              />
+            ),
+          },
           ...columns,
           {
             id: "view",

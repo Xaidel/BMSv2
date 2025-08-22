@@ -30,7 +30,7 @@ export default function ViewHouseholdModal({ household, open, onClose }: { house
               <Tabs defaultValue="general" >
                 <TabsList className="text-black">
                   <TabsTrigger value="general" className="text-black data-[state=active]:bg-blue-500 data-[state=active]:text-white">General Info</TabsTrigger>
-                  <TabsTrigger value="tree" className="text-black data-[state=active]:bg-blue-500 data-[state=active]:text-white">Family Tree</TabsTrigger>
+                  {/*<TabsTrigger value="tree" className="text-black data-[state=active]:bg-blue-500 data-[state=active]:text-white">Family Tree</TabsTrigger>*/}
                 </TabsList>
                 <TabsContent value="general">
                   <div className="flex w-full justify-between">
@@ -38,11 +38,12 @@ export default function ViewHouseholdModal({ household, open, onClose }: { house
                     <p className="text-sm">{`Overall Income: ${Math.trunc(overallIncome).toLocaleString("en-US")}`}</p>
                   </div>
                   <Table className="w-full">
-                    <TableCaption >{`Household details for Househol Number ${household.household_number}`}</TableCaption>
+                    <TableCaption >{`Household details for Househol Number ${household.household_number} Roles are displayed relative to their relationship with the household head`}</TableCaption>
                     <TableHeader>
                       <TableRow >
                         <TableHead className="text-black" >
-                          Role</TableHead>
+                          Role
+                        </TableHead>
                         <TableHead className="text-black">Name</TableHead>
                         <TableHead className="text-black">Estimated Income</TableHead>
                       </TableRow>
