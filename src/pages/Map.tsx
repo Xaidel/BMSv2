@@ -8,17 +8,8 @@ import type { LatLngExpression } from "leaflet";
 
 
 const center: LatLngExpression = [13.5752, 123.0734];
+
 export default function Map() {
-
-
-  const merged = {
-    type: "FeatureCollection",
-    features: [
-      ...TamboRoad.features,
-      ...Border.features,
-      ...Building.features
-    ]
-  }
   return (
     <>
       <div className="w-[85vw] h-[80vh] border-1 p-10 rounded-2xl overflow-hidden shadow-md">
@@ -27,7 +18,17 @@ export default function Map() {
           zoom={14}
           className="w-full h-full rounded-2xl"
         >
-          <GeoJSON data={merged}
+          <GeoJSON data={TamboRoad as any}
+            style={() => ({
+              color: "gray"
+            })}
+          />
+          <GeoJSON data={Border as any} style={() => ({
+            fillColor: "lightblue",
+            weight: 1,
+            color: "black",
+          })} />
+          <GeoJSON data={Building as any}
             style={() => ({
               color: "green",
               weight: 1,
