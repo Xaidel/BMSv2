@@ -1,214 +1,235 @@
-// OfficialsPage.tsx
-import { useState, useEffect } from "react";
-import { invoke } from "@tauri-apps/api/core";
-import ViewOfficialModal from "@/features/official/viewOfficialModal";
-import AddOfficialModal from "@/features/official/addOfficialModal";
+import Tree from "react-d3-tree";
+import Photo from "@/assets/donaldT.jpg"
+import Tambo from "@/assets/Tambo.png"
+import { Badge } from "@/components/ui/badge";
+import { Pencil, Plus } from "lucide-react";
 
-type Official = {
-  id: number;
-  name: string;
-  role: string;
-  image: string;
-  section: string;
-  age?: number;
-  contact?: string;
-  term_start?: string;
-  term_end?: string;
-  zone?: string;
+const orgChart = {
+  id: 1,
+  name: "Barangay Captain",
+  resident_name: "Donald Trump",
+  photo: Photo,
+  children: [
+    {
+      name: "Councilors",
+      resident_name: "Councilor Group",
+      photo: Tambo,
+      children: [
+        { id: 2, name: "Barangay Kagawad 1", resident_name: "John Doe", photo: Photo },
+        { id: 3, name: "Barangay Kagawad 2", resident_name: "Jane Smith", photo: Photo },
+        { id: 4, name: "Barangay Kagawad 3", resident_name: "Alice Lee", photo: Photo },
+        { id: 5, name: "Barangay Kagawad 4", resident_name: "Bob Tan", photo: Photo },
+        { id: 6, name: "Barangay Kagawad 5", resident_name: "Charlie Cruz", photo: Photo },
+        { id: 7, name: "Barangay Kagawad 6", resident_name: "Diana Yu", photo: Photo },
+        { id: 8, name: "Barangay Kagawad 7", resident_name: "Edward Lim", photo: Photo },
+        {
+          name: "SK Chairperson",
+          resident_name: "Jerome Patrick Tayco",
+          photo: Photo,
+          children: [
+            { id: 9, name: "SK Kagawad 1", resident_name: "SK1 Name", photo: Photo },
+            { id: 10, name: "SK Kagawad 2", resident_name: "SK2 Name", photo: Photo },
+            { id: 11, name: "SK Kagawad 3", resident_name: "SK3 Name", photo: Photo },
+            { name: "SK Kagawad 4", resident_name: "SK4 Name", photo: Photo },
+            { name: "SK Kagawad 5", resident_name: "SK5 Name", photo: Photo },
+            { name: "SK Kagawad 6", resident_name: "SK6 Name", photo: Photo },
+            { name: "SK Kagawad 7", resident_name: "SK7 Name", photo: Photo },
+          ],
+        },
+      ],
+    },
+    { name: "Secretary", resident_name: "Evangelyn Diesta", photo: Photo },
+    { name: "Treasurer", resident_name: "Jane Doe", photo: Photo },
+    {
+      name: "BNS/BHW", resident_name: "BNS/BHW Group", photo: Tambo, children: [
+        {
+          name: "Nurse",
+          resident_name: "Joseph Durant",
+          children: [
+            {
+              name: "BHW",
+              resident_name: "Veronica Francisco"
+            },
+            {
+              name: "BHW",
+              resident_name: "Veronica Francisco"
+            },
+            {
+              name: "BHW",
+              resident_name: "Veronica Francisco"
+            },
+            {
+              name: "BHW",
+              resident_name: "Veronica Francisco"
+            },
+            {
+              name: "BHW",
+              resident_name: "Veronica Francisco"
+            },
+            {
+              name: "BHW",
+              resident_name: "Veronica Francisco"
+            },
+            {
+              name: "BHW",
+              resident_name: "Veronica Francisco"
+            },
+            {
+              name: "BHW",
+              resident_name: "Veronica Francisco"
+            },
+            {
+              name: "BHW",
+              resident_name: "Veronica Francisco"
+            },
+            {
+              name: "BHW",
+              resident_name: "Veronica Francisco"
+            },
+            {
+              name: "BHW",
+              resident_name: "Veronica Francisco"
+            },
+          ]
+        },
+      ]
+    },
+    {
+      name: "Staff",
+      resident_name: "Staff Group",
+      photo: Tambo,
+      children: [
+        { name: "Utility/Maintenance", resident_name: "Utility Name", photo: Photo },
+        { name: "Driver", resident_name: "Driver Name", photo: Photo },
+      ],
+    },
+    {
+      name: "Barangay Tanod",
+      resident_name: "Tanod Group",
+      photo: Tambo,
+      children: [
+        { name: "Tanod 1", resident_name: "Tanod 1 Name", photo: Photo },
+        { name: "Tanod 2", resident_name: "Tanod 2 Name", photo: Photo },
+        { name: "Tanod 3", resident_name: "Tanod 3 Name", photo: Photo },
+        { name: "Tanod 4", resident_name: "Tanod 4 Name", photo: Photo },
+        { name: "Tanod 5", resident_name: "Tanod 5 Name", photo: Photo },
+        { name: "Tanod 6", resident_name: "Tanod 6 Name", photo: Photo },
+        { name: "Tanod 7", resident_name: "Tanod 7 Name", photo: Photo },
+        { name: "Tanod 8", resident_name: "Tanod 8 Name", photo: Photo },
+      ],
+    },
+  ],
 };
+const myTreeData = [orgChart];
 
-const sections = [
-  {
-    title: "Barangay Officials",
-    members: ["captain", "councilors", "staffs"],
-    type: "barangay",
-  },
-  {
-    title: "SK Officials",
-    members: ["captain", "councilors"],
-    type: "sk",
-  },
-  {
-    title: "Tanod Officials",
-    members: ["chief", "members"],
-    type: "tanod",
-  },
-];
-
-export default function OfficialsPage() {
-  const [officialsData, setOfficialsData] = useState(null);
-  const [selectedOfficial, setSelectedOfficial] = useState(null);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-
-
-  useEffect(() => {
-    invoke<Official[]>("fetch_all_officials_command")
-      .then((data) => {
-        const structured = {
-          barangay: { captain: null, councilors: [], staffs: [] },
-          sk: { captain: null, councilors: [] },
-          tanod: { chief: null, members: [] },
-        };
-
-        data.forEach((person) => {
-          const role = person.role.toLowerCase();
-          const section = person.section.toLowerCase();
-
-          if (section === "barangay officials") {
-            if (role === "barangay captain") {
-              structured.barangay.captain = person;
-            } else if (role === "barangay councilor") {
-              structured.barangay.councilors.push(person);
-            } else if (["secretary", "treasurer", "driver", "care taker"].includes(role)) {
-              structured.barangay.staffs.push(person);
-            }
-          } else if (section === "sk officials") {
-            if (role === "sk chairman") {
-              structured.sk.captain = person;
-            } else if (role === "sk councilor") {
-              structured.sk.councilors.push(person);
-            }
-          } else if (section === "tanod officials") {
-            if (role === "chief tanod") {
-              structured.tanod.chief = person;
-            } else if (role === "tanod member") {
-              structured.tanod.members.push(person);
-            }
-          }
-        });
-
-        setOfficialsData(structured);
-      })
-      .catch((err) => console.error("Failed to fetch officials:", err));
-  }, []);
-
-  const viewMore = (official) => setSelectedOfficial(official);
-
-  const ProfileCard = ({ person }) => {
-    const [logo, setLogo] = useState("/logo.png");
-
-    useEffect(() => {
-      if (!person.image || person.image.trim() === "") {
-        invoke("fetch_logo_command")
-          .then((result) => {
-            if (result) setLogo(result as string);
-          })
-          .catch(() => {});
-      }
-    }, [person.image]);
-
-    return (
-      <div
-        onClick={() => viewMore(person)}
-        className="cursor-pointer my-5 p-1 rounded-lg bg-white shadow-md hover:bg-gray-100 w-50 h-auto text-center scale-[1] hover:scale-100 transition-transform"
-      >
-        <img
-          src={person.image && person.image.trim() !== "" ? person.image : logo}
-          alt={person.name}
-          className="rounded-full w-34 h-34 mx-auto object-cover mb-2"
-        />
-        <p className="text-base font-bold">{person.name}</p>
-        <p className="text-sm font-bold text-gray-700">{person.role}</p>
-        <div className="text-sm text-gray-700 mt-2 space-y-1">
-          {person.age !== undefined && person.age !== null && <p>Age: {person.age}</p>}
-          {person.contact && <p>Contact: {person.contact}</p>}
-          {person.term_start && <p>Term Start: {person.term_start}</p>}
-          {person.term_end && <p>Term End: {person.term_end}</p>}
-          {person.zone && <p>Zone: {person.zone}</p>}
-        </div>
-      </div>
-    );
-  };
-
-  if (!officialsData) return <div className="p-4">Loading officials...</div>;
+function NodeBox({
+  name,
+  resident_name,
+  photo,
+  onClick,
+}: {
+  name: string; // role
+  resident_name?: string;
+  photo?: string;
+  onClick: () => void;
+}) {
+  const shouldShowBadge =
+    resident_name.includes("Group") || name === "SK Chairperson";
 
   return (
-    <div className="ml-0 pl-0 pr-2 py-6 min-w-[1500px] overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 scale-90 xl:scale-79 origin-top-left transition-transform">
-
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Officials</h1>
-        <AddOfficialModal onSave={() => {
-          window.location.reload();
-        }} />
-      </div>
-
-      {sections.map((section, index) => (
-        <div key={index}>
-          <div className="h-0.5 w-full bg-gray-500/20 my-8" />
-          <section className="mb-10">
-            <h2 className="text-xl font-semibold text-center">{section.title}</h2>
-            <div className="flex flex-col items-center space-y-2 mt-2">
-              {section.members.map((key) => {
-                const value = officialsData[section.type]?.[key];
-                if (Array.isArray(value)) {
-                  return (
-                    <div
-                      key={key}
-                      className="flex gap-3 flex-wrap justify-center"
-                    >
-                      {value.map((person, i) => (
-                        <ProfileCard key={`${key}-${i}`} person={person} />
-                      ))}
-                    </div>
-                  );
-                } else if (value && typeof value === "object") {
-                  return <ProfileCard key={key} person={value} />;
-                }
-                return null;
-              })}
-            </div>
-          </section>
-        </div>
-      ))}
-      {selectedOfficial && (
-        <ViewOfficialModal person={selectedOfficial} onClose={() => setSelectedOfficial(null)} />
-      )}
-      {isAddModalOpen && (
-        <AddOfficialModal
-          onSave={() => {
-            setIsAddModalOpen(false);
-            // re-fetch updated officials list
-            invoke<Official[]>("fetch_all_officials_command")
-              .then((data) => {
-                const structured = {
-                  barangay: { captain: null, councilors: [], staffs: [] },
-                  sk: { captain: null, councilors: [] },
-                  tanod: { chief: null, members: [] },
-                };
-
-                data.forEach((person) => {
-                  const role = person.role.toLowerCase();
-                  const section = person.section.toLowerCase();
-
-                  if (section === "barangay officials") {
-                    if (role === "barangay captain") {
-                      structured.barangay.captain = person;
-                    } else if (role === "barangay councilor") {
-                      structured.barangay.councilors.push(person);
-                    } else if (["secretary", "treasurer", "driver", "care taker"].includes(role)) {
-                      structured.barangay.staffs.push(person);
-                    }
-                  } else if (section === "sk officials") {
-                    if (role === "sk chairman") {
-                      structured.sk.captain = person;
-                    } else if (role === "sk councilor") {
-                      structured.sk.councilors.push(person);
-                    }
-                  } else if (section === "tanod officials") {
-                    if (role === "chief tanod") {
-                      structured.tanod.chief = person;
-                    } else if (role === "tanod member") {
-                      structured.tanod.members.push(person);
-                    }
-                  }
-                });
-
-                setOfficialsData(structured);
-              })
-              .catch((err) => console.error("Failed to fetch officials:", err));
+    <div
+      style={{
+        width: 180,
+        minHeight: 80,
+        border: "2px solid #2F80ED",
+        borderRadius: 6,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        fontWeight: 600,
+        background: "#fff",
+        cursor: "pointer",
+        padding: "6px",
+      }}
+      onClick={onClick}
+    >
+      {photo && (
+        <img
+          src={photo}
+          alt={name}
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: "50%",
+            marginBottom: 4,
+            objectFit: "cover",
           }}
         />
       )}
+      {resident_name && (
+        <span style={{ fontWeight: 500, fontSize: 12, marginBottom: 2 }}>
+          {resident_name}
+        </span>
+      )}
+      <span style={{ fontSize: 14 }}>{name}</span>
+      {shouldShowBadge ? (
+        <Badge
+          onClick={(e) => {
+            e.stopPropagation();
+          }
+          }
+          className="absolute bg-green-600 hover:bg-green-700 -top-2 -right-[-13px] w-8 h-8 p-0 rounded-full flex items-center justify-center border-2 border-white shadow-sm text-white text-center">
+          <Plus />
+        </Badge>
+      ) :
+        <Badge
+          onClick={(e) => {
+            e.stopPropagation();
+          }
+          }
+          className="absolute bg-blue-600 hover:bg-blue-700 -top-2 -right-[-13px] w-8 h-8 p-0 rounded-full flex items-center justify-center border-2 border-white shadow-sm text-white text-center">
+          <Pencil />
+        </Badge>
+      }
+    </div >
+  );
+}
+
+const renderNode = ({ nodeDatum, toggleNode }: any) => (
+  <g>
+    <foreignObject
+      width={200}
+      height={100}
+      x={-100}
+      y={-50}
+      style={{ overflow: "visible" }}
+    >
+      <NodeBox
+        name={nodeDatum.name}
+        resident_name={nodeDatum.resident_name}
+        photo={nodeDatum.photo}
+        onClick={toggleNode}
+      />
+    </foreignObject>
+  </g>
+);
+
+export default function Official() {
+  return (
+    <div className="App">
+      <h1>Barangay Org Chart</h1>
+      <div id="treeWrapper" style={{ width: "100%", height: "100vh" }}>
+        <Tree
+          data={myTreeData}
+          pathFunc="step"
+          separation={{ siblings: 2, nonSiblings: 2 }}
+          orientation="vertical"
+          translate={{ x: 900, y: 100 }}
+          renderCustomNodeElement={renderNode}
+          initialDepth={1}
+        />
+      </div>
     </div>
   );
 }
