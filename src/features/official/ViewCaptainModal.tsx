@@ -1,14 +1,14 @@
-import { useQueryClient } from "@tanstack/react-query"
 import { useResident } from "../api/resident/useResident"
-import { ResidentResponse } from "@/service/api/resident/getResident"
 import { useMemo, useState } from "react"
 import { getAge } from "@/lib/utils"
+import useOfficial from "../api/official/useOfficial"
 
 interface SelectedResident {
   id: string
   name: string
   role: string
   age: number
+  zone: number
 }
 export default function ViewCaptainModal() {
   const { data: residentsData } = useResident()
@@ -25,11 +25,11 @@ export default function ViewCaptainModal() {
         id: r.ID.toString(),
         name: `${r.Firstname}${middleInitial} ${r.Lastname}`.trim(),
         role: "",
-        age: getAge(r.Birthday.toString())
+        age: getAge(r.Birthday.toString()),
+        zone: r.Zone
       }
     })
   }, [residentsData])
-  console.log(res)
   return (
     <>
       <div>

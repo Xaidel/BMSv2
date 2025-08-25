@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import ViewCaptainModal from "@/features/official/ViewCaptainModal";
+import useOfficial from "@/features/api/official/useOfficial";
 
 const myTreeData = [orgChart];
 
@@ -171,6 +172,8 @@ const renderNode = ({
 export default function Official() {
   const [open, setOpen] = useState(false);
   const [activeNode, setActiveNode] = useState<any>(null);
+  const { data: officials } = useOfficial()
+  console.log(officials)
 
   return (
     <div className="">
