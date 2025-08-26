@@ -55,6 +55,11 @@ export default function LoginPage() {
   }
 
   useEffect(() => {
+    if (typeof invoke !== "function") {
+      console.warn("⚠️ Tauri invoke not available (running in browser dev?)");
+      return;
+    }
+
     invoke("test_db_connection")
       .then((res) => {
         console.log("✅ DB test:", res);

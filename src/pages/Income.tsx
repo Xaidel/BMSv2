@@ -4,10 +4,8 @@ import DataTable from "@/components/ui/datatable";
 import Filter from "@/components/ui/filter";
 import Searchbar from "@/components/ui/searchbar";
 import AddIncomeModal from "@/features/income/addIncomeModal";
-import DeleteIncomeModal from "@/features/income/deleteIncomeModal";
 import ViewIncomeModal from "@/features/income/viewIncomeModal";
 import { sort } from "@/service/income/incomeSort";
-import type { Income } from "@/types/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { Shirt, Trash } from "lucide-react";
@@ -30,6 +28,8 @@ import { writeFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 import { toast } from "sonner";
 import { IncomePDF } from "@/components/pdf/incomepdf";
 import searchIncome from "@/service/income/searchIncome";
+import { Income } from "@/types/types";
+
 
 const filters = [
   "All Income",
@@ -65,22 +65,22 @@ const columns: ColumnDef<Income>[] = [
       />
     ),
   },
-  { header: "Type", accessorKey: "type_" },
-  { header: "Category", accessorKey: "category" },
-  { header: "OR Number", accessorKey: "or_number" },
+  { header: "Type", accessorKey: "Type" },
+  { header: "Category", accessorKey: "Category" },
+  { header: "OR Number", accessorKey: "OR" },
   {
-    header: "Amount", accessorKey: "amount",
-    cell: ({ row }) => <div>{Intl.NumberFormat("en-US").format(row.original.amount)}</div>
+    header: "Amount", accessorKey: "Amount",
+    cell: ({ row }) => <div>{Intl.NumberFormat("en-US").format(row.original.Amount)}</div>
   },
-  { header: "Received From", accessorKey: "received_from" },
-  { header: "Received By", accessorKey: "received_by" },
+  { header: "Received From", accessorKey: "ReceivedFrom" },
+  { header: "Received By", accessorKey: "ReceivedBy" },
   {
     header: "Date Issued",
-    accessorKey: "date",
+    accessorKey: "DateReceived",
     cell: ({ row }) => (
       <div>
-        {row.original.date
-          ? format(row.original.date, "MMMM do, yyyy")
+        {row.original.DateReceived
+          ? format(row.original.DateReceived, "MMMM do, yyyy")
           : "Invalid Date"}
       </div>
     ),
@@ -115,8 +115,8 @@ export default function IncomePage() {
       .then((fetched) => {
         const parsed = fetched.map((income) => ({
           ...income,
-          date: new Date(income.date),
-          category: income.category,
+          DateReceived: new Date(income.DateReceived),
+          Category: income.Category,
         }));
         setData(parsed);
       })
@@ -133,7 +133,7 @@ export default function IncomePage() {
     const selectedIds = Object.keys(rowSelection)
       .map((key) => filteredData[parseInt(key)])
       .filter((row) => !!row)
-      .map((row) => row.id);
+      .map((row) => row.ID);
 
     if (selectedIds.length === 0) {
       console.error("No income records selected.");
@@ -141,9 +141,9 @@ export default function IncomePage() {
     }
 
     try {
-      for (const id of selectedIds) {
-        if (id !== undefined) {
-          await invoke("delete_income_command", { id });
+      for (const ID of selectedIds) {
+        if (ID !== undefined) {
+          await invoke("delete_income_command", { ID });
         }
       }
       console.log("Selected incomes deleted.");
@@ -353,12 +353,7 @@ export default function IncomePage() {
             cell: ({ row }) => (
               <div className="flex gap-3">
                 <ViewIncomeModal {...row.original} onSave={fetchIncomes} />
-                <DeleteIncomeModal
-                  id={row.original.id!}
-                  type_={row.original.type_}
-                  category={row.original.category}
-                  onDelete={fetchIncomes}
-                />
+
               </div>
             ),
           },

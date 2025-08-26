@@ -59,6 +59,7 @@ export type Household = {
 };
 
 export type Income = {
+  [x: string]: any;
   id?: number;
   category: string,
   type_: string,
