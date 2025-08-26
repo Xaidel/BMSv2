@@ -58,6 +58,7 @@ const badgeGroup = (
     >
       <Icon />
     </Badge>
+
   );
 };
 
@@ -173,7 +174,6 @@ export default function Official() {
   const [open, setOpen] = useState(false);
   const [activeNode, setActiveNode] = useState<any>(null);
   const { data: officials } = useOfficial()
-  console.log(officials)
 
   return (
     <div className="">
@@ -192,7 +192,6 @@ export default function Official() {
         />
       </div>
 
-      {/* Modal (Shadcn Dialog) */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="text-black">
           <DialogHeader className="text-black">
