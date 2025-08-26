@@ -1,7 +1,67 @@
-import { useState, useEffect } from "react";
-import { invoke } from "@tauri-apps/api/core";
-import ViewOfficialModal from "@/features/official/viewOfficialModal";
-import AddOfficialModal from "@/features/official/addOfficialModal";
+
+import { useState } from "react";
+import Tree from "react-d3-tree";
+import { Badge } from "@/components/ui/badge";
+import { Eye, Plus } from "lucide-react";
+import { orgChart } from "@/types/tree";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import ViewCaptainModal from "@/features/official/ViewCaptainModal";
+import useOfficial from "@/features/api/official/useOfficial";
+
+const myTreeData = [orgChart];
+
+const badgeGroup = (
+  hasChildren: boolean,
+  resident_name: string,
+  name: string,
+  parent: string,
+  setOpen: (open: boolean) => void,
+  setActiveNode: (node: any) => void
+) => {
+  let Icon = Eye;
+  let colorClass = "bg-blue-600 hover:bg-blue-700";
+  let hidden = false;
+
+  if (parent === "BNS/BHW") {
+    Icon = Eye;
+  } else if (
+    name === "Councilors" ||
+    (name.includes("Tanod") && name !== "Chief Tanod")
+  ) {
+    hidden = true; // nothing rendered
+  } else if (
+    name === "SK Chairperson" ||
+    name === "Barangay Captain" ||
+    name === "Chief Tanod"
+  ) {
+    Icon = Eye;
+  } else if (hasChildren && name !== "Barangay Captain") {
+    Icon = Plus;
+    colorClass = "bg-green-600 hover:bg-green-700";
+  }
+  if (hidden) {
+    return <div className="flex absolute -top-3 -right-[-13px]" />;
+  }
+  return (
+    <Badge
+      onClick={(e) => {
+        e.stopPropagation();
+        setActiveNode({ name, resident_name, parent });
+        setOpen(true);
+      }}
+      className={`absolute -top-2 -right-[-13px] w-8 h-8 p-0 rounded-full flex items-center justify-center border-2 border-white shadow-sm text-white text-center ${colorClass}`}
+    >
+      <Icon />
+    </Badge>
+
+  );
+};
 
 type Official = {
   id: number;
@@ -118,8 +178,10 @@ export default function OfficialsPage() {
       </div>
     );
   };
-
-  if (!officialsData) return <div className="p-4">Loading officials...</div>;
+export default function Official() {
+  const [open, setOpen] = useState(false);
+  const [activeNode, setActiveNode] = useState<any>(null);
+  const { data: officials } = useOfficial()
 
   return (
     <div className="ml-0 pl-0 pr-2 py-6 min-w-[1500px] overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 scale-90 xl:scale-79 origin-top-left transition-transform">
@@ -130,6 +192,7 @@ export default function OfficialsPage() {
           window.location.reload();
         }} />
       </div>
+
 
       {sections.map((section, index) => (
         <div key={index}>
@@ -208,6 +271,15 @@ export default function OfficialsPage() {
           }}
         />
       )}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="text-black">
+          <DialogHeader className="text-black">
+            <DialogTitle>{activeNode?.name}</DialogTitle>
+            <DialogDescription>{`Update this ${activeNode?.name}’s information, including name, role, and other details. Save changes to keep everything up to date.`}</DialogDescription>
+          </DialogHeader>
+          {activeNode?.name === "Barangay Captain" && <ViewCaptainModal />}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

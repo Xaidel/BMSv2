@@ -16,6 +16,8 @@ export default function Map() {
           center={center}
           zoom={14}
           className="w-full h-full rounded-2xl"
+          zoomAnimation={false}
+          fadeAnimation={false}
         >
           <GeoJSON data={TamboRoad as any}
             style={() => ({
