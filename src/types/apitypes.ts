@@ -41,3 +41,14 @@ export type Resident = {
   ID?: number
 }
 
+export type Income = {
+  ID: number
+  Category: string
+  Type: string
+  Amount: number
+  OR: string
+  ReceivedFrom: string
+  ReceivedBy: string
+  DateReceived: Date
+}
+
