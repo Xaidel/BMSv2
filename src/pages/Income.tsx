@@ -1,16 +1,6 @@
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import DataTable from "@/components/ui/datatable";
-import Filter from "@/components/ui/filter";
-import Searchbar from "@/components/ui/searchbar";
-import AddIncomeModal from "@/features/income/addIncomeModal";
-import ViewIncomeModal from "@/features/income/viewIncomeModal";
-import { sort } from "@/service/income/incomeSort";
-import { ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
-import { Shirt, Trash } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
+import { format } from "date-fns";
 import {
   DollarSign,
   Banknote,
@@ -19,17 +9,33 @@ import {
   Coins,
   Wallet,
   Layers,
-} from "lucide-react"; // or custom icons
-import SummaryCardIncome from "@/components/summary-card/income";
-import { invoke } from "@tauri-apps/api/core";
-import { useEffect } from "react";
+  Shirt,
+  Trash,
+  Eye,
+  Droplet,
+  Droplets,
+} from "lucide-react";
+import { ColumnDef } from "@tanstack/react-table";
+import { toast } from "sonner";
 import { pdf } from "@react-pdf/renderer";
 import { writeFile, BaseDirectory } from "@tauri-apps/plugin-fs";
-import { toast } from "sonner";
-import { IncomePDF } from "@/components/pdf/incomepdf";
-import searchIncome from "@/service/income/searchIncome";
-import { Income } from "@/types/types";
 
+import DataTable from "@/components/ui/datatable";
+import Filter from "@/components/ui/filter";
+import Searchbar from "@/components/ui/searchbar";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+
+import AddIncomeModal from "@/features/income/addIncomeModal";
+import ViewIncomeModal from "@/features/income/viewIncomeModal";
+
+import { useIncome } from "@/features/api/income/useIncome";
+import { useDeleteIncome } from "@/features/api/income/useDeleteIncome";
+import { IncomePDF } from "@/components/pdf/incomepdf";
+import SummaryCardIncome from "@/components/summary-card/income";
+import searchIncome from "@/service/income/searchIncome";
+import { sort } from "@/service/income/incomeSort";
+import { Income } from "@/types/apitypes";
 
 const filters = [
   "All Income",
@@ -40,37 +46,15 @@ const filters = [
 ];
 
 const columns: ColumnDef<Income>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected()
-            ? true
-            : table.getIsSomePageRowsSelected()
-              ? "indeterminate"
-              : false
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        className="flex items-center justify-center"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        className="flex items-center justify-center"
-      />
-    ),
-  },
   { header: "Type", accessorKey: "Type" },
   { header: "Category", accessorKey: "Category" },
   { header: "OR Number", accessorKey: "OR" },
   {
-    header: "Amount", accessorKey: "Amount",
-    cell: ({ row }) => <div>{Intl.NumberFormat("en-US").format(row.original.Amount)}</div>
+    header: "Amount",
+    accessorKey: "Amount",
+    cell: ({ row }) => (
+      <div>{Intl.NumberFormat("en-US").format(row.original.Amount)}</div>
+    ),
   },
   { header: "Received From", accessorKey: "ReceivedFrom" },
   { header: "Received By", accessorKey: "ReceivedBy" },
@@ -87,11 +71,17 @@ const columns: ColumnDef<Income>[] = [
   },
 ];
 
-export default function IncomePage() {
+export default function IncomeNewPage() {
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
-  const [data, setData] = useState([]); //
+  const [selectedIncome, setSelectedIncome] = useState<number[]>([]);
+  const { data: incomeResponse } = useIncome();
+  const { mutateAsync: deleteIncome } = useDeleteIncome();
+
+  const income = useMemo(() => {
+    return incomeResponse?.incomes ?? [];
+  }, [incomeResponse]);
 
   const handleSortChange = (sortValue: string) => {
     searchParams.set("sort", sortValue);
@@ -103,56 +93,13 @@ export default function IncomePage() {
   };
 
   const filteredData = useMemo(() => {
-    const sorted = sort(data, searchParams.get("sort") ?? "All Income");
+    const sorted = sort(income, searchParams.get("sort") ?? "All Income");
     if (searchQuery.trim()) {
       return searchIncome(searchQuery, sorted);
     }
     return sorted;
-  }, [searchParams, data, searchQuery]);
-
-  const fetchIncomes = () => {
-    invoke<Income[]>("fetch_all_incomes_command")
-      .then((fetched) => {
-        const parsed = fetched.map((income) => ({
-          ...income,
-          DateReceived: new Date(income.DateReceived),
-          Category: income.Category,
-        }));
-        setData(parsed);
-      })
-      .catch((err) => console.error("Failed to fetch incomes:", err));
-  };
-
-  useEffect(() => {
-    fetchIncomes();
-  }, []);
-
-  <AddIncomeModal onSave={fetchIncomes} />;
-
-  const handleDeleteSelected = async () => {
-    const selectedIds = Object.keys(rowSelection)
-      .map((key) => filteredData[parseInt(key)])
-      .filter((row) => !!row)
-      .map((row) => row.ID);
-
-    if (selectedIds.length === 0) {
-      console.error("No income records selected.");
-      return;
-    }
-
-    try {
-      for (const ID of selectedIds) {
-        if (ID !== undefined) {
-          await invoke("delete_income_command", { ID });
-        }
-      }
-      console.log("Selected incomes deleted.");
-      fetchIncomes();
-      setRowSelection({});
-    } catch (err) {
-      console.error("Failed to delete selected incomes", err);
-    }
-  };
+  }, [searchParams, income, searchQuery]);
+  const [viewIncomeId, setViewIncomeId] = useState<number | null>(null);
 
   return (
     <>
@@ -160,14 +107,18 @@ export default function IncomePage() {
       <div className="flex flex-wrap gap-5 justify-around mb-5 mt-1">
         <SummaryCardIncome
           title="Total Revenue"
-          value={new Intl.NumberFormat("en-US").format(filteredData.reduce((acc, item) => acc + item.amount, 0))}
+          value={new Intl.NumberFormat("en-US").format(
+            filteredData.reduce((acc, item) => acc + item.Amount, 0)
+          )}
           icon={<DollarSign size={50} />}
           onClick={async () => {
-            const blob = await pdf(<IncomePDF filter="All Income" incomes={filteredData} />).toBlob();
+            const blob = await pdf(
+              <IncomePDF filter="All Income" incomes={filteredData} />
+            ).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
             try {
-              await writeFile('IncomeRecords.pdf', contents, {
+              await writeFile("IncomeRecords.pdf", contents, {
                 baseDir: BaseDirectory.Document,
               });
               toast.success("Income Record successfully downloaded", {
@@ -182,134 +133,218 @@ export default function IncomePage() {
         />
         <SummaryCardIncome
           title="Local Revenue"
-          value={Intl.NumberFormat("en-US").format(filteredData
-            .filter((d) => d.category === "Local Revenue")
-            .reduce((acc, item) => acc + item.amount, 0))}
+          value={Intl.NumberFormat("en-US").format(
+            filteredData
+              .filter((d) => d.Category === "Local Revenue")
+              .reduce((acc, item) => acc + item.Amount, 0)
+          )}
           icon={<Banknote size={50} />}
           onClick={async () => {
-            const filtered = filteredData.filter((d) => d.category === "Local Revenue");
-            const blob = await pdf(<IncomePDF filter="Local Revenue" incomes={filtered} />).toBlob();
+            const filtered = filteredData.filter(
+              (d) => d.Category === "Local Revenue"
+            );
+            const blob = await pdf(
+              <IncomePDF filter="Local Revenue" incomes={filtered} />
+            ).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
             try {
-              await writeFile("LocalRevenue.pdf", contents, { baseDir: BaseDirectory.Document });
-              toast.success("Local Revenue PDF saved", { description: "Saved in Documents folder" });
+              await writeFile("LocalRevenue.pdf", contents, {
+                baseDir: BaseDirectory.Document,
+              });
+              toast.success("Local Revenue PDF saved", {
+                description: "Saved in Documents folder",
+              });
             } catch (e) {
-              toast.error("Error", { description: "Failed to save Local Revenue PDF" });
+              toast.error("Error", {
+                description: "Failed to save Local Revenue PDF",
+              });
             }
           }}
         />
         <SummaryCardIncome
           title="Tax Revenue"
-          value={Intl.NumberFormat("en-US").format(filteredData
-            .filter((d) => d.category === "Tax Revenue")
-            .reduce((acc, item) => acc + item.amount, 0))}
+          value={Intl.NumberFormat("en-US").format(
+            filteredData
+              .filter((d) => d.Category === "Tax Revenue")
+              .reduce((acc, item) => acc + item.Amount, 0)
+          )}
           icon={<PiggyBank size={50} />}
           onClick={async () => {
-            const filtered = filteredData.filter((d) => d.category === "Tax Revenue");
-            const blob = await pdf(<IncomePDF filter="Tax Revenue" incomes={filtered} />).toBlob();
+            const filtered = filteredData.filter(
+              (d) => d.Category === "Tax Revenue"
+            );
+            const blob = await pdf(
+              <IncomePDF filter="Tax Revenue" incomes={filtered} />
+            ).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
             try {
-              await writeFile("TaxRevenue.pdf", contents, { baseDir: BaseDirectory.Document });
-              toast.success("Tax Revenue PDF saved", { description: "Saved in Documents folder" });
+              await writeFile("TaxRevenue.pdf", contents, {
+                baseDir: BaseDirectory.Document,
+              });
+              toast.success("Tax Revenue PDF saved", {
+                description: "Saved in Documents folder",
+              });
             } catch (e) {
-              toast.error("Error", { description: "Failed to save Tax Revenue PDF" });
+              toast.error("Error", {
+                description: "Failed to save Tax Revenue PDF",
+              });
             }
           }}
         />
         <SummaryCardIncome
-          title="Government Grants"
-          value={Intl.NumberFormat("en-US").format(filteredData
-            .filter((d) => d.category === "Government Grants")
-            .reduce((acc, item) => acc + item.amount, 0))}
-          icon={<Gift size={50} />}
+          title="Water System"
+          value={Intl.NumberFormat("en-US").format(
+            filteredData
+              .filter((d) => d.Category === "Water System")
+              .reduce((acc, item) => acc + item.Amount, 0)
+          )}
+          icon={<Droplets size={50} />}
           onClick={async () => {
-            const filtered = filteredData.filter((d) => d.category === "Government Grants");
-            const blob = await pdf(<IncomePDF filter="Government Grants" incomes={filtered} />).toBlob();
+            const filtered = filteredData.filter(
+              (d) => d.Category === "Water System"
+            );
+            const blob = await pdf(
+              <IncomePDF filter="Water System" incomes={filtered} />
+            ).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
             try {
-              await writeFile("GovernmentGrants.pdf", contents, { baseDir: BaseDirectory.Document });
-              toast.success("Government Grants PDF saved", { description: "Saved in Documents folder" });
+              await writeFile("GovernmentGrants.pdf", contents, {
+                baseDir: BaseDirectory.Document,
+              });
+              toast.success("Water System PDF saved", {
+                description: "Saved in Documents folder",
+              });
             } catch (e) {
-              toast.error("Error", { description: "Failed to save Government Grants PDF" });
+              toast.error("Error", {
+                description: "Failed to save Water System PDF",
+              });
             }
           }}
         />
         <SummaryCardIncome
           title="Service Revenue"
-          value={Intl.NumberFormat("en-US").format(filteredData
-            .filter((d) => d.category === "Service Revenue")
-            .reduce((acc, item) => acc + item.amount, 0))}
+          value={Intl.NumberFormat("en-US").format(
+            filteredData
+              .filter((d) => d.Category === "Service Revenue")
+              .reduce((acc, item) => acc + item.Amount, 0)
+          )}
           icon={<Coins size={50} />}
           onClick={async () => {
-            const filtered = filteredData.filter((d) => d.category === "Service Revenue");
-            const blob = await pdf(<IncomePDF filter="Service Revenue" incomes={filtered} />).toBlob();
+            const filtered = filteredData.filter(
+              (d) => d.Category === "Service Revenue"
+            );
+            const blob = await pdf(
+              <IncomePDF filter="Service Revenue" incomes={filtered} />
+            ).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
             try {
-              await writeFile("ServiceRevenue.pdf", contents, { baseDir: BaseDirectory.Document });
-              toast.success("Service Revenue PDF saved", { description: "Saved in Documents folder" });
+              await writeFile("ServiceRevenue.pdf", contents, {
+                baseDir: BaseDirectory.Document,
+              });
+              toast.success("Service Revenue PDF saved", {
+                description: "Saved in Documents folder",
+              });
             } catch (e) {
-              toast.error("Error", { description: "Failed to save Service Revenue PDF" });
+              toast.error("Error", {
+                description: "Failed to save Service Revenue PDF",
+              });
             }
           }}
         />
         <SummaryCardIncome
           title="Rental Income"
-          value={Intl.NumberFormat("en-US").format(filteredData
-            .filter((d) => d.category === "Rental Income")
-            .reduce((acc, item) => acc + item.amount, 0))}
+          value={Intl.NumberFormat("en-US").format(
+            filteredData
+              .filter((d) => d.Category === "Rental Income")
+              .reduce((acc, item) => acc + item.Amount, 0)
+          )}
           icon={<Wallet size={50} />}
           onClick={async () => {
-            const filtered = filteredData.filter((d) => d.category === "Rental Income");
-            const blob = await pdf(<IncomePDF filter="Rental Income" incomes={filtered} />).toBlob();
+            const filtered = filteredData.filter(
+              (d) => d.Category === "Rental Income"
+            );
+            const blob = await pdf(
+              <IncomePDF filter="Rental Income" incomes={filtered} />
+            ).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
             try {
-              await writeFile("RentalIncome.pdf", contents, { baseDir: BaseDirectory.Document });
-              toast.success("Rental Income PDF saved", { description: "Saved in Documents folder" });
+              await writeFile("RentalIncome.pdf", contents, {
+                baseDir: BaseDirectory.Document,
+              });
+              toast.success("Rental Income PDF saved", {
+                description: "Saved in Documents folder",
+              });
             } catch (e) {
-              toast.error("Error", { description: "Failed to save Rental Income PDF" });
+              toast.error("Error", {
+                description: "Failed to save Rental Income PDF",
+              });
             }
           }}
         />
         <SummaryCardIncome
           title="Government Funds (IRA)"
-          value={Intl.NumberFormat("en-US").format(filteredData
-            .filter((d) => d.category === "Government Funds")
-            .reduce((acc, item) => acc + item.amount, 0))}
+          value={Intl.NumberFormat("en-US").format(
+            filteredData
+              .filter((d) => d.Category === "Government Funds")
+              .reduce((acc, item) => acc + item.Amount, 0)
+          )}
           icon={<Layers size={50} />}
           onClick={async () => {
-            const filtered = filteredData.filter((d) => d.category === "Government Funds");
-            const blob = await pdf(<IncomePDF filter="Government Funds" incomes={filtered} />).toBlob();
+            const filtered = filteredData.filter(
+              (d) => d.Category === "Government Funds"
+            );
+            const blob = await pdf(
+              <IncomePDF filter="Government Funds" incomes={filtered} />
+            ).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
             try {
-              await writeFile("GovernmentFunds.pdf", contents, { baseDir: BaseDirectory.Document });
-              toast.success("Government Funds PDF saved", { description: "Saved in Documents folder" });
+              await writeFile("GovernmentFunds.pdf", contents, {
+                baseDir: BaseDirectory.Document,
+              });
+              toast.success("Government Funds PDF saved", {
+                description: "Saved in Documents folder",
+              });
             } catch (e) {
-              toast.error("Error", { description: "Failed to save Government Funds PDF" });
+              toast.error("Error", {
+                description: "Failed to save Government Funds PDF",
+              });
             }
           }}
         />
         <SummaryCardIncome
           title="Others"
-          value={Intl.NumberFormat("en-US").format(filteredData
-            .filter((d) => d.category === "Others")
-            .reduce((acc, item) => acc + item.amount, 0))}
+          value={Intl.NumberFormat("en-US").format(
+            filteredData
+              .filter((d) => d.Category === "Others")
+              .reduce((acc, item) => acc + item.Amount, 0)
+          )}
           icon={<Shirt size={50} />}
           onClick={async () => {
-            const filtered = filteredData.filter((d) => d.category === "Others");
-            const blob = await pdf(<IncomePDF filter="Others" incomes={filtered} />).toBlob();
+            const filtered = filteredData.filter(
+              (d) => d.Category === "Others"
+            );
+            const blob = await pdf(
+              <IncomePDF filter="Others" incomes={filtered} />
+            ).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
             try {
-              await writeFile("Others.pdf", contents, { baseDir: BaseDirectory.Document });
-              toast.success("Others PDF saved", { description: "Saved in Documents folder" });
+              await writeFile("Others.pdf", contents, {
+                baseDir: BaseDirectory.Document,
+              });
+              toast.success("Others PDF saved", {
+                description: "Saved in Documents folder",
+              });
             } catch (e) {
-              toast.error("Error", { description: "Failed to save Others PDF" });
+              toast.error("Error", {
+                description: "Failed to save Others PDF",
+              });
             }
           }}
         />
@@ -331,13 +366,31 @@ export default function IncomePage() {
         <Button
           variant="destructive"
           size="lg"
-          disabled={Object.keys(rowSelection).length === 0}
-          onClick={handleDeleteSelected}
+          disabled={selectedIncome.length === 0}
+          onClick={() => {
+            if (selectedIncome.length > 0) {
+              toast.promise(deleteIncome(selectedIncome), {
+                loading: "Deleting selected incomes. Please wait",
+                success: () => {
+                  setSelectedIncome([]);
+                  setRowSelection({});
+                  return {
+                    message: "Selected incomes deleted successfully",
+                  };
+                },
+                error: () => {
+                  return {
+                    message: "Failed to delete selected incomes",
+                  };
+                },
+              });
+            }
+          }}
         >
           <Trash />
           Delete Selected
         </Button>
-        <AddIncomeModal onSave={fetchIncomes} />
+        <AddIncomeModal />
       </div>
 
       {/* Data Table */}
@@ -346,21 +399,78 @@ export default function IncomePage() {
         height="43.3rem"
         data={filteredData}
         columns={[
+          {
+            id: "select",
+            header: ({ table }) => (
+              <Checkbox
+                checked={
+                  table.getIsAllPageRowsSelected()
+                    ? true
+                    : table.getIsSomePageRowsSelected()
+                    ? "indeterminate"
+                    : false
+                }
+                onCheckedChange={(value) => {
+                  table.toggleAllPageRowsSelected(!!value);
+                  if (value) {
+                    const allVisibleRows = table
+                      .getRowModel()
+                      .rows.map((row) => row.original.ID);
+                    setSelectedIncome(allVisibleRows);
+                  } else {
+                    setSelectedIncome([]);
+                  }
+                }}
+                aria-label="Select all"
+                className="flex items-center justify-center"
+              />
+            ),
+            cell: ({ row }) => (
+              <Checkbox
+                checked={selectedIncome.includes(row.original.ID)}
+                onCheckedChange={(value) => {
+                  if (value) {
+                    setSelectedIncome((prev) => [...prev, row.original.ID]);
+                  } else {
+                    setSelectedIncome((prev) =>
+                      prev.filter((id) => id !== row.original.ID)
+                    );
+                  }
+                }}
+                aria-label="Select row"
+                className="flex items-center justify-center"
+              />
+            ),
+          },
           ...columns,
           {
             id: "view",
             header: "",
             cell: ({ row }) => (
               <div className="flex gap-3">
-                <ViewIncomeModal {...row.original} onSave={fetchIncomes} />
-
+                <Button onClick={() => setViewIncomeId(row.original.ID)}>
+                  <Eye /> View Event
+                </Button>
               </div>
             ),
           },
         ]}
         rowSelection={rowSelection}
-        onRowSelectionChange={setRowSelection}
+        onRowSelectionChange={(selected) => {
+          setRowSelection(selected);
+          const selectedIds = Object.keys(selected)
+            .filter((key) => selected[key])
+            .map((key) => Number(key));
+          setSelectedIncome(selectedIds);
+        }}
       />
+      {viewIncomeId !== null && (
+        <ViewIncomeModal
+          income={income.find((e) => e.ID === viewIncomeId)}
+          open={true}
+          onClose={() => setViewIncomeId(null)}
+        />
+      )}
     </>
   );
 }

@@ -1,4 +1,5 @@
-import { Income } from "@/types/types";
+import { Income } from "@/types/apitypes"
+
 
 export function sort(data: Income[], term: string): Income[] {
   switch (term) {
@@ -16,10 +17,10 @@ export function sort(data: Income[], term: string): Income[] {
 }
 
 function sortNumerical(data: Income[]): Income[] {
-  return [...data].sort((a, b) => b.amount - a.amount)
+  return [...data].sort((a, b) => b.Amount - a.Amount)
 }
 function sortDateDesc(data: Income[]): Income[] {
-  return [...data].sort((a, b) => b.date.getTime() - a.date.getTime())
+  return [...data].sort((a, b) => b.DateReceived.getTime() - a.DateReceived.getTime())
 }
 function filterThisWeek(data: Income[]): Income[] {
   const now = new Date();
@@ -30,13 +31,17 @@ function filterThisWeek(data: Income[]): Income[] {
   const currentWeekEnd = new Date(currentWeekStart);
   currentWeekEnd.setDate(currentWeekStart.getDate() + 7);
 
-  const weeklyData = data.filter((income) => {
-    const incomeDate = new Date(income.date);
-    return incomeDate >= currentWeekStart && incomeDate < currentWeekEnd;
+  const weeklyData = data.filter((Income) => {
+    const IncomeDate = new Date(Income.DateReceived);
+    return IncomeDate >= currentWeekStart && IncomeDate < currentWeekEnd;
   });
   return weeklyData
 }
 function filterThisMonth(data: Income[]): Income[] {
-  return data.filter((income) => income.date.getMonth() === new Date().getMonth())
+  const now = new Date();
+  return data.filter(
+    (income) =>
+      new Date(income.DateReceived).getMonth() === now.getMonth() &&
+      new Date(income.DateReceived).getFullYear() === now.getFullYear()
+  );
 }
-

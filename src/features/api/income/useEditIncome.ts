@@ -4,8 +4,8 @@ import { useMutation } from "@tanstack/react-query";
 
 export function useEditIncome() {
   const mutation = useMutation({
-    mutationFn: ({ income_id, updated }: { income_id: number, updated: PatchIncome }) =>
-      editIncome(income_id, updated)
+    mutationFn: ({ ID, updated }: { ID: number, updated: PatchIncome }) =>
+      editIncome(ID, updated)
   })
   return {
     ...mutation,

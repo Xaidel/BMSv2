@@ -105,37 +105,35 @@ export const householdSchema = z.object({
 })
 
 export const incomeSchema = z.object({
-  type_: z
+  Type: z
     .string()
     .min(2, { message: "Type is too short" })
     .max(50, { message: "Type is too long. Add extra details in the remarks." }),
 
-  category: z
+  Category: z
     .string()
     .min(1, { message: "Category is required" }),
 
-  amount: z
+  Amount: z
     .number({ invalid_type_error: "Amount must be a number" })
     .min(0.01, { message: "Amount must be greater than zero" })
     .max(1_000_000, { message: "Amount exceeds maximum allowed value" }),
 
-  or_number: z
-    .number({ invalid_type_error: "OR# must be a number" })
+  OR: z
+    .string()
     .min(1, { message: "OR# is required" }),
 
-  received_from: z
+  ReceivedFrom: z
     .string()
     .min(2, { message: "Received From name is too short" })
     .max(50, { message: "Received From name is too long" }),
 
-  received_by: z
+  ReceivedBy: z
     .string()
     .min(2, { message: "Received By name is too short" })
     .max(50, { message: "Received By name is too long" }),
-
-  date: z.date({
-    required_error: "Please specify the date received",
-    invalid_type_error: "Invalid date format",
+  DateReceived: z.date({
+    required_error: "Please specify the event date"
   }),
 });
 

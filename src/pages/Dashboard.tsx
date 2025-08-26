@@ -137,7 +137,7 @@ export default function Dashboard() {
         const colorMap: Record<string, string> = {
           "Local Revenue": "#3F51B5",             // indigo
           "Tax Revenue": "#E91E63",               // pink
-          "Government Grants": "#2196F3",         // blue
+          "Water System": "#2196F3",         // blue
           "Service Revenue": "#8BC34A",           // light green
           "Rental Income": "#FF5722",             // deep orange
           "Government Funds (IRA)": "#00BCD4",    // cyan
@@ -151,7 +151,7 @@ export default function Dashboard() {
           description: {
             "Local Revenue": "Revenue collected within the barangay",
             "Tax Revenue": "Revenue from various local taxes",
-            "Government Grants": "Funds provided by the government",
+            "Water System": "Funds provided by the government",
             "Service Revenue": "Income from services offered",
             "Rental Income": "Revenue from property rentals",
             "Government Funds (IRA)": "Internal Revenue Allotment",

@@ -1,14 +1,38 @@
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarIcon, Plus } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { z } from "zod"
-import { format } from "date-fns"
+import { z } from "zod";
+import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
@@ -17,6 +41,7 @@ import { useAddEvent } from "../api/event/useAddEvent";
 import { Event } from "@/types/apitypes";
 import { useQueryClient } from "@tanstack/react-query";
 import { ErrorResponse } from "@/service/api/auth/login";
+import { eventSchema } from "@/types/formSchema";
 
 const selectOption: string[] = [
   "Assembly",
@@ -25,77 +50,44 @@ const selectOption: string[] = [
   "Education and Skill Development",
   "Cultural, Recreational, and Sports",
   "Law Enforcement and Community Safety",
-  "Humanitarian Assistance"
-
-]
+  "Humanitarian Assistance",
+  "Others",
+];
 
 const statusOption = ["Upcoming", "Ongoing", "Finished", "Cancelled"] as const;
 
-const formSchema = z.object({
-  Name: z.string().min(2, {
-    message: "Event name is too short"
-  }).max(50, {
-    message: "Event name is too long, put other details on the 'details' form"
-  }),
-  Type: z.string().min(2, {
-    message: "Event type is too short"
-  }).max(50, {
-    message: "Event type is too long."
-  }),
-  Date: z.date({
-    required_error: "Please specify the event date"
-  }),
-  Venue: z.string().min(2, {
-    message: "Event venue is too short"
-  }).max(50, {
-    message: "Event venue is too long"
-  }),
-  Audience: z.string().min(2, {
-    message: "Attendee too long"
-  }).max(50, {
-    message: "Event venue is too long"
-  }),
-  Notes: z.string().max(1000, {
-    message: "Important notes is too long"
-  }),
-  Status: z.enum(statusOption)
-})
-
-
 export default function AddEventModal() {
-  const addMutation = useAddEvent()
-  const queryClient = useQueryClient()
+  const addMutation = useAddEvent();
+  const queryClient = useQueryClient();
 
-  const handleAdd = async (values: z.infer<typeof formSchema>) => {
-    toast.promise(
-      addMutation.mutateAsync(values as Event), {
+  const handleAdd = async (values: z.infer<typeof eventSchema>) => {
+    toast.promise(addMutation.mutateAsync(values as Event), {
       loading: "Adding Event please wait...",
       success: (data) => {
-        const e = data.event
-        setOpenModal(false)
-        queryClient.invalidateQueries({ queryKey: ['events'] })
+        const e = data.event;
+        setOpenModal(false);
+        queryClient.invalidateQueries({ queryKey: ["events"] });
         return {
           message: "Event added successfully",
-          description: `${e.Name} was added`
-        }
+          description: `${e.Name} was added`,
+        };
       },
       error: (error: ErrorResponse) => {
         return {
           message: "Adding event failed",
-          description: `${error.error}`
-        }
-      }
-    }
-    )
-  }
-  const [openCalendar, setOpenCalendar] = useState(false)
-  const [openModal, setOpenModal] = useState(false)
+          description: `${error.error}`,
+        };
+      },
+    });
+  };
+  const [openCalendar, setOpenCalendar] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
 
-  const user = sessionStorage.getItem("user")
-  const parsedUser = JSON.parse(user)
+  const user = sessionStorage.getItem("user");
+  const parsedUser = JSON.parse(user);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof eventSchema>>({
+    resolver: zodResolver(eventSchema),
     defaultValues: {
       Name: "",
       Type: "",
@@ -103,20 +95,15 @@ export default function AddEventModal() {
       Venue: "",
       Audience: "",
       Notes: "",
-      Status: "Upcoming"
-    }
-  })
+      Status: "Upcoming",
+    },
+  });
 
   return (
     <>
-      <Dialog
-        open={openModal}
-        onOpenChange={setOpenModal}
-      >
+      <Dialog open={openModal} onOpenChange={setOpenModal}>
         <DialogTrigger asChild>
-          <Button size="lg"
-            disabled={parsedUser.user.Role !== "secretary"}
-          >
+          <Button size="lg" disabled={parsedUser.user.Role !== "secretary"}>
             <Plus />
             Add Event
           </Button>
@@ -129,7 +116,9 @@ export default function AddEventModal() {
                 <DialogDescription className="text-sm">
                   All the fields are required unless it is mentioned otherwise
                 </DialogDescription>
-                <p className="text-md font-bold text-black">Basic Event Information</p>
+                <p className="text-md font-bold text-black">
+                  Basic Event Information
+                </p>
               </DialogHeader>
               <div className="flex flex-col gap-3">
                 <div>
@@ -138,7 +127,12 @@ export default function AddEventModal() {
                     name="Name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel htmlFor="name" className="text-black font-bold text-xs">Name</FormLabel>
+                        <FormLabel
+                          htmlFor="name"
+                          className="text-black font-bold text-xs"
+                        >
+                          Name
+                        </FormLabel>
                         <FormControl>
                           <Input
                             id="Name"
@@ -160,16 +154,28 @@ export default function AddEventModal() {
                     name="Type"
                     render={({ field }) => (
                       <FormItem className="w-full">
-                        <FormLabel htmlFor="Type" className="text-black font-bold text-xs">Type</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormLabel
+                          htmlFor="Type"
+                          className="text-black font-bold text-xs"
+                        >
+                          Type
+                        </FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger className="w-full text-black border-black/15">
-                              <SelectValue placeholder={"Please select the event type"} />
+                              <SelectValue
+                                placeholder={"Please select the event type"}
+                              />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             {selectOption.map((option, i) => (
-                              <SelectItem value={option} key={i}>{option}</SelectItem>
+                              <SelectItem value={option} key={i}>
+                                {option}
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -184,16 +190,22 @@ export default function AddEventModal() {
                     name="Date"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel htmlFor="date" className="text-black font-bold text-xs">Date</FormLabel>
+                        <FormLabel
+                          htmlFor="date"
+                          className="text-black font-bold text-xs"
+                        >
+                          Date
+                        </FormLabel>
                         <Popover
                           open={openCalendar}
                           onOpenChange={setOpenCalendar}
                         >
                           <FormControl>
-                            <PopoverTrigger asChild className="w-full text-black hover:bg-primary hover:text-white">
-                              <Button
-                                variant="outline"
-                              >
+                            <PopoverTrigger
+                              asChild
+                              className="w-full text-black hover:bg-primary hover:text-white"
+                            >
+                              <Button variant="outline">
                                 {field.value ? (
                                   format(field.value, "PPP")
                                 ) : (
@@ -210,9 +222,7 @@ export default function AddEventModal() {
                               onSelect={field.onChange}
                               captionLayout="dropdown"
                               onDayClick={() => setOpenCalendar(false)}
-                              disabled={(date) =>
-                                date < new Date()
-                              }
+                              disabled={(date) => date < new Date()}
                             />
                           </PopoverContent>
                         </Popover>
@@ -227,7 +237,12 @@ export default function AddEventModal() {
                     name="Venue"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel htmlFor="name" className="text-black font-bold text-xs">Venue</FormLabel>
+                        <FormLabel
+                          htmlFor="name"
+                          className="text-black font-bold text-xs"
+                        >
+                          Venue
+                        </FormLabel>
                         <FormControl>
                           <Input
                             id="Venue"
@@ -249,7 +264,12 @@ export default function AddEventModal() {
                     name="Audience"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel htmlFor="name" className="text-black font-bold text-xs">Attendee</FormLabel>
+                        <FormLabel
+                          htmlFor="name"
+                          className="text-black font-bold text-xs"
+                        >
+                          Attendee
+                        </FormLabel>
                         <FormControl>
                           <Input
                             id="Audience"
@@ -271,7 +291,12 @@ export default function AddEventModal() {
                     name="Notes"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel htmlFor="name" className="text-black font-bold text-xs">Important Notes</FormLabel>
+                        <FormLabel
+                          htmlFor="name"
+                          className="text-black font-bold text-xs"
+                        >
+                          Important Notes
+                        </FormLabel>
                         <FormControl>
                           <Textarea
                             id="Notes"
@@ -293,16 +318,28 @@ export default function AddEventModal() {
                     name="Status"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel htmlFor="status" className="text-black font-bold text-xs">Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormLabel
+                          htmlFor="status"
+                          className="text-black font-bold text-xs"
+                        >
+                          Status
+                        </FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger className="w-full text-black border-black/15">
-                              <SelectValue placeholder={"Select event status"} />
+                              <SelectValue
+                                placeholder={"Select event status"}
+                              />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             {statusOption.map((option, i) => (
-                              <SelectItem value={option} key={i}>{option}</SelectItem>
+                              <SelectItem value={option} key={i}>
+                                {option}
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -317,7 +354,7 @@ export default function AddEventModal() {
             </form>
           </Form>
         </DialogContent>
-      </Dialog >
+      </Dialog>
     </>
-  )
+  );
 }
