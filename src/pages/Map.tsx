@@ -6,7 +6,6 @@ import Building from "@/assets/geojson/Building.json"
 import { GeoJSON, MapContainer } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 
-
 const center: LatLngExpression = [13.5752, 123.0734];
 
 export default function Map() {
