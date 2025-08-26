@@ -19,11 +19,12 @@ export default function Map() {
         >
           <GeoJSON data={TamboRoad as any}
             style={() => ({
-              color: "gray"
+              color: "gray",
+              fillColor: "gray",
             })}
           />
           <GeoJSON data={Border as any} style={() => ({
-            fillColor: "lightblue",
+            fillColor: "lightgray",
             weight: 1,
             color: "black",
           })} />
