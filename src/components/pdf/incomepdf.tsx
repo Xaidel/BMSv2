@@ -1,9 +1,10 @@
 
 
-import { Income } from "@/types/types";
+
 import { Document, Page, Text, View } from "@react-pdf/renderer";
 import { styles } from "./Stylesheet";
 import { format } from "date-fns";
+import { Income } from "@/types/apitypes";
 
 type Props = {
   filter: string;
@@ -41,17 +42,17 @@ export const IncomePDF = ({ filter, incomes }: Props) => {
                     styles.tableRow,
                     { backgroundColor: index % 2 === 0 ? "#f9f9f9" : "white" }
                   ]}
-                  key={income.id}
+                  key={income.ID}
                 >
-                  <View style={styles.tableCell}><Text>{income.id}</Text></View>
-                  <View style={styles.tableCell}><Text>{income.type_}</Text></View>
-                  <View style={styles.tableCell}><Text>{income.category}</Text></View>
-                  <View style={styles.tableCell}><Text>{income.or_number}</Text></View>
-                  <View style={styles.tableCell}><Text>{income.amount.toFixed(2)}</Text></View>
-                  <View style={styles.tableCell}><Text>{income.received_from}</Text></View>
-                  <View style={styles.tableCell}><Text>{income.received_by}</Text></View>
+                  <View style={styles.tableCell}><Text>{income.ID}</Text></View>
+                  <View style={styles.tableCell}><Text>{income.Type}</Text></View>
+                  <View style={styles.tableCell}><Text>{income.Category}</Text></View>
+                  <View style={styles.tableCell}><Text>{income.OR}</Text></View>
+                  <View style={styles.tableCell}><Text>{income.Amount.toFixed(2)}</Text></View>
+                  <View style={styles.tableCell}><Text>{income.ReceivedFrom}</Text></View>
+                  <View style={styles.tableCell}><Text>{income.ReceivedBy}</Text></View>
                   <View style={styles.tableCell}>
-                    <Text>{format(income.date, "MMMM do, yyyy")}</Text>
+                    <Text>{format(income.DateReceived, "MMMM do, yyyy")}</Text>
                   </View>
                 </View>
               ))}

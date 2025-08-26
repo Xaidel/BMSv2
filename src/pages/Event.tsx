@@ -27,7 +27,6 @@ import { useDeleteEvent } from "@/features/api/event/useDeleteEvent";
 import { useQueryClient } from "@tanstack/react-query";
 import { ErrorResponse } from "@/service/api/auth/login";
 
-
 const filters = [
   "All Events",
   "Date ASC",
@@ -38,7 +37,6 @@ const filters = [
   "Finished",
   "Cancelled",
 ];
-
 
 const columns: ColumnDef<Event>[] = [
   {
@@ -93,20 +91,19 @@ const columns: ColumnDef<Event>[] = [
 ];
 
 export default function Events() {
-  const user = sessionStorage.getItem("user")
-  const parsedUser = JSON.parse(user)
+  const user = sessionStorage.getItem("user");
+  const parsedUser = JSON.parse(user);
   const [rowSelection, setRowSelection] = useState<Record<number, boolean>>({});
-  const [selectedEvent, setSelectedEvent] = useState<number[]>([])
+  const [selectedEvent, setSelectedEvent] = useState<number[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
-  const { data: eventResponse } = useEvent()
-  const queryClient = useQueryClient()
-  const deleteMutation = useDeleteEvent()
+  const { data: eventResponse } = useEvent();
+  const queryClient = useQueryClient();
+  const deleteMutation = useDeleteEvent();
 
   const event = useMemo(() => {
-    return eventResponse?.events ?? []
-  }, [eventResponse])
-
+    return eventResponse?.events ?? [];
+  }, [eventResponse]);
 
   const handleSortChange = (sortValue: string) => {
     searchParams.set("sort", sortValue);
@@ -140,11 +137,15 @@ export default function Events() {
           icon={<CalendarClock size={50} />}
           onClick={async () => {
             const { pdf } = await import("@react-pdf/renderer");
-            const { writeFile, BaseDirectory } = await import("@tauri-apps/plugin-fs");
+            const { writeFile, BaseDirectory } = await import(
+              "@tauri-apps/plugin-fs"
+            );
             const { toast } = await import("sonner");
             const { EventPDF } = await import("@/components/pdf/eventpdf");
 
-            const blob = await pdf(<EventPDF filter="All Events" events={[]} />).toBlob();
+            const blob = await pdf(
+              <EventPDF filter="All Events" events={[]} />
+            ).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
             try {
@@ -168,11 +169,15 @@ export default function Events() {
           onClick={async () => {
             //  const filtered = event.filter((d) => d.Status === "Upcoming");
             const { pdf } = await import("@react-pdf/renderer");
-            const { writeFile, BaseDirectory } = await import("@tauri-apps/plugin-fs");
+            const { writeFile, BaseDirectory } = await import(
+              "@tauri-apps/plugin-fs"
+            );
             const { toast } = await import("sonner");
             const { EventPDF } = await import("@/components/pdf/eventpdf");
 
-            const blob = await pdf(<EventPDF filter="Upcoming Events" events={[]} />).toBlob();
+            const blob = await pdf(
+              <EventPDF filter="Upcoming Events" events={[]} />
+            ).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
             try {
@@ -196,11 +201,15 @@ export default function Events() {
           onClick={async () => {
             //           const filtered = event.filter((d) => d.Status === "Finished");
             const { pdf } = await import("@react-pdf/renderer");
-            const { writeFile, BaseDirectory } = await import("@tauri-apps/plugin-fs");
+            const { writeFile, BaseDirectory } = await import(
+              "@tauri-apps/plugin-fs"
+            );
             const { toast } = await import("sonner");
             const { EventPDF } = await import("@/components/pdf/eventpdf");
 
-            const blob = await pdf(<EventPDF filter="Finished Events" events={[]} />).toBlob();
+            const blob = await pdf(
+              <EventPDF filter="Finished Events" events={[]} />
+            ).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
             try {
@@ -224,11 +233,15 @@ export default function Events() {
           onClick={async () => {
             //           const filtered = event.filter((d) => d.Status === "Cancelled");
             const { pdf } = await import("@react-pdf/renderer");
-            const { writeFile, BaseDirectory } = await import("@tauri-apps/plugin-fs");
+            const { writeFile, BaseDirectory } = await import(
+              "@tauri-apps/plugin-fs"
+            );
             const { toast } = await import("sonner");
             const { EventPDF } = await import("@/components/pdf/eventpdf");
 
-            const blob = await pdf(<EventPDF filter="Cancelled Events" events={[]} />).toBlob();
+            const blob = await pdf(
+              <EventPDF filter="Cancelled Events" events={[]} />
+            ).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
             try {
@@ -263,38 +276,36 @@ export default function Events() {
           variant="destructive"
           size="lg"
           disabled={
-            Object.keys(rowSelection).length === 0 || parsedUser.user.Role !== "secretary"
+            Object.keys(rowSelection).length === 0 ||
+            parsedUser.user.Role !== "secretary"
           }
           onClick={() => {
-            console.log(parsedUser.user.Role)
+            console.log(parsedUser.user.Role);
             if (selectedEvent) {
-              toast.promise(
-                deleteMutation.mutateAsync(selectedEvent),
-                {
-                  loading: "Deleting events. Please wait",
-                  success: () => {
-                    queryClient.invalidateQueries({ queryKey: ['events'] })
-                    setRowSelection((prevSelection) => {
-                      const newSelection = { ...prevSelection };
-                      selectedEvent.forEach((_, i) => {
-                        delete newSelection[i]; // remove key for deleted event id
-                      });
-                      console.log(newSelection)
-                      return newSelection;
+              toast.promise(deleteMutation.mutateAsync(selectedEvent), {
+                loading: "Deleting events. Please wait",
+                success: () => {
+                  queryClient.invalidateQueries({ queryKey: ["events"] });
+                  setRowSelection((prevSelection) => {
+                    const newSelection = { ...prevSelection };
+                    selectedEvent.forEach((_, i) => {
+                      delete newSelection[i]; // remove key for deleted event id
                     });
-                    setSelectedEvent([])
-                    return {
-                      message: "Event successfully deleted"
-                    }
-                  },
-                  error: (error: ErrorResponse) => {
-                    return {
-                      message: "Failed to delete event",
-                      description: error.error
-                    }
-                  }
-                }
-              )
+                    console.log(newSelection);
+                    return newSelection;
+                  });
+                  setSelectedEvent([]);
+                  return {
+                    message: "Event successfully deleted",
+                  };
+                },
+                error: (error: ErrorResponse) => {
+                  return {
+                    message: "Failed to delete event",
+                    description: error.error,
+                  };
+                },
+              });
             }
           }}
         >
@@ -317,17 +328,19 @@ export default function Events() {
                   table.getIsAllPageRowsSelected()
                     ? true
                     : table.getIsSomePageRowsSelected()
-                      ? "indeterminate"
-                      : false
+                    ? "indeterminate"
+                    : false
                 }
                 onCheckedChange={(value) => {
-                  table.toggleAllPageRowsSelected(!!value)
+                  table.toggleAllPageRowsSelected(!!value);
 
                   if (value) {
-                    const allVisibleRows = table.getRowModel().rows.map(row => row.original.ID)
-                    setSelectedEvent(allVisibleRows)
+                    const allVisibleRows = table
+                      .getRowModel()
+                      .rows.map((row) => row.original.ID);
+                    setSelectedEvent(allVisibleRows);
                   } else {
-                    setSelectedEvent([])
+                    setSelectedEvent([]);
                   }
                 }}
                 aria-label="Select all"
@@ -338,14 +351,14 @@ export default function Events() {
               <Checkbox
                 checked={row.getIsSelected()}
                 onCheckedChange={(value) => {
-                  row.toggleSelected(!!value)
+                  row.toggleSelected(!!value);
 
                   if (value) {
-                    setSelectedEvent(prev => [...prev, row.original.ID])
+                    setSelectedEvent((prev) => [...prev, row.original.ID]);
                   } else {
-                    setSelectedEvent(prev =>
-                      prev.filter(event => event !== row.original.ID)
-                    )
+                    setSelectedEvent((prev) =>
+                      prev.filter((event) => event !== row.original.ID)
+                    );
                   }
                 }}
                 aria-label="Select row"
@@ -380,7 +393,7 @@ export default function Events() {
       />
       {viewEventId !== null && (
         <ViewEventModal
-          event={event.find((e => e.ID === viewEventId))}
+          event={event.find((e) => e.ID === viewEventId)}
           open={true}
           onClose={() => setViewEventId(null)}
         />

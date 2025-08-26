@@ -8,9 +8,9 @@ export type PatchIncome = Partial<{
   Notes: string
   Status: "Upcoming" | "Ongoing" | "Finished" | "Cancelled"
 }>
-export default async function editIncome(income_id: number, updated: PatchIncome) {
+export default async function editIncome(ID: number, updated: PatchIncome) {
   try {
-    const res = await fetch(`${api}/incomes/${income_id}`, {
+    const res = await fetch(`${api}/incomes/${ID}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updated)

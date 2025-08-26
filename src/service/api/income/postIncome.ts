@@ -6,8 +6,8 @@ export interface IncomePostResponse {
   income: Income
 }
 
-export default async function postEvent(income: Income): Promise<IncomePostResponse> {
-
+export default async function postIncome(income: Income): Promise<IncomePostResponse> {
+console.log(income.Category)
   try {
     const res = await fetch(`${api}/incomes`, {
       method: "POST",

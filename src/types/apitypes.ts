@@ -42,7 +42,7 @@ export type Resident = {
 }
 
 export type Income = {
-  ID: number
+  ID?: number
   Category: string
   Type: string
   Amount: number

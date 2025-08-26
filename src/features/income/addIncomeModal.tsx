@@ -16,14 +16,19 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarIcon, Plus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useState } from "react";
-import { toast } from "sonner";
-import { invoke } from "@tauri-apps/api/core";
-import { incomeSchema } from "@/types/formSchema";
+
 import {
   Popover,
   PopoverContent,
@@ -31,44 +36,63 @@ import {
 } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
+import { incomeSchema } from "@/types/formSchema";
+import { useAddIncome } from "../api/income/userAddIncome";
+import { useQueryClient } from "@tanstack/react-query";
+import { ErrorResponse } from "@/service/api/auth/login";
+import { Income } from "@/types/apitypes";
+import { toast } from "sonner";
 
-export default function AddIncomeModal({ onSave }: { onSave: () => void }) {
+// Category select options
+const selectOption = [
+  "Local Revenue",
+  "Tax Revenue",
+  "Water System",
+  "Service Revenue",
+  "Rental Income",
+  "Government Funds",
+  "Others",
+];
+
+export default function AddIncomeModal() {
   const [openCalendar, setOpenCalendar] = useState(false);
   const [openModal, setOpenModal] = useState(false);
+  const addMutation = useAddIncome();
+  const queryClient = useQueryClient();
 
   const form = useForm<z.infer<typeof incomeSchema>>({
     resolver: zodResolver(incomeSchema),
     defaultValues: {
-      type_: "",
-      amount: 0,
-      or_number: 0,
-      received_from: "",
-      received_by: "",
-      category: "",
-      date: undefined,
+      Type: "",
+      Amount: 0,
+      OR: "",
+      ReceivedBy: "",
+      ReceivedFrom: "",
+      Category: "",
+      DateReceived: undefined,
     },
   });
 
   async function onSubmit(values: z.infer<typeof incomeSchema>) {
-    try {
-      await invoke("insert_income_command", {
-        income: {
-          ...values,
-          date: values.date.toISOString(), // must be string for Rust
-        },
-      });
-
-      toast.success("Income added successfully", {
-        description: `${values.type_} was added.`,
-      });
-
-      setOpenModal(false);
-      form.reset();
-      onSave(); // refresh the data in parent
-    } catch (err) {
-      console.error("Insert income failed:", err);
-      toast.error("Failed to add income");
-    }
+    console.log(values.Category);
+    toast.promise(addMutation.mutateAsync(values as unknown as Income), {
+      loading: "Adding Income please wait...",
+      success: (data) => {
+        const e = data.income;
+        setOpenModal(false);
+        queryClient.invalidateQueries({ queryKey: ["incomes"] });
+        return {
+          message: "Income added successfully",
+          description: `${e.Type} was added`,
+        };
+      },
+      error: (error: ErrorResponse) => {
+        return {
+          message: "Adding income failed",
+          description: `${error.error}`,
+        };
+      },
+    });
   }
 
   return (
@@ -95,28 +119,34 @@ export default function AddIncomeModal({ onSave }: { onSave: () => void }) {
               {/* Category */}
               <FormField
                 control={form.control}
-                name="category"
+                name="Category"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-black font-bold text-xs">
-                      Category
-                    </FormLabel>
-                    <FormControl>
-                      <select
-                        className="text-black border rounded p-2 w-full"
+                  <FormItem className="w-full">
+                    <FormLabel
+                          htmlFor="Type"
+                          className="text-black font-bold text-xs"
+                        >
+                          Type
+                        </FormLabel>
+                    
+                      <FormControl>
+                      </FormControl>
+                      <Select
+                        onValueChange={field.onChange}
                         value={field.value}
-                        onChange={field.onChange}
                       >
-                        <option value="">Select category</option>
-                        <option value="Local Revenue">Local Revenue</option>
-                        <option value="Tax Revenue">Tax Revenue</option>
-                        <option value="Government Grants">Government Grants</option>
-                        <option value="Service Revenue">Service Revenue</option>
-                        <option value="Rental Income">Rental Income</option>
-                        <option value="Government Funds">Government Funds</option>
-                        <option value="Others">Others</option>
-                      </select>
-                    </FormControl>
+                        <SelectTrigger className="w-full text-black border-black/15">
+                          <SelectValue className="text-black" placeholder="Select a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {selectOption.map((option, i) => (
+                            <SelectItem className="text-black" value={option} key={i}>
+                              {option}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    
                     <FormMessage />
                   </FormItem>
                 )}
@@ -124,7 +154,7 @@ export default function AddIncomeModal({ onSave }: { onSave: () => void }) {
               {/* Type */}
               <FormField
                 control={form.control}
-                name="type_"
+                name="Type"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-black font-bold text-xs">
@@ -143,7 +173,7 @@ export default function AddIncomeModal({ onSave }: { onSave: () => void }) {
               />
               <FormField
                 control={form.control}
-                name="amount"
+                name="Amount"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-black font-bold text-xs">
@@ -167,7 +197,7 @@ export default function AddIncomeModal({ onSave }: { onSave: () => void }) {
               />
               <FormField
                 control={form.control}
-                name="or_number"
+                name="OR"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-black font-bold text-xs">
@@ -175,10 +205,11 @@ export default function AddIncomeModal({ onSave }: { onSave: () => void }) {
                     </FormLabel>
                     <FormControl>
                       <Input
-                        type="number"
+                        type="text"
+                        placeholder="Enter OR number"
                         onChange={(e) =>
                           field.onChange(
-                            e.target.value === "" ? undefined : +e.target.value
+                            e.target.value === "" ? undefined : e.target.value
                           )
                         }
                         value={field.value ?? ""}
@@ -193,7 +224,7 @@ export default function AddIncomeModal({ onSave }: { onSave: () => void }) {
               {/* Received From */}
               <FormField
                 control={form.control}
-                name="received_from"
+                name="ReceivedFrom"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-black font-bold text-xs">
@@ -214,7 +245,7 @@ export default function AddIncomeModal({ onSave }: { onSave: () => void }) {
               {/* Received By */}
               <FormField
                 control={form.control}
-                name="received_by"
+                name="ReceivedBy"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-black font-bold text-xs">
@@ -235,16 +266,13 @@ export default function AddIncomeModal({ onSave }: { onSave: () => void }) {
               {/* Date */}
               <FormField
                 control={form.control}
-                name="date"
+                name="DateReceived"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-black font-bold text-xs">
                       Date Received
                     </FormLabel>
-                    <Popover
-                      open={openCalendar}
-                      onOpenChange={setOpenCalendar}
-                    >
+                    <Popover open={openCalendar} onOpenChange={setOpenCalendar}>
                       <FormControl>
                         <PopoverTrigger asChild>
                           <Button
