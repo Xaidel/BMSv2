@@ -40,15 +40,15 @@ export default function ViewOfficialModal({ person, onClose }) {
 
   const form = useForm({
     defaultValues: {
-      name: person?.name || "",
-      role: person?.role || "",
-      section: person?.section || "",
-      age: person?.age ? String(person.age) : "",
-      contact: person?.contact || "",
-      term_start: person?.term_start ? new Date(person.term_start) : null,
-      term_end: person?.term_end ? new Date(person.term_end) : null,
-      zone: person?.zone || "",
-      image: person?.image || "",
+      Name: person?.Name || "",
+      Role: person?.Role || "",
+      Section: person?.section || "",
+      Age: person?.Age ? String(person.Age) : "",
+      Contact: person?.Contact || "",
+      TermStart: person?.TermStart ? new Date(person.TermStart) : null,
+      TermEnd: person?.TermEnd ? new Date(person.TermEnd) : null,
+      Zone: person?.Zone || "",
+      Image: person?.Image || "",
     },
   });
 
@@ -59,7 +59,7 @@ export default function ViewOfficialModal({ person, onClose }) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
-        form.setValue("image", reader.result as string);
+        form.setValue("Image", reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -75,9 +75,9 @@ export default function ViewOfficialModal({ person, onClose }) {
           section: values.section,
           age: parseInt(values.age) || null,
           contact: values.contact,
-          term_start: values.term_start ? format(values.term_start, "yyyy-MM-dd") : "",
-          term_end: values.term_end ? format(values.term_end, "yyyy-MM-dd") : "",
-          zone: values.zone,
+          TermStart: values.TermStart ? format(values.TermStart, "yyyy-MM-dd") : "",
+          TermEnd: values.TermEnd ? format(values.TermEnd, "yyyy-MM-dd") : "",
+          Zone: values.Zone,
           image: values.image,
         },
       });
@@ -105,15 +105,15 @@ export default function ViewOfficialModal({ person, onClose }) {
 
   const handleReset = () => {
     form.reset({
-      name: "",
-      role: "",
-      section: "",
-      age: "",
-      contact: "",
-      term_start: null,
-      term_end: null,
-      zone: "",
-      image: "",
+      Name: "",
+      Role: "",
+      Section: "",
+      Age: "",
+      Contact: "",
+      TermStart: null,
+      TermEnd: null,
+      Zone: "",
+      Image: "",
     });
     setImagePreview("");
   };
@@ -142,7 +142,7 @@ export default function ViewOfficialModal({ person, onClose }) {
             <div className="flex flex-col items-center space-y-2">
               <img
                 src={imagePreview}
-                alt={form.watch("name")}
+                alt={form.watch("Name")}
                 className="w-24 h-24 rounded-full mx-auto object-cover border"
               />
               <label className="block">
@@ -157,7 +157,7 @@ export default function ViewOfficialModal({ person, onClose }) {
             <div className="grid grid-cols-1 gap-2 text-left">
               <FormField
                 control={form.control}
-                name="name"
+                name="Name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-black font-bold text-xs">Full Name</FormLabel>
@@ -170,7 +170,7 @@ export default function ViewOfficialModal({ person, onClose }) {
               />
               <FormField
                 control={form.control}
-                name="section"
+                name="Section"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-black font-bold text-xs">Section</FormLabel>
@@ -194,7 +194,7 @@ export default function ViewOfficialModal({ person, onClose }) {
               />
               <FormField
                 control={form.control}
-                name="role"
+                name="Role"
                 render={({ field }) => {
                   // Updated sectionRoleMap as requested
                   const sectionRoleMap = {
@@ -210,7 +210,7 @@ export default function ViewOfficialModal({ person, onClose }) {
                     "Tanod Officials": ["Chief Tanod", "Tanod Member"],
                   };
 
-                  const selectedSection = form.watch("section");
+                  const selectedSection = form.watch("Section");
                   const roleOptions = sectionRoleMap[selectedSection] || [];
 
                   return (
@@ -239,7 +239,7 @@ export default function ViewOfficialModal({ person, onClose }) {
               />
               <FormField
                 control={form.control}
-                name="age"
+                name="Age"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-black font-bold text-xs">Age</FormLabel>
@@ -252,7 +252,7 @@ export default function ViewOfficialModal({ person, onClose }) {
               />
               <FormField
                 control={form.control}
-                name="contact"
+                name="Contact"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-black font-bold text-xs">Contact Number</FormLabel>
@@ -265,7 +265,7 @@ export default function ViewOfficialModal({ person, onClose }) {
               />
               <FormField
                 control={form.control}
-                name="zone"
+                name="Zone"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-black font-bold text-xs">Assigned Zone</FormLabel>
@@ -279,7 +279,7 @@ export default function ViewOfficialModal({ person, onClose }) {
               <div className="flex gap-2">
                 <FormField
                   control={form.control}
-                  name="term_start"
+                  name="TermStart"
                   render={({ field }) => (
                     <FormItem className="flex-1">
                       <FormLabel className="text-black font-bold text-xs">Term Start</FormLabel>
@@ -317,7 +317,7 @@ export default function ViewOfficialModal({ person, onClose }) {
                 />
                 <FormField
                   control={form.control}
-                  name="term_end"
+                  name="TermEnd"
                   render={({ field }) => (
                     <FormItem className="flex-1">
                       <FormLabel className="text-black font-bold text-xs">Term End</FormLabel>

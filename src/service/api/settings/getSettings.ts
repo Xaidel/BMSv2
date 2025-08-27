@@ -1,14 +1,14 @@
 import { api } from "@/service/api";
 import { ErrorResponse } from "../auth/login";
-import { Event } from "@/types/apitypes";
+import { Settings } from "@/types/apitypes";
 
-export interface EventResponse {
-  events: Event[]
+export interface SettingsResponse {
+  settings: Settings[]
 }
 
-export default async function getEvent(ID?: number): Promise<EventResponse> {
+export default async function getEvent(id?: number): Promise<SettingsResponse> {
   try {
-    const url = ID ? `${api}/events/${ID}` : `${api}/events`
+    const url = id ? `${api}/settings/${id}` : `${api}/settings`
     const res = await fetch(url, {
       method: "GET",
       headers: {
@@ -19,7 +19,7 @@ export default async function getEvent(ID?: number): Promise<EventResponse> {
       const error = await res.json() as ErrorResponse
       throw error
     }
-    return res.json() as Promise<EventResponse>
+    return res.json() as Promise<SettingsResponse>
   } catch (error) {
     throw error
   }

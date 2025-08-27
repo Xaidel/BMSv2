@@ -1,5 +1,5 @@
 import { api } from "@/service/api"
-export type PatchEvent = Partial<{
+export type PatchSettings = Partial<{
   Name: string
   Type: string
   Date: string
@@ -8,9 +8,9 @@ export type PatchEvent = Partial<{
   Notes: string
   Status: "Upcoming" | "Ongoing" | "Finished" | "Cancelled"
 }>
-export default async function editEvent(ID: number, updated: PatchEvent) {
+export default async function editSettings(ID: number, updated: PatchSettings) {
   try {
-    const res = await fetch(`${api}/events/${ID}`, {
+    const res = await fetch(`${api}/settings/${ID}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updated)
@@ -20,7 +20,7 @@ export default async function editEvent(ID: number, updated: PatchEvent) {
       const errorData = await res.json() as { error: string }
       throw errorData
     }
-    return res.json() as PatchEvent
+    return res.json() as PatchSettings
   } catch (error) {
     throw error
   }

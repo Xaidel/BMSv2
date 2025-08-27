@@ -31,10 +31,6 @@ import { toast } from "sonner";
 import { invoke } from "@tauri-apps/api/core";
 import { blotterSchema } from "@/types/formSchema";
 
-
-
-
-
 export default function AddBlotterModal({ onSave }: { onSave?: () => void }) {
   const [openCalendar, setOpenCalendar] = useState(false);
   const [openModal, setOpenModal] = useState(false);
@@ -43,20 +39,20 @@ export default function AddBlotterModal({ onSave }: { onSave?: () => void }) {
   const form = useForm<z.infer<typeof blotterSchema>>({
     resolver: zodResolver(blotterSchema),
     defaultValues: {
-      id: 0,
-      type_: "",
-      reported_by: "",
-      involved: "",
-      incident_date: new Date(),
-      location: "",
-      zone: "",
-      status: "Active",
-      narrative: "",
-      action: "",
-      witnesses: "",
-      evidence: "",
-      resolution: "",
-      hearing_date: new Date(),
+      ID: 0,
+      Type: "",
+      ReportedBy: "",
+      Involved: "",
+      IncidentDate: new Date(),
+      Location: "",
+      Zone: "",
+      Status: "Active",
+      Narrative: "",
+      Action: "",
+      Witnesses: "",
+      Evidence: "",
+      Resolution: "",
+      HearingDate: new Date(),
     },
   });
 
@@ -65,13 +61,13 @@ export default function AddBlotterModal({ onSave }: { onSave?: () => void }) {
       await invoke("insert_blotter_command", {
         blotter: {
           ...values,
-          incident_date: values.incident_date.toISOString(),
-          hearing_date: values.hearing_date.toISOString(),
+          IncidentDate: values.IncidentDate.toISOString(),
+          HearingDate: values.HearingDate.toISOString(),
         },
       });
 
       toast.success("Blotter added successfully", {
-        description: `${values.reported_by} vs ${values.involved}`,
+        description: `${values.ReportedBy} vs ${values.Involved}`,
       });
 
       setOpenModal(false);
@@ -109,13 +105,13 @@ export default function AddBlotterModal({ onSave }: { onSave?: () => void }) {
                   <div className="col-span-1">
                     <FormField
                       control={form.control}
-                      name="type_"
+                      name="Type"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Type</FormLabel>
                           <FormControl>
                             <Input
-                              id="type_"
+                              id="Type"
                               type="text"
                               placeholder="Enter crime type"
                               required
@@ -131,13 +127,13 @@ export default function AddBlotterModal({ onSave }: { onSave?: () => void }) {
                   <div className="col-span-1">
                     <FormField
                       control={form.control}
-                      name="reported_by"
+                      name="ReportedBy"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Reported By</FormLabel>
                           <FormControl>
                             <Input
-                              id="reported_by"
+                              id="ReportedBy"
                               type="text"
                               placeholder="Enter middle name"
                               required
@@ -153,13 +149,13 @@ export default function AddBlotterModal({ onSave }: { onSave?: () => void }) {
                   <div className="col-span-1">
                     <FormField
                       control={form.control}
-                      name="involved"
+                      name="Involved"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Person Involved</FormLabel>
                           <FormControl>
                             <Input
-                              id="involved"
+                              id="Involved"
                               type="text"
                               placeholder="Enter middle name"
                               required
@@ -175,7 +171,7 @@ export default function AddBlotterModal({ onSave }: { onSave?: () => void }) {
                   <div className="col-span-1">
                     <FormField
                       control={form.control}
-                      name="incident_date"
+                      name="IncidentDate"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Date of Incident</FormLabel>
@@ -213,13 +209,13 @@ export default function AddBlotterModal({ onSave }: { onSave?: () => void }) {
                   <div className="col-span-1">
                     <FormField
                       control={form.control}
-                      name="location"
+                      name="Location"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Barangay</FormLabel>
                           <FormControl>
                             <Input
-                              id="location"
+                              id="Location"
                               type="text"
                               placeholder="Enter Barangay/Location"
                               required
@@ -235,13 +231,13 @@ export default function AddBlotterModal({ onSave }: { onSave?: () => void }) {
                   <div className="col-span-1">
                     <FormField
                       control={form.control}
-                      name="zone"
+                      name="Zone"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Zone</FormLabel>
                           <FormControl>
                             <Input
-                              id="zone"
+                              id="Zone"
                               type="text"
                               placeholder="Enter Zone/Purok"
                               required
@@ -272,15 +268,15 @@ export default function AddBlotterModal({ onSave }: { onSave?: () => void }) {
                   <div className="col-span-1">
                     <FormField
                       control={form.control}
-                      name="narrative"
+                      name="Narrative"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Narrative Report</FormLabel>
                           <FormControl>
                             <Input
-                              id="narrative"
+                              id="Narrative"
                               type="text"
-                              placeholder="Enter narrative"
+                              placeholder="Enter Narrative"
                               required
                               {...field}
                               className="text-black"
@@ -293,15 +289,15 @@ export default function AddBlotterModal({ onSave }: { onSave?: () => void }) {
                   <div className="col-span-1">
                     <FormField
                       control={form.control}
-                      name="action"
+                      name="Action"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Action Taken</FormLabel>
                           <FormControl>
                             <Input
-                              id="action"
+                              id="Action"
                               type="text"
-                              placeholder="Enter action taken"
+                              placeholder="Enter Action taken"
                               required
                               {...field}
                               className="text-black"
@@ -317,15 +313,15 @@ export default function AddBlotterModal({ onSave }: { onSave?: () => void }) {
                   <div className="col-span-1">
                     <FormField
                       control={form.control}
-                      name="witnesses"
+                      name="Witnesses"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Witnesses</FormLabel>
                           <FormControl>
                             <Input
-                              id="witnesses"
+                              id="Witnesses"
                               type="text"
-                              placeholder="Enter witnesses"
+                              placeholder="Enter Witnesses"
                               required
                               {...field}
                               className="text-black"
@@ -339,15 +335,15 @@ export default function AddBlotterModal({ onSave }: { onSave?: () => void }) {
                   <div className="col-span-1">
                     <FormField
                       control={form.control}
-                      name="evidence"
+                      name="Evidence"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Evidence</FormLabel>
                           <FormControl>
                             <Input
-                              id="evidence"
+                              id="Evidence"
                               type="text"
-                              placeholder="Enter evidence"
+                              placeholder="Enter Evidence"
                               required
                               {...field}
                               className="text-black"
@@ -361,15 +357,15 @@ export default function AddBlotterModal({ onSave }: { onSave?: () => void }) {
                   <div className="col-span-1">
                     <FormField
                       control={form.control}
-                      name="resolution"
+                      name="Resolution"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Resolution/Settlement</FormLabel>
                           <FormControl>
                             <Input
-                              id="resolution"
+                              id="Resolution"
                               type="text"
-                              placeholder="Enter resolution/settlement"
+                              placeholder="Enter Resolution/settlement"
                               required
                               {...field}
                               className="text-black"
@@ -383,7 +379,7 @@ export default function AddBlotterModal({ onSave }: { onSave?: () => void }) {
                   <div className="col-span-1">
                     <FormField
                       control={form.control}
-                      name="hearing_date"
+                      name="HearingDate"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Date of Hearing</FormLabel>
