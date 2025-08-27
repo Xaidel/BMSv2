@@ -1,9 +1,3 @@
-import { Buffer } from "buffer";
-
-if (!window.Buffer) {
-  window.Buffer = Buffer;
-}
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Command, CommandEmpty, CommandInput, CommandItem } from "@/components/ui/command";
@@ -12,7 +6,6 @@ import { cn } from "@/lib/utils";
 import { PDFViewer } from "@react-pdf/renderer";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { useEffect } from "react";
-import { Image } from "@react-pdf/renderer";
 import { invoke } from "@tauri-apps/api/core";
 import { ArrowLeftCircleIcon, Check, ChevronsUpDown } from "lucide-react";
 import { toast } from "sonner";
@@ -20,7 +13,13 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
 import { Official } from "@/types/types";
+import CertificateHeader from "../certificateHeader";
+import CertificateFooter from "../certificateFooter";
+import { Buffer } from "buffer";
 
+if (!window.Buffer) {
+  window.Buffer = Buffer;
+}
 type Resident = {
   id?: number;
   first_name: string;
@@ -29,6 +28,7 @@ type Resident = {
   suffix?: string;
   date_of_birth?: string;
   civil_status?: string;
+  zone?: string;
 };
 
 export default function Marriage() {
@@ -63,7 +63,8 @@ export default function Marriage() {
   const selectedResident2 = useMemo(() => {
     return allResidents.find((res) => res.value === value2)?.data;
   }, [allResidents, value2])
-  const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null)
+  const [, setLogoDataUrl] = useState<string | null>(null)
+  const [, setLogoMunicipalityDataUrl] = useState<string | null>(null);
   const [settings, setSettings] = useState<{ barangay: string; municipality: string; province: string } | null>(null);
 
   useEffect(() => {
@@ -82,6 +83,12 @@ export default function Marriage() {
             municipality: s.municipality || "",
             province: s.province || "",
           });
+          if (s.logo) {
+            setLogoDataUrl(s.logo);
+          }
+          if (s.logo_municipality) {
+            setLogoMunicipalityDataUrl(s.logo_municipality);
+          }
         }
       })
       .catch(console.error);
@@ -143,15 +150,6 @@ export default function Marriage() {
     heading: { fontSize: 18, marginBottom: 10 },
     bodyText: { fontSize: 14 },
   });
-  // Download/Print handler function
-  /* function handleDownload() {
-     if (!selectedResident) {
-       alert("Please select a resident first.");
-       return;
-     }
-     console.log("Download started...");
-     // Download/print logic goes here...
-   }*/
   return (
     <>
       <div className="flex gap-1 ">
@@ -429,67 +427,27 @@ export default function Marriage() {
             <Document>
               <Page size="A4" style={styles.page}>
                 <View style={{ position: "relative" }}>
-                  {logoDataUrl && (
-                    <Image
-                      src={logoDataUrl}
-                      style={{
-                        position: "absolute",
-                        top: 10,
-                        left: 30,
-                        width: 90,
-                        height: 90
-                      }}
-                    />
-                  )}
-                  {logoDataUrl && (
-                    <Image
-                      src={logoDataUrl}
-                      style={{
-                        position: "absolute",
-                        top: "35%",
-                        left: "23%",
-                        transform: "translate(-50%, -50%)",
-                        width: 400,
-                        height: 400,
-                        opacity: 0.1,
-                      }}
-                    />
-                  )}
-                  <View style={styles.section}>
-                    <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
-                      <View style={{ flex: 1 }}>
-                        <Text style={{ textAlign: "center" }}>Republic of the Philippines</Text>
-                        <Text style={{ textAlign: "center" }}>Province of {settings?.province || "Province"}</Text>
-                        <Text style={{ textAlign: "center" }}>Municipality of {settings?.municipality || "Municipality"}</Text>
-                        <Text style={{ textAlign: "center", marginTop: 10, marginBottom: 10 }}>BARANGAY {settings?.barangay?.toUpperCase() || "Barangay"}</Text>
-                      </View>
-                    </View>
-                    <Text style={{ textAlign: "center", fontWeight: "bold", fontSize: 16, marginBottom: 10 }}>
-                      OFFICE OF THE PUNONG BARANGAY
-                    </Text>
-                    <Text style={{ textAlign: "center", fontWeight: "bold", fontSize: 18, marginBottom: 10 }}>C E R T I F I C A T I O N</Text>
+                  <CertificateHeader />
                     <Text style={[styles.bodyText, { marginBottom: 10, marginTop: 10 }]}>TO WHOM IT MAY CONCERN:</Text>
                     {selectedResident && selectedResident2 ? (
                       <>
                         <Text style={[styles.bodyText, { textAlign: "justify", marginBottom: 8 }]}>
                           <Text style={{ fontWeight: "bold" }}>This is to certify that </Text>
-                          <Text style={{ fontWeight: "bold" }}>{`MR. ${selectedResident.first_name} ${selectedResident.middle_name ?? ""} ${selectedResident.last_name}`.toUpperCase()}</Text>, {ageMale || "___"} years old, {civilStatusMale || "___"}, a resident of Zone 5, Tambo, Pamplona Camarines Sur, wishes to contract marriage with
+                          <Text style={{ fontWeight: "bold" }}>{`MR. ${selectedResident.first_name} ${selectedResident.middle_name ?? ""} ${selectedResident.last_name}`.toUpperCase()}</Text>, {ageMale || "___"} years old, {civilStatusMale || "___"}, a resident of zone {selectedResident.zone}, at {settings ? settings.barangay : "________________"}
+                        ,{settings ? settings.municipality : "________________"}
+                        ,{settings ? settings.province : "________________"} wishes to contract marriage with
                           <Text style={{ fontWeight: "bold" }}> MS. {`${selectedResident2.first_name} ${selectedResident2.middle_name ?? ""} ${selectedResident2.last_name}`.toUpperCase()}</Text>, {ageFemale || "___"} years old, {civilStatusFemale || "___"}, no legal impediment to contract marriage.
                         </Text>
                       </>
                     ) : (
                       <Text style={styles.bodyText}>Please select a resident to view certificate.</Text>
                     )}
-                    <Text style={[styles.bodyText, { marginTop: 40, marginBottom: 6 }]}>Certifying Officer,</Text>
-                    <Text style={[styles.bodyText, { marginTop: 20, marginBottom: 4, fontWeight: "bold" }]}>
-                      HON. {captainName || "________________"}
-                    </Text>
-                    <Text style={[styles.bodyText, { marginBottom: 10 }]}>Punong Barangay</Text>
-                    <Text style={[styles.bodyText, { marginBottom: 4 }]}>O.R. No.: ____________________</Text>
-                    <Text style={[styles.bodyText, { marginBottom: 4 }]}>Date: _________________________</Text>
-                    <Text style={styles.bodyText}>Amount: PHP {amount}</Text>
+                      <CertificateFooter
+                      styles={styles}
+                      captainName={captainName}
+                      amount={amount}
+                    />
                   </View>
-                </View>
               </Page>
             </Document>
           </PDFViewer>

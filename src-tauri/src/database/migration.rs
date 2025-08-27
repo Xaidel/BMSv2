@@ -40,7 +40,6 @@ pub fn migrate(conn: &Connection) -> Result<()> {
             category TEXT NOT NULL,
             or_number INTEGER NOT NULL
         );
-        DROP TABLE IF EXISTS barangays; -- Drop old table if it exists
         CREATE TABLE IF NOT EXISTS households (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             household_number INTEGER NOT NULL,
@@ -62,6 +61,20 @@ pub fn migrate(conn: &Connection) -> Result<()> {
             attendee TEXT NOT NULL,
             notes TEXT NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS logbook (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            official_name TEXT NOT NULL,
+            date TEXT NOT NULL,
+            time_in_am TEXT,
+            time_out_am TEXT,
+            time_in_pm TEXT,
+            time_out_pm TEXT,
+            remarks TEXT,
+            status TEXT,
+            total_hours REAL,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+        );
         CREATE TABLE IF NOT EXISTS settings (
             id INTEGER PRIMARY KEY CHECK (id = 1), -- only one row
             barangay TEXT,
@@ -69,9 +82,9 @@ pub fn migrate(conn: &Connection) -> Result<()> {
             province TEXT,
             phone_number TEXT,
             email TEXT,
-            logo TEXT  -- base64 or file path
+            logo TEXT,  -- base64 or file path
+            logo_municipality TEXT  -- base64 or file path
             );
-            
         CREATE TABLE IF NOT EXISTS residents (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             prefix TEXT NOT NULL,

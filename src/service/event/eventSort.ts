@@ -6,8 +6,6 @@ export function sort(data: Event[], term: string): Event[] {
       return sortDateAsc(data)
     case "Date DESC":
       return sortDateDesc(data)
-    case "Venue":
-      return sortByVenue(data)
     case "Upcoming":
       return filterByUpcoming(data)
     case "Finished":
@@ -26,9 +24,6 @@ function sortDateAsc(data: Event[]): Event[] {
 }
 function sortDateDesc(data: Event[]): Event[] {
   return [...data].sort((a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime())
-}
-function sortByVenue(data: Event[]): Event[] {
-  return [...data].sort((a, b) => a.Venue.localeCompare(b.Venue, undefined, { sensitivity: 'base' }))
 }
 function filterByUpcoming(data: Event[]): Event[] {
   return data.filter((event) => event.Status === "Upcoming")

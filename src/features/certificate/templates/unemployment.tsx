@@ -1,25 +1,27 @@
-type Official = {
-  id: number;
-  name: string;
-  role: string;
-  image: string;
-  section: string;
-};
-import { Buffer } from "buffer";
-
-if (!window.Buffer) {
-  window.Buffer = Buffer;
-}
-
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Command, CommandEmpty, CommandInput, CommandItem } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Command,
+  CommandEmpty,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { PDFViewer } from "@react-pdf/renderer";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { useEffect } from "react";
-import { Image } from "@react-pdf/renderer";
 import { invoke } from "@tauri-apps/api/core";
 import { ArrowLeftCircleIcon, Check, ChevronsUpDown } from "lucide-react";
 import { toast } from "sonner";
@@ -27,6 +29,21 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
 
+type Official = {
+  id: number;
+  name: string;
+  role: string;
+  image: string;
+  section: string;
+};
+
+import { Buffer } from "buffer";
+import CertificateHeader from "../certificateHeader";
+import CertificateFooter from "../certificateFooter";
+
+if (!window.Buffer) {
+  window.Buffer = Buffer;
+}
 type Resident = {
   id?: number;
   first_name: string;
@@ -39,11 +56,10 @@ type Resident = {
   // Add more fields if needed
 };
 
-
 export default function Unemployment() {
-  const navigate = useNavigate()
-  const [open, setOpen] = useState(false)
-  const [value, setValue] = useState("")
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState("");
   const [residents, setResidents] = useState<Resident[]>([]);
   const [captainName, setCaptainName] = useState<string | null>(null);
   const allResidents = useMemo(() => {
@@ -53,18 +69,25 @@ export default function Unemployment() {
       data: res,
     }));
   }, [residents]);
-  const [search, setSearch] = useState("")
+  const [search, setSearch] = useState("");
   const filteredResidents = useMemo(() => {
     return allResidents.filter((res) =>
       res.label.toLowerCase().includes(search.toLowerCase())
-    )
-  }, [allResidents, search])
+    );
+  }, [allResidents, search]);
   const selectedResident = useMemo(() => {
     return allResidents.find((res) => res.value === value)?.data;
-  }, [allResidents, value])
+  }, [allResidents, value]);
   const [amount, setAmount] = useState("10.00");
-  const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null)
-  const [settings, setSettings] = useState<{ barangay: string; municipality: string; province: string } | null>(null);
+  const [, setLogoDataUrl] = useState<string | null>(null);
+  const [, setLogoMunicipalityDataUrl] = useState<
+    string | null
+  >(null);
+  const [settings, setSettings] = useState<{
+    barangay: string;
+    municipality: string;
+    province: string;
+  } | null>(null);
   const [age, setAge] = useState("");
   const [civilStatus, setCivilStatus] = useState("");
 
@@ -84,6 +107,12 @@ export default function Unemployment() {
             municipality: s.municipality || "",
             province: s.province || "",
           });
+          if (s.logo) {
+            setLogoDataUrl(s.logo);
+          }
+          if (s.logo_municipality) {
+            setLogoMunicipalityDataUrl(s.logo_municipality);
+          }
         }
       })
       .catch(console.error);
@@ -139,26 +168,21 @@ export default function Unemployment() {
     heading: { fontSize: 18, marginBottom: 10 },
     bodyText: { fontSize: 14 },
   });
-  // Download/Print handler function
-  /* function handleDownload() {
-     if (!selectedResident) {
-       alert("Please select a resident first.");
-       return;
-     }
-     console.log("Download started...");
-     // Download/print logic goes here...
-   }*/
   return (
     <>
       <div className="flex gap-1 ">
         <Card className="flex-2 flex flex-col justify-between">
           <CardHeader>
             <CardTitle className="flex gap-2 items-center justify-start">
-              <ArrowLeftCircleIcon className="h-8 w-8" onClick={() => navigate(-1)} />
+              <ArrowLeftCircleIcon
+                className="h-8 w-8"
+                onClick={() => navigate(-1)}
+              />
               Unemployment Certificate
             </CardTitle>
             <CardDescription className="text-start">
-              Please fill out the necessary information needed for Unemployment Certification
+              Please fill out the necessary information needed for Unemployment
+              Certification
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -173,8 +197,7 @@ export default function Unemployment() {
                   >
                     {value
                       ? allResidents.find((res) => res.value === value)?.label
-                      : "Select a Resident"
-                    }
+                      : "Select a Resident"}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
@@ -188,46 +211,47 @@ export default function Unemployment() {
                     />
                     {allResidents.length === 0 ? (
                       <CommandEmpty>No Residents Found</CommandEmpty>
-                    )
-                      :
-                      (
-                        <div className="h-60 overflow-hidden">
-                          <Virtuoso
-                            style={{ height: "100%" }}
-                            totalCount={filteredResidents.length}
-                            itemContent={(index) => {
-                              const res = filteredResidents[index]
-                              return (
-                                <CommandItem
-                                  key={res.value}
-                                  value={res.value}
-                                  className="text-black"
-                                  onSelect={(currentValue) => {
-                                    setValue(
-                                      currentValue === value ? "" : currentValue
-                                    )
-                                    setOpen(false)
-                                  }}
-                                >
-                                  {res.label}
-                                  <Check
-                                    className={cn(
-                                      "ml-auto",
-                                      value === res.value ? "opacity-100" : "opacity-0"
-                                    )}
-                                  />
-                                </CommandItem>
-                              )
-                            }}
-                          />
-                        </div>
-                      )
-                    }
+                    ) : (
+                      <div className="h-60 overflow-hidden">
+                        <Virtuoso
+                          style={{ height: "100%" }}
+                          totalCount={filteredResidents.length}
+                          itemContent={(index) => {
+                            const res = filteredResidents[index];
+                            return (
+                              <CommandItem
+                                key={res.value}
+                                value={res.value}
+                                className="text-black"
+                                onSelect={(currentValue) => {
+                                  setValue(
+                                    currentValue === value ? "" : currentValue
+                                  );
+                                  setOpen(false);
+                                }}
+                              >
+                                {res.label}
+                                <Check
+                                  className={cn(
+                                    "ml-auto",
+                                    value === res.value
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                              </CommandItem>
+                            );
+                          }}
+                        />
+                      </div>
+                    )}
                   </Command>
                 </PopoverContent>
               </Popover>
               <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Age</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Age
+                </label>
                 <input
                   type="text"
                   className="w-full border rounded px-3 py-2 text-black"
@@ -237,7 +261,9 @@ export default function Unemployment() {
                 />
               </div>
               <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Civil Status</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Civil Status
+                </label>
                 <input
                   type="text"
                   className="w-full border rounded px-3 py-2 text-black"
@@ -247,7 +273,10 @@ export default function Unemployment() {
                 />
               </div>
               <div className="mt-4">
-                <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="amount"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Enter Amount (PHP)
                 </label>
                 <input
@@ -302,79 +331,88 @@ export default function Unemployment() {
             <Document>
               <Page size="A4" style={styles.page}>
                 <View style={{ position: "relative" }}>
-                  {logoDataUrl && (
-                    <Image
-                      src={logoDataUrl}
-                      style={{
-                        position: "absolute",
-                        top: 10,
-                        left: 30,
-                        width: 90,
-                        height: 90
-                      }}
-                    />
-                  )}
-                  {logoDataUrl && (
-                    <Image
-                      src={logoDataUrl}
-                      style={{
-                        position: "absolute",
-                        top: "35%",
-                        left: "23%",
-                        transform: "translate(-50%, -50%)",
-                        width: 400,
-                        height: 400,
-                        opacity: 0.1,
-                      }}
-                    />
-                  )}
-                  <View style={styles.section}>
-                    <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
-                      <View style={{ flex: 1 }}>
-                        <Text style={{ textAlign: "center" }}>Republic of the Philippines</Text>
-                        <Text style={{ textAlign: "center" }}>Province of {settings?.province || "Province"}</Text>
-                        <Text style={{ textAlign: "center" }}>Municipality of {settings?.municipality || "Municipality"}</Text>
-                        <Text style={{ textAlign: "center", marginTop: 10, marginBottom: 10 }}>BARANGAY {settings?.barangay?.toUpperCase() || "Barangay"}</Text>
-                      </View>
-                    </View>
-                    <Text style={{ textAlign: "center", fontWeight: "bold", fontSize: 16, marginBottom: 10 }}>
-                      OFFICE OF THE PUNONG BARANGAY
+                  <CertificateHeader />
+                  <Text
+                    style={[
+                      styles.bodyText,
+                      { marginBottom: 10, marginTop: 10 },
+                    ]}
+                  >
+                    TO WHOM IT MAY CONCERN:
+                  </Text>
+                  {selectedResident ? (
+                    <>
+                      <Text
+                        style={[
+                          styles.bodyText,
+                          { textAlign: "justify", marginBottom: 8 },
+                        ]}
+                      >
+                        <Text style={{ fontWeight: "bold" }}>
+                          This is to certify that{" "}
+                        </Text>
+                        <Text style={{ fontWeight: "bold" }}>
+                          {`${selectedResident.first_name} ${selectedResident.last_name}`.toUpperCase()}
+                        </Text>
+                        <Text>
+                          , {age}, {civilStatus.toLowerCase() || "civil status"}
+                          , is a resident of Barangay{" "}
+                          {settings ? settings.barangay : "________________"},{" "}
+                          {settings
+                            ? settings.municipality
+                            : "________________"}
+                          , {settings ? settings.province : "________________"}.
+                        </Text>
+                      </Text>
+                      <Text
+                        style={[
+                          styles.bodyText,
+                          { textAlign: "justify", marginBottom: 8 },
+                        ]}
+                      >
+                        This certifies further that the above-named person is
+                        currently{" "}
+                        <Text style={{ fontWeight: "bold" }}>unemployed</Text>{" "}
+                        and is actively seeking employment.
+                      </Text>
+                      <Text
+                        style={[
+                          styles.bodyText,
+                          { textAlign: "justify", marginBottom: 8 },
+                        ]}
+                      >
+                        This certification is issued upon request of the
+                        interested party for record and reference purposes.
+                      </Text>
+                      <Text style={[styles.bodyText, { marginTop: 8 }]}></Text>
+                      <Text
+                        style={[
+                          styles.bodyText,
+                          { marginTop: 10, marginBottom: 8 },
+                        ]}
+                      >
+                        Given this{" "}
+                        {new Date().toLocaleDateString("en-PH", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })}
+                        , at {settings ? settings.barangay : "________________"}
+                        ,{settings ? settings.municipality : "________________"}
+                        ,{settings ? settings.province : "________________"}
+                      </Text>
+                    </>
+                  ) : (
+                    <Text style={styles.bodyText}>
+                      Please select a resident to view certificate.
                     </Text>
-                    <Text style={{ textAlign: "center", fontWeight: "bold", fontSize: 18, marginBottom: 10 }}>C E R T I F I C A T I O N</Text>
-                    <Text style={[styles.bodyText, { marginBottom: 10, marginTop: 10 }]}>TO WHOM IT MAY CONCERN:</Text>
-                    {selectedResident ? (
-                      <>
-                        <Text style={[styles.bodyText, { textAlign: "justify", marginBottom: 8 }]}>
-                          <Text style={{ fontWeight: "bold" }}>This is to certify that </Text>
-                          <Text style={{ fontWeight: "bold" }}>{`${selectedResident.first_name} ${selectedResident.last_name}`.toUpperCase()}</Text>
-                          <Text>, {age}, {civilStatus.toLowerCase() || "civil status"}, is a resident of Barangay Tambo, Pamplona, Camarines Sur.</Text>
-                        </Text>
-                        <Text style={[styles.bodyText, { textAlign: "justify", marginBottom: 8 }]}>
-                          This certifies further that the above-named person is currently <Text style={{ fontWeight: "bold" }}>unemployed</Text> and is actively seeking employment.
-                        </Text>
-                        <Text style={[styles.bodyText, { textAlign: "justify", marginBottom: 8 }]}>
-                          This certification is issued upon request of the interested party for record and reference purposes.
-                        </Text>
-                        <Text style={[styles.bodyText, { marginTop: 8 }]}>
-                        </Text>
-                        <Text style={[styles.bodyText, { marginTop: 10, marginBottom: 8 }]}>
-                          Given this {new Date().toLocaleDateString("en-PH", {
-                            day: "numeric", month: "long", year: "numeric"
-                          })}, at Tambo, Pamplona, Camarines Sur.
-                        </Text>
-                      </>
-                    ) : (
-                      <Text style={styles.bodyText}>Please select a resident to view certificate.</Text>
-                    )}
-                    <Text style={[styles.bodyText, { marginTop: 40, marginBottom: 6 }]}>Certifying Officer,</Text>
-                    <Text style={[styles.bodyText, { marginTop: 20, marginBottom: 4, fontWeight: "bold" }]}>
-                      HON. {captainName || "________________"}
-                    </Text>
-                    <Text style={[styles.bodyText, { marginBottom: 10 }]}>Punong Barangay</Text>
-                    <Text style={[styles.bodyText, { marginBottom: 4 }]}>O.R. No.: ____________________</Text>
-                    <Text style={[styles.bodyText, { marginBottom: 4 }]}>Date: _________________________</Text>
-                    <Text style={styles.bodyText}>Amount: PHP {amount}</Text>
-                  </View>
+                  )}
+                  <CertificateFooter
+                      styles={styles}
+                      captainName={captainName}
+                      amount={amount}
+                    />
+                    
                 </View>
               </Page>
             </Document>
@@ -382,5 +420,5 @@ export default function Unemployment() {
         </div>
       </div>
     </>
-  )
+  );
 }

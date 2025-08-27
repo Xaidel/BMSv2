@@ -9,6 +9,7 @@ import { toast } from "sonner";
 
 export default function Settings() {
   const [logo, setLogo] = useState(logoPlaceholder);
+  const [logoMunicipality, setLogoMunicipality] = useState(logoPlaceholder);
 
   const form = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
@@ -20,6 +21,7 @@ export default function Settings() {
       phone_number: "",
       email: "",
       logo: "",
+      logo_municipality: "",
     },
   });
 
@@ -34,6 +36,10 @@ export default function Settings() {
           if (loaded.logo && typeof loaded.logo === "string") {
             setLogo(loaded.logo);
             form.setValue("logo", loaded.logo); // <- Add this line
+          }
+          if (loaded.logo_municipality && typeof loaded.logo_municipality === "string") {
+            setLogoMunicipality(loaded.logo_municipality);
+            form.setValue("logo_municipality", loaded.logo_municipality);
           }
         }
       } catch (error) {
@@ -52,6 +58,20 @@ export default function Settings() {
         if (typeof reader.result === "string") {
           setLogo(reader.result);
           form.setValue("logo", reader.result); // set in form
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleLogoMunicipalityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === "string") {
+          setLogoMunicipality(reader.result);
+          form.setValue("logo_municipality", reader.result);
         }
       };
       reader.readAsDataURL(file);
@@ -102,7 +122,7 @@ export default function Settings() {
                   d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 16H9v-2.828z"
                 />
               </svg>
-              Change Logo
+              Change Banrangay Logo
               <input
                 type="file"
                 accept="image/*"
@@ -110,6 +130,39 @@ export default function Settings() {
                 onChange={handleLogoChange}
               />
             </label>
+
+            <div className="mt-8 flex flex-col items-center">
+              <div className="w-40 h-40 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
+                <img
+                  src={logoMunicipality}
+                  alt="municipality logo"
+                  className="object-cover w-full h-full"
+                />
+              </div>
+              <label className="mt-4 cursor-pointer text-sm text-gray-700 flex items-center gap-1 hover:underline">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 16H9v-2.828z"
+                  />
+                </svg>
+                Change Municipality Logo
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleLogoMunicipalityChange}
+                />
+              </label>
+            </div>
           </div>
 
           {/* Form Section */}
@@ -149,7 +202,7 @@ export default function Settings() {
               <input
                 type="text"
                 className="border rounded px-3 py-2 w-2/3"
-                placeholder="Enter phone_number number"
+                placeholder="Enter phone number"
                 {...form.register("phone_number")}
               />
             </div>
@@ -164,6 +217,7 @@ export default function Settings() {
             </div>
 
             <input type="hidden" {...form.register("logo")} />
+            <input type="hidden" {...form.register("logo_municipality")} />
 
             <div className="text-right">
               <button

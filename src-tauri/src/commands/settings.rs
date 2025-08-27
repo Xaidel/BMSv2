@@ -8,7 +8,7 @@ pub fn fetch_settings_command() -> Result<Settings, String> {
 
     // Try fetching the settings
     let mut stmt = conn
-        .prepare("SELECT id, barangay, municipality, province, phone_number, email, logo FROM settings WHERE id = 1")
+        .prepare("SELECT id, barangay, municipality, province, phone_number, email, logo, logo_municipality FROM settings WHERE id = 1")
         .map_err(|e| e.to_string())?;
 
     let result = stmt.query_row([], |row| {
@@ -20,6 +20,7 @@ pub fn fetch_settings_command() -> Result<Settings, String> {
             phone_number: row.get(4)?,
             email: row.get(5)?,
             logo: row.get(6)?,
+            logo_municipality: row.get(7)?,
         })
     });
 
@@ -28,7 +29,7 @@ pub fn fetch_settings_command() -> Result<Settings, String> {
         Ok(settings) => Ok(settings),
         Err(_) => {
             conn.execute(
-                "INSERT INTO settings (id, barangay, municipality, province, phone_number, email, logo) VALUES (1, '', '', '', '', '', '')",
+                "INSERT INTO settings (id, barangay, municipality, province, phone_number, email, logo, logo_municipality) VALUES (1, '', '', '', '', '', '', '')",
                 [],
             ).map_err(|e| e.to_string())?;
 
@@ -40,6 +41,7 @@ pub fn fetch_settings_command() -> Result<Settings, String> {
                 phone_number: "".to_string(),
                 email: "".to_string(),
                 logo: Some("".to_string()),
+                logo_municipality: Some("".to_string()),
             })
         }
     }
@@ -51,7 +53,7 @@ pub fn save_settings_command(settings: Settings) -> Result<(), String> {
 
     if settings.id.is_some() {
         conn.execute(
-            "UPDATE settings SET barangay = ?1, municipality = ?2, province = ?3, phone_number = ?4, email = ?5, logo = ?6 WHERE id = ?7",
+            "UPDATE settings SET barangay = ?1, municipality = ?2, province = ?3, phone_number = ?4, email = ?5, logo = ?6, logo_municipality = ?7 WHERE id = ?8",
             params![
                 settings.barangay,
                 settings.municipality,
@@ -59,20 +61,23 @@ pub fn save_settings_command(settings: Settings) -> Result<(), String> {
                 settings.phone_number,
                 settings.email,
                 settings.logo,
+                settings.logo_municipality,
                 settings.id
+                
             ],
         )
         .map_err(|e| e.to_string())?;
     } else {
         conn.execute(
-            "INSERT INTO settings (barangay, municipality, province, phone_number, email, logo) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            "INSERT INTO settings (barangay, municipality, province, phone_number, email, logo, logo_municipality) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
             params![
                 settings.barangay,
                 settings.municipality,
                 settings.province,
                 settings.phone_number,
                 settings.email,
-                settings.logo
+                settings.logo,
+                settings.logo_municipality
             ],
         )
         .map_err(|e| e.to_string())?;
