@@ -1,26 +1,42 @@
 import { Buffer } from "buffer";
 import { toast } from "sonner";
-
-if (!window.Buffer) {
-  window.Buffer = Buffer;
-}
-
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Command, CommandEmpty, CommandInput, CommandItem } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Command,
+  CommandEmpty,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { PDFViewer } from "@react-pdf/renderer";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { useEffect } from "react";
-import { Image } from "@react-pdf/renderer";
 import { invoke } from "@tauri-apps/api/core";
-import { ArrowLeftCircleIcon, Check, ChevronsUpDown, Printer } from "lucide-react";
+import { ArrowLeftCircleIcon, Check, ChevronsUpDown } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import CertificateHeader from "../certificateHeader";
+import CertificateFooter from "../certificateFooter";
+
+if (!window.Buffer) {
+  window.Buffer = Buffer;
+}
 
 type Resident = {
   date_of_birth: any;
@@ -33,11 +49,10 @@ type Resident = {
   // Add more fields if needed
 };
 
-
 export default function BusinessPermit() {
-  const navigate = useNavigate()
-  const [open, setOpen] = useState(false)
-  const [value, setValue] = useState("")
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState("");
   const [residents, setResidents] = useState<Resident[]>([]);
   const allResidents = useMemo(() => {
     return residents.map((res) => ({
@@ -46,14 +61,21 @@ export default function BusinessPermit() {
       data: res,
     }));
   }, [residents]);
-  const [search, setSearch] = useState("")
+  const [search, setSearch] = useState("");
   const filteredResidents = useMemo(() => {
     return allResidents.filter((res) =>
       res.label.toLowerCase().includes(search.toLowerCase())
-    )
-  }, [allResidents, search])
-  const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null)
-  const [settings, setSettings] = useState<{ barangay: string; municipality: string; province: string } | null>(null);
+    );
+  }, [allResidents, search]);
+  const [, setLogoDataUrl] = useState<string | null>(null);
+  const [, setLogoMunicipalityDataUrl] = useState<
+    string | null
+  >(null);
+  const [settings, setSettings] = useState<{
+    barangay: string;
+    municipality: string;
+    province: string;
+  } | null>(null);
 
   const [businessName, setBusinessName] = useState("");
   const [businessType, setBusinessType] = useState("");
@@ -82,6 +104,9 @@ export default function BusinessPermit() {
             municipality: s.municipality || "",
             province: s.province || "",
           });
+          if (s.logo_municipality) {
+            setLogoMunicipalityDataUrl(s.logo_municipality);
+          }
         }
       })
       .catch(console.error);
@@ -111,26 +136,21 @@ export default function BusinessPermit() {
     heading: { fontSize: 18, marginBottom: 10 },
     bodyText: { fontSize: 14 },
   });
-  // Download/Print handler function
-  function handleDownload() {
-    if (!value) {
-      alert("Please select a resident first.");
-      return;
-    }
-    console.log("Download started...");
-    // Download/print logic goes here...
-  }
   return (
     <>
       <div className="flex gap-1 ">
         <Card className="flex-2 flex flex-col justify-between">
           <CardHeader>
             <CardTitle className="flex gap-2 items-center justify-start">
-              <ArrowLeftCircleIcon className="h-8 w-8" onClick={() => navigate(-1)} />
+              <ArrowLeftCircleIcon
+                className="h-8 w-8"
+                onClick={() => navigate(-1)}
+              />
               Barangay Business Permit
             </CardTitle>
             <CardDescription className="text-start">
-              Please fill out the necessary information needed for Barangay Business Permit
+              Please fill out the necessary information needed for Barangay
+              Business Permit
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -145,8 +165,7 @@ export default function BusinessPermit() {
                 >
                   {value
                     ? allResidents.find((res) => res.value === value)?.label
-                    : "Select a Resident"
-                  }
+                    : "Select a Resident"}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
@@ -173,28 +192,39 @@ export default function BusinessPermit() {
                               value={res.value}
                               className="text-black"
                               onSelect={(currentValue) => {
-                                const selected = allResidents.find((r) => r.value === currentValue)?.data;
+                                const selected = allResidents.find(
+                                  (r) => r.value === currentValue
+                                )?.data;
                                 if (selected) {
                                   if (selected.date_of_birth) {
-                                    const dob = new Date(selected.date_of_birth);
+                                    const dob = new Date(
+                                      selected.date_of_birth
+                                    );
                                     const today = new Date();
-                                    let calculatedAge = today.getFullYear() - dob.getFullYear();
+                                    let calculatedAge =
+                                      today.getFullYear() - dob.getFullYear();
                                     const m = today.getMonth() - dob.getMonth();
-                                    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                                    if (
+                                      m < 0 ||
+                                      (m === 0 &&
+                                        today.getDate() < dob.getDate())
+                                    ) {
                                       calculatedAge--;
                                     }
                                     try {
                                       setAge(calculatedAge.toString());
-                                    } catch { }
+                                    } catch {}
                                   } else {
                                     try {
                                       setAge("");
-                                    } catch { }
+                                    } catch {}
                                   }
                                   try {
                                     setCivilStatus(selected.civil_status || "");
-                                  } catch { }
-                                  setValue(currentValue === value ? "" : currentValue);
+                                  } catch {}
+                                  setValue(
+                                    currentValue === value ? "" : currentValue
+                                  );
                                 }
                                 setOpen(false);
                               }}
@@ -203,7 +233,9 @@ export default function BusinessPermit() {
                               <Check
                                 className={cn(
                                   "ml-auto",
-                                  value === res.value ? "opacity-100" : "opacity-0"
+                                  value === res.value
+                                    ? "opacity-100"
+                                    : "opacity-0"
                                 )}
                               />
                             </CommandItem>
@@ -220,23 +252,43 @@ export default function BusinessPermit() {
             <div className="grid gap-4">
               <div>
                 <Label>Business Name</Label>
-                <Input value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="Enter business name" />
+                <Input
+                  value={businessName}
+                  onChange={(e) => setBusinessName(e.target.value)}
+                  placeholder="Enter business name"
+                />
               </div>
               <div>
                 <Label>Type of Business</Label>
-                <Input value={businessType} onChange={(e) => setBusinessType(e.target.value)} placeholder="Enter type of business" />
+                <Input
+                  value={businessType}
+                  onChange={(e) => setBusinessType(e.target.value)}
+                  placeholder="Enter type of business"
+                />
               </div>
               <div>
                 <Label>Business Location</Label>
-                <Input value={businessLocation} onChange={(e) => setBusinessLocation(e.target.value)} placeholder="Enter business location" />
+                <Input
+                  value={businessLocation}
+                  onChange={(e) => setBusinessLocation(e.target.value)}
+                  placeholder="Enter business location"
+                />
               </div>
               <div>
                 <Label>Owner</Label>
-                <Input value={businessOwner} onChange={(e) => setBusinessOwner(e.target.value)} placeholder="Enter owner's name" />
+                <Input
+                  value={businessOwner}
+                  onChange={(e) => setBusinessOwner(e.target.value)}
+                  placeholder="Enter owner's name"
+                />
               </div>
               <div>
                 <Label>Amount</Label>
-                <Input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Enter amount (e.g. 150.00)" />
+                <Input
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="Enter amount (e.g. 150.00)"
+                />
               </div>
             </div>
           </CardContent>
@@ -244,7 +296,9 @@ export default function BusinessPermit() {
             <div className="flex-1 flex justify-start">
               <Button
                 onClick={async () => {
-                  const selectedResident = allResidents.find((res) => res.value === value)?.data;
+                  const selectedResident = allResidents.find(
+                    (res) => res.value === value
+                  )?.data;
                   if (!selectedResident) {
                     alert("Please select a resident first.");
                     return;
@@ -262,11 +316,11 @@ export default function BusinessPermit() {
                         civil_status: civilStatus || "",
                         ownership_text: businessOwner || "",
                         amount: amount || "",
-                      }
+                      },
                     });
 
                     toast.success("Certificate saved successfully!", {
-                      description: `${selectedResident.first_name} ${selectedResident.last_name}'s certificate was saved.`
+                      description: `${selectedResident.first_name} ${selectedResident.last_name}'s certificate was saved.`,
                     });
                   } catch (error) {
                     console.error("Save certificate failed:", error);
@@ -277,12 +331,7 @@ export default function BusinessPermit() {
                 Save
               </Button>
             </div>
-            <div className="flex-1 flex justify-end">
-              <Button onClick={handleDownload}>
-                <Printer />
-                Print Certificate
-              </Button>
-            </div>
+            <div className="flex-1 flex justify-end"></div>
           </CardFooter>
         </Card>
         <div className="flex-4">
@@ -290,96 +339,128 @@ export default function BusinessPermit() {
             <Document>
               <Page size="A4" style={styles.page}>
                 <View style={{ position: "relative" }}>
-                  {logoDataUrl && (
-                    <Image
-                      src={logoDataUrl}
+                  <CertificateHeader />
+                  <Text
+                    style={{
+                      textAlign: "center",
+                      fontWeight: "bold",
+                      fontSize: 18,
+                      marginBottom: 10,
+                    }}
+                  >
+                    BARANGAY BUSINESS PERMIT
+                  </Text>
+                  <View
+                    style={{
+                      border: "2pt solid black",
+                      padding: 20,
+                      marginBottom: 20,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Text
                       style={{
-                        position: "absolute",
-                        top: 10,
-                        left: 30,
-                        width: 90,
-                        height: 90
-                      }}
-                    />
-                  )}
-                  {logoDataUrl && (
-                    <Image
-                      src={logoDataUrl}
-                      style={{
-                        position: "absolute",
-                        top: "35%",
-                        left: "23%",
-                        transform: "translate(-50%, -50%)",
-                        width: 400,
-                        height: 400,
-                        opacity: 0.1,
-                      }}
-                    />
-                  )}
-                  <View style={styles.section}>
-                    <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
-                      <View style={{ flex: 1 }}>
-                        <Text style={{ textAlign: "center" }}>Republic of the Philippines</Text>
-                        <Text style={{ textAlign: "center" }}>Province of {settings?.province || "Province"}</Text>
-                        <Text style={{ textAlign: "center" }}>Municipality of {settings?.municipality || "Municipality"}</Text>
-                        <Text style={{ textAlign: "center", marginTop: 10, marginBottom: 10 }}>BARANGAY {settings?.barangay?.toUpperCase() || "Barangay"}</Text>
-                      </View>
-                    </View>
-                    <Text style={{ textAlign: "center", fontWeight: "bold", fontSize: 16, marginBottom: 10 }}>
-                      OFFICE OF THE PUNONG BARANGAY
-                    </Text>
-                    <Text style={{ textAlign: "center", fontWeight: "bold", fontSize: 18, marginBottom: 10 }}>BARANGAY BUSINESS PERMIT</Text>
-                    <View
-                      style={{
-                        border: "2pt solid black",
-                        padding: 20,
-                        marginBottom: 20,
-                        alignItems: "center",
-                        justifyContent: "center",
+                        fontSize: 19,
+                        fontWeight: "bold",
+                        marginBottom: 4,
                       }}
                     >
-                      <Text style={{ fontSize: 19, fontWeight: "bold", marginBottom: 4 }}>
-                        {businessName || "________________"}
-                      </Text>
-                      <Text style={{ fontSize: 14, marginBottom: 10 }}>Business Name</Text>
-                      <Text style={{ fontSize: 19, fontWeight: "bold", marginBottom: 4 }}>
-                        {businessType || "________________"}
-                      </Text>
-                      <Text style={{ fontSize: 14, marginBottom: 10 }}>Type of Business</Text>
-                      <Text style={{ fontSize: 19, fontWeight: "bold", marginBottom: 4 }}>
-                        {businessLocation || "________________"}
-                      </Text>
-                      <Text style={{ fontSize: 14, marginBottom: 10 }}>Location</Text>
-                      <Text style={{ fontSize: 19, fontWeight: "bold", marginBottom: 4 }}>
-                        {businessOwner || "________________"}
-                      </Text>
-                      <Text style={{ fontSize: 14 }}>Owner</Text>
-                    </View>
-                    <>
-                      <Text style={[styles.bodyText, { textAlign: "justify", marginBottom: 8 }]}>
-                        And which said person had accomplish <Text style={{ fontWeight: "bold" }}>Barangay Ordinance No.14</Text>. This ordinance is imposing Barangay Permit fee and it is required for every business Trade or any transaction within the jurisdiction of this Barangay.
-                      </Text>
-                      <Text style={[styles.bodyText, { textAlign: "justify", marginBottom: 8 }]}>
-                        This Barangay permit on business indorsed to this Municipality for registration purposes only.
-                      </Text>
-                      <Text style={[styles.bodyText, { marginTop: 10, marginBottom: 8 }]}>
-                        Given this {new Date().toLocaleDateString("en-PH", {
-                          day: "numeric", month: "long", year: "numeric"
-                        })}, at Tambo, Pamplona, Camarines Sur.
-                      </Text>
-                      <Text style={[styles.bodyText, { textAlign: "justify", marginBottom: 8 }]}>
-                        This Barangay Permit is not valid without official receipt.
-                      </Text>
-                    </>
-                    <Text style={[styles.bodyText, { marginTop: 40, marginBottom: 6 }]}>Certifying Officer,</Text>
-                    <Text style={[styles.bodyText, { marginTop: 20, marginBottom: 4, fontWeight: "bold" }]}>
-                      HON. {captainName || "________________"}
+                      {businessName || "________________"}
                     </Text>
-                    <Text style={[styles.bodyText, { marginBottom: 10 }]}>Punong Barangay</Text>
-                    <Text style={[styles.bodyText, { marginBottom: 4 }]}>O.R. No.: ____________________</Text>
-                    <Text style={[styles.bodyText, { marginBottom: 4 }]}>Date: _________________________</Text>
-                    <Text style={styles.bodyText}>Amount: PHP {amount || "_________"}</Text>
+                    <Text style={{ fontSize: 14, marginBottom: 10 }}>
+                      Business Name
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 19,
+                        fontWeight: "bold",
+                        marginBottom: 4,
+                      }}
+                    >
+                      {businessType || "________________"}
+                    </Text>
+                    <Text style={{ fontSize: 14, marginBottom: 10 }}>
+                      Type of Business
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 19,
+                        fontWeight: "bold",
+                        marginBottom: 4,
+                      }}
+                    >
+                      {businessLocation || "________________"}
+                    </Text>
+                    <Text style={{ fontSize: 14, marginBottom: 10 }}>
+                      Location
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 19,
+                        fontWeight: "bold",
+                        marginBottom: 4,
+                      }}
+                    >
+                      {businessOwner || "________________"}
+                    </Text>
+                    <Text style={{ fontSize: 14 }}>Owner</Text>
                   </View>
+                  <>
+                    <Text
+                      style={[
+                        styles.bodyText,
+                        { textAlign: "justify", marginBottom: 8 },
+                      ]}
+                    >
+                      And which said person had accomplish{" "}
+                      <Text style={{ fontWeight: "bold" }}>
+                        Barangay Ordinance No.14
+                      </Text>
+                      . This ordinance is imposing Barangay Permit fee and it is
+                      required for every business Trade or any transaction
+                      within the jurisdiction of this Barangay.
+                    </Text>
+                    <Text
+                      style={[
+                        styles.bodyText,
+                        { textAlign: "justify", marginBottom: 8 },
+                      ]}
+                    >
+                      This Barangay permit on business indorsed to this
+                      Municipality for registration purposes only.
+                    </Text>
+                    <Text
+                      style={[
+                        styles.bodyText,
+                        { marginTop: 10, marginBottom: 8 },
+                      ]}
+                    >
+                      Given this{" "}
+                      {new Date().toLocaleDateString("en-PH", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                      , at {settings ? settings.barangay : "________________"},
+                      {settings ? settings.municipality : "________________"},
+                      {settings ? settings.province : "________________"}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.bodyText,
+                        { textAlign: "justify", marginBottom: 8 },
+                      ]}
+                    >
+                      This Barangay Permit is not valid without official
+                      receipt.
+                    </Text>
+                  </>
+                  <CertificateFooter
+                    styles={styles}
+                    captainName={captainName}
+                    amount={amount}
+                  />
                 </View>
               </Page>
             </Document>
@@ -387,5 +468,5 @@ export default function BusinessPermit() {
         </div>
       </div>
     </>
-  )
+  );
 }

@@ -1,7 +1,6 @@
-import { LayoutDashboard, Calendar, Users, House, FileBadge2, TrendingUp, BanknoteArrowUpIcon, Files, Settings, LogOut, Map } from "lucide-react";
+import { LayoutDashboard, Calendar, Users, House, FileBadge2, TrendingUp, BanknoteArrowUpIcon, Files, Settings, LogOut, Map, ClipboardCheck } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger } from "./sidebar";
 import { NavLink, useLocation } from "react-router-dom";
-import { Button } from "./button";
 
 const items = [
   {
@@ -10,10 +9,21 @@ const items = [
     icon: LayoutDashboard
   },
   {
+    title: "Certification",
+    url: "/certificates",
+    icon: FileBadge2
+  },
+  {
+    title: "Logbook",
+    url: "/logbook",
+    icon: ClipboardCheck
+  },
+  {
     title: "Event",
     url: "/event",
     icon: Calendar
   },
+  
   {
     title: "Residents",
     url: "/residents",
@@ -30,9 +40,9 @@ const items = [
     icon: Map
   },
   {
-    title: "Certificate",
-    url: "/certificates",
-    icon: FileBadge2
+    title: "Blotter Records",
+    url: "/blotter",
+    icon: Files
   },
   {
     title: "Income",
@@ -43,11 +53,6 @@ const items = [
     title: "Expense",
     url: "/expense",
     icon: BanknoteArrowUpIcon
-  },
-  {
-    title: "Blotter Records",
-    url: "/blotter",
-    icon: Files
   },
   {
     title: "Officials and Staffs",

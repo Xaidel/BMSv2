@@ -11,4 +11,5 @@ pub struct Settings {
     pub phone_number: String,
     pub email: String,
     pub logo: Option<String>,
+    pub logo_municipality: Option<String>,
 }

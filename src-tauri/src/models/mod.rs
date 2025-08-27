@@ -8,3 +8,4 @@ pub mod resident;
 pub mod official;
 pub mod certificate;
 pub mod user;
+pub mod logbook;

@@ -14,11 +14,12 @@ import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { useEffect } from "react";
 import { Image } from "@react-pdf/renderer";
 import { invoke } from "@tauri-apps/api/core";
-import { ArrowLeftCircleIcon, Check, ChevronsUpDown } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
 import { toast } from "sonner";
+import { ArrowLeftCircleIcon, ChevronsUpDown, Check } from "lucide-react";
+import CertificateHeader from "../certificateHeader";
 
 type Resident = {
   id?: number;
@@ -64,7 +65,8 @@ export default function Birth() {
   const [attendantAtBirth, setAttendantAtBirth] = useState("");
   const [amount, setAmount] = useState("10.00");
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null)
-  const [settings, setSettings] = useState<{ barangay: string; municipality: string; province: string } | null>(null);
+  const [logoMunicipalityDataUrl, setLogoMunicipalityDataUrl] = useState<string | null>(null);
+  const [, setSettings] = useState<{ barangay: string; municipality: string; province: string } | null>(null);
   console.log(age)
   // Resident selector state for Select Resident dropdown
   const [open, setOpen] = useState(false);
@@ -103,6 +105,12 @@ export default function Birth() {
             municipality: s.municipality || "",
             province: s.province || "",
           });
+          if (s.logo) {
+            setLogoDataUrl(s.logo);
+          }
+          if (s.logo_municipality) {
+            setLogoMunicipalityDataUrl(s.logo_municipality);
+          }
         }
       })
       .catch(console.error);
@@ -154,11 +162,6 @@ export default function Birth() {
     heading: { fontSize: 18, marginBottom: 10 },
     bodyText: { fontSize: 14 },
   });
-  // Download/Print handler function
-  /* function handleDownload() {
-     console.log("Download started...");
-     // Download/print logic goes here...
-   }*/
   return (
     <>
       <div className="flex gap-1 ">
@@ -569,6 +572,18 @@ export default function Birth() {
                       }}
                     />
                   )}
+                  {logoMunicipalityDataUrl && (
+                    <Image
+                      src={logoMunicipalityDataUrl}
+                      style={{
+                        position: "absolute",
+                        top: 10,
+                        right: 30,
+                        width: 90,
+                        height: 90,
+                      }}
+                    />
+                  )}
                   {logoDataUrl && (
                     <Image
                       src={logoDataUrl}
@@ -584,18 +599,7 @@ export default function Birth() {
                     />
                   )}
                   <View style={styles.section}>
-                    <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
-                      <View style={{ flex: 1 }}>
-                        <Text style={{ textAlign: "center" }}>Republic of the Philippines</Text>
-                        <Text style={{ textAlign: "center" }}>Province of {settings?.province || "Province"}</Text>
-                        <Text style={{ textAlign: "center" }}>Municipality of {settings?.municipality || "Municipality"}</Text>
-                        <Text style={{ textAlign: "center", marginTop: 10, marginBottom: 10 }}>BARANGAY {settings?.barangay?.toUpperCase() || "Barangay"}</Text>
-                      </View>
-                    </View>
-
-                    <Text style={{ textAlign: "center", fontWeight: "bold", fontSize: 14, marginBottom: 8 }}>
-                      OFFICE OF THE SANGGUNIANG BARANGAY
-                    </Text>
+                    <CertificateHeader />
 
                     <View style={{ flexDirection: "row", gap: 12 }}>
                       <View style={{ flex: 1 }}>

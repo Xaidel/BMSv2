@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Tree from "react-d3-tree";
 import { Badge } from "@/components/ui/badge";
 import { Eye, Plus } from "lucide-react";
@@ -13,6 +12,9 @@ import {
 } from "@/components/ui/dialog";
 import ViewCaptainModal from "@/features/official/ViewCaptainModal";
 import useOfficial from "@/features/api/official/useOfficial";
+import { invoke } from "@tauri-apps/api/core";
+import AddOfficialModal from "@/features/official/addOfficialModal";
+import ViewOfficialModal from "@/features/official/viewOfficialModal";
 
 const myTreeData = [orgChart];
 
@@ -98,7 +100,9 @@ export default function OfficialsPage() {
   const [officialsData, setOfficialsData] = useState(null);
   const [selectedOfficial, setSelectedOfficial] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-
+  const [open, setOpen] = useState(false);
+  const [activeNode, setActiveNode] = useState<any>(null);
+  const { data: officials } = useOfficial()
 
   useEffect(() => {
     invoke<Official[]>("fetch_all_officials_command")
@@ -178,10 +182,6 @@ export default function OfficialsPage() {
       </div>
     );
   };
-export default function Official() {
-  const [open, setOpen] = useState(false);
-  const [activeNode, setActiveNode] = useState<any>(null);
-  const { data: officials } = useOfficial()
 
   return (
     <div className="ml-0 pl-0 pr-2 py-6 min-w-[1500px] overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 scale-90 xl:scale-79 origin-top-left transition-transform">
@@ -201,7 +201,7 @@ export default function Official() {
             <h2 className="text-xl font-semibold text-center">{section.title}</h2>
             <div className="flex flex-col items-center space-y-2 mt-2">
               {section.members.map((key) => {
-                const value = officialsData[section.type]?.[key];
+                const value = officialsData?.[section.type]?.[key];
                 if (Array.isArray(value)) {
                   return (
                     <div

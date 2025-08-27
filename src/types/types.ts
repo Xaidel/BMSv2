@@ -117,6 +117,7 @@ export type Settings = {
   phone_number: string;
   email: string;
   logo?: string;
+  logo_municipality?: string;
 };
 
 
@@ -137,4 +138,17 @@ export type User = {
   id?: number;
   username: string;
   password: string;
+};
+
+export type Logbook = {
+  id: number;
+  official_name: string;
+  date: Date;
+  time_in_am?: string;
+  time_out_am?: string;
+  time_in_pm?: string;
+  time_out_pm?: string;
+  remarks?: string;
+  status?: string;
+  total_hours?: number;
 };

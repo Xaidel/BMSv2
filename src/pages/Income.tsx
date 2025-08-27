@@ -5,14 +5,12 @@ import {
   DollarSign,
   Banknote,
   PiggyBank,
-  Gift,
   Coins,
   Wallet,
   Layers,
   Shirt,
   Trash,
   Eye,
-  Droplet,
   Droplets,
 } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
