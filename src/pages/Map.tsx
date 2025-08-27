@@ -1,5 +1,3 @@
-//import Maharlika from "@/assets/geojson/Maharlika.json"
-//import Pasacao from "@/assets/geojson/Pasacao.json"
 import TamboRoad from "@/assets/geojson/TamboRoad.json";
 import Border from "@/assets/geojson/Border.json";
 import Building from "@/assets/geojson/Building.json";

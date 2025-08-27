@@ -48,15 +48,15 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
   const form = useForm<z.infer<typeof officialSchema>>({
     resolver: zodResolver(officialSchema),
     defaultValues: {
-      name: "",
-      role: "",
-      image: "",
-      section: "",
-      age: undefined,
-      contact: "",
-      term_start: undefined,
-      term_end: undefined,
-      zone: "",
+      Name: "",
+      Role: "",
+      Image: "",
+      Section: "",
+      Age: undefined,
+      Contact: "",
+      TermStart: undefined,
+      TermEnd: undefined,
+      Zone: "",
     },
   });
   console.log(imagePreview)
@@ -65,13 +65,13 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
       await invoke("insert_official_command", {
         official: {
           ...values,
-          term_start: values.term_start?.toISOString().split("T")[0], // must be string for Rust
-          term_end: values.term_end?.toISOString().split("T")[0],
+          TermStart: values.TermStart?.toISOString().split("T")[0], // must be string for Rust
+          TermEnd: values.TermEnd?.toISOString().split("T")[0],
         },
       });
 
       toast.success("Official added successfully", {
-        description: `${values.name} was added.`,
+        description: `${values.Name} was added.`,
       });
 
       setOpenModal(false);
@@ -90,12 +90,12 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
-        form.setValue("image", reader.result as string);
+        form.setValue("Image", reader.result as string);
       };
       reader.readAsDataURL(file);
     } else {
       setImagePreview("");
-      form.setValue("image", "");
+      form.setValue("Image", "");
     }
   }
 
@@ -121,7 +121,7 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
               {/* Image Upload */}
               <FormField
                 control={form.control}
-                name="image"
+                name="Image"
                 render={() => (
                   <FormItem>
                     <FormLabel className="text-black font-bold text-xs">
@@ -130,7 +130,7 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
                     <FormControl>
                       <Input
                         type="file"
-                        accept="image/*"
+                        accept="Image/*"
                         onChange={handleImageChange}
                         className="text-black"
                       />
@@ -142,7 +142,7 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
               {/* Section */}
               <FormField
                 control={form.control}
-                name="section"
+                name="Section"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-black font-bold text-xs">
@@ -152,7 +152,7 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger className="w-full text-black border-black/15">
-                            <SelectValue placeholder="Select section" />
+                            <SelectValue placeholder="Select Section" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -169,7 +169,7 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
               {/* Role */}
               <FormField
                 control={form.control}
-                name="role"
+                name="Role"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-black font-bold text-xs">
@@ -179,11 +179,11 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger className="w-full text-black border-black/15">
-                            <SelectValue placeholder="Select role" />
+                            <SelectValue placeholder="Select Role" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {form.watch("section") === "Barangay Officials" && (
+                          {form.watch("Section") === "Barangay Officials" && (
                             <>
                               <SelectItem value="Barangay Captain">Barangay Captain</SelectItem>
                               <SelectItem value="Barangay Councilor">Barangay Councilor</SelectItem>
@@ -193,13 +193,13 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
                               <SelectItem value="Care Taker">Care Taker</SelectItem>
                             </>
                           )}
-                          {form.watch("section") === "SK Officials" && (
+                          {form.watch("Section") === "SK Officials" && (
                             <>
                               <SelectItem value="SK Chairman">SK Chairman</SelectItem>
                               <SelectItem value="SK Councilor">SK Councilor</SelectItem>
                             </>
                           )}
-                          {form.watch("section") === "Tanod Officials" && (
+                          {form.watch("Section") === "Tanod Officials" && (
                             <>
                               <SelectItem value="Chief Tanod">Chief Tanod</SelectItem>
                               <SelectItem value="Tanod Member">Tanod Member</SelectItem>
@@ -215,7 +215,7 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
               {/* Name */}
               <FormField
                 control={form.control}
-                name="name"
+                name="Name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-black font-bold text-xs">
@@ -235,7 +235,7 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
               {/* Age */}
               <FormField
                 control={form.control}
-                name="age"
+                name="Age"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-black font-bold text-xs">
@@ -260,7 +260,7 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
               {/* Contact */}
               <FormField
                 control={form.control}
-                name="contact"
+                name="Contact"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-black font-bold text-xs">
@@ -268,7 +268,7 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Enter contact info"
+                        placeholder="Enter Contact info"
                         className="text-black"
                         {...field}
                       />
@@ -280,7 +280,7 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
               {/* Zone */}
               <FormField
                 control={form.control}
-                name="zone"
+                name="Zone"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-black font-bold text-xs">
@@ -288,7 +288,7 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Enter zone"
+                        placeholder="Enter Zone"
                         className="text-black"
                         {...field}
                       />
@@ -302,7 +302,7 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
                 {/* Term Start */}
                 <FormField
                   control={form.control}
-                  name="term_start"
+                  name="TermStart"
                   render={({ field }) => (
                     <FormItem className="flex-1">
                       <FormLabel className="text-black font-bold text-xs">
@@ -344,7 +344,7 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
                 {/* Term End */}
                 <FormField
                   control={form.control}
-                  name="term_end"
+                  name="TermEnd"
                   render={({ field }) => (
                     <FormItem className="flex-1">
                       <FormLabel className="text-black font-bold text-xs">

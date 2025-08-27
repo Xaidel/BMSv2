@@ -4,24 +4,24 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { settingsSchema } from "@/types/formSchema";
 import { z } from "zod";
-import logoPlaceholder from "../assets/new_logo_small.png";
+import LogoPlaceholder from "../assets/new_Logo_small.png";
 import { toast } from "sonner";
 
 export default function Settings() {
-  const [logo, setLogo] = useState(logoPlaceholder);
-  const [logoMunicipality, setLogoMunicipality] = useState(logoPlaceholder);
+  const [Logo, setLogo] = useState(LogoPlaceholder);
+  const [LogoMunicipality, setLogoMunicipality] = useState(LogoPlaceholder);
 
   const form = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
-      id: undefined,
-      barangay: "",
-      municipality: "",
-      province: "",
-      phone_number: "",
-      email: "",
-      logo: "",
-      logo_municipality: "",
+      ID: undefined,
+      Barangay: "",
+      Municipality: "",
+      Province: "",
+      PhoneNumber: "",
+      Email: "",
+      Logo: "",
+      LogoMunicipality: "",
     },
   });
 
@@ -33,13 +33,13 @@ export default function Settings() {
         >;
         if (loaded) {
           form.reset(loaded);
-          if (loaded.logo && typeof loaded.logo === "string") {
-            setLogo(loaded.logo);
-            form.setValue("logo", loaded.logo); // <- Add this line
+          if (loaded.Logo && typeof loaded.Logo === "string") {
+            setLogo(loaded.Logo);
+            form.setValue("Logo", loaded.Logo); // <- Add this line
           }
-          if (loaded.logo_municipality && typeof loaded.logo_municipality === "string") {
-            setLogoMunicipality(loaded.logo_municipality);
-            form.setValue("logo_municipality", loaded.logo_municipality);
+          if (loaded.LogoMunicipality && typeof loaded.LogoMunicipality === "string") {
+            setLogoMunicipality(loaded.LogoMunicipality);
+            form.setValue("LogoMunicipality", loaded.LogoMunicipality);
           }
         }
       } catch (error) {
@@ -57,7 +57,7 @@ export default function Settings() {
       reader.onloadend = () => {
         if (typeof reader.result === "string") {
           setLogo(reader.result);
-          form.setValue("logo", reader.result); // set in form
+          form.setValue("Logo", reader.result); // set in form
         }
       };
       reader.readAsDataURL(file);
@@ -71,7 +71,7 @@ export default function Settings() {
       reader.onloadend = () => {
         if (typeof reader.result === "string") {
           setLogoMunicipality(reader.result);
-          form.setValue("logo_municipality", reader.result);
+          form.setValue("LogoMunicipality", reader.result);
         }
       };
       reader.readAsDataURL(file);
@@ -82,7 +82,7 @@ export default function Settings() {
     try {
       await invoke("save_settings_command", { settings: values });
       toast.success("Settings saved successfully!", {
-        description: <p>All changes to barangay info were saved.</p>,
+        description: <p>All changes to Barangay info were saved.</p>,
       });
     } catch (error) {
       console.error("Failed to save settings:", error);
@@ -102,8 +102,8 @@ export default function Settings() {
           <div className="flex flex-col items-center">
             <div className="w-40 h-40 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
               <img
-                src={logo}
-                alt="logo"
+                src={Logo}
+                alt="Logo"
                 className="object-cover w-full h-full"
               />
             </div>
@@ -134,8 +134,8 @@ export default function Settings() {
             <div className="mt-8 flex flex-col items-center">
               <div className="w-40 h-40 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
                 <img
-                  src={logoMunicipality}
-                  alt="municipality logo"
+                  src={LogoMunicipality}
+                  alt="Municipality Logo"
                   className="object-cover w-full h-full"
                 />
               </div>
@@ -175,8 +175,8 @@ export default function Settings() {
               <input
                 type="text"
                 className="border rounded px-3 py-2 w-2/3"
-                placeholder="Enter barangay"
-                {...form.register("barangay")}
+                placeholder="Enter Barangay"
+                {...form.register("Barangay")}
               />
             </div>
             <div className="flex items-center justify-between">
@@ -184,8 +184,8 @@ export default function Settings() {
               <input
                 type="text"
                 className="border rounded px-3 py-2 w-2/3"
-                placeholder="Enter municipality"
-                {...form.register("municipality")}
+                placeholder="Enter Municipality"
+                {...form.register("Municipality")}
               />
             </div>
             <div className="flex items-center justify-between">
@@ -193,8 +193,8 @@ export default function Settings() {
               <input
                 type="text"
                 className="border rounded px-3 py-2 w-2/3"
-                placeholder="Enter province"
-                {...form.register("province")}
+                placeholder="Enter Province"
+                {...form.register("Province")}
               />
             </div>
             <div className="flex items-center justify-between">
@@ -203,21 +203,21 @@ export default function Settings() {
                 type="text"
                 className="border rounded px-3 py-2 w-2/3"
                 placeholder="Enter phone number"
-                {...form.register("phone_number")}
+                {...form.register("PhoneNumber")}
               />
             </div>
             <div className="flex items-center justify-between">
               <label>Email Address</label>
               <input
-                type="email"
+                type="Email"
                 className="border rounded px-3 py-2 w-2/3"
-                placeholder="Enter email"
-                {...form.register("email")}
+                placeholder="Enter Email"
+                {...form.register("Email")}
               />
             </div>
 
-            <input type="hidden" {...form.register("logo")} />
-            <input type="hidden" {...form.register("logo_municipality")} />
+            <input type="hidden" {...form.register("Logo")} />
+            <input type="hidden" {...form.register("LogoMunicipality")} />
 
             <div className="text-right">
               <button

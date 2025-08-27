@@ -15,6 +15,7 @@ import useOfficial from "@/features/api/official/useOfficial";
 import { invoke } from "@tauri-apps/api/core";
 import AddOfficialModal from "@/features/official/addOfficialModal";
 import ViewOfficialModal from "@/features/official/viewOfficialModal";
+import { Official } from "@/types/apitypes";
 
 const myTreeData = [orgChart];
 
@@ -65,19 +66,6 @@ const badgeGroup = (
   );
 };
 
-type Official = {
-  id: number;
-  name: string;
-  role: string;
-  image: string;
-  section: string;
-  age?: number;
-  contact?: string;
-  term_start?: string;
-  term_end?: string;
-  zone?: string;
-};
-
 const sections = [
   {
     title: "Barangay Officials",
@@ -114,8 +102,8 @@ export default function OfficialsPage() {
         };
 
         data.forEach((person) => {
-          const role = person.role.toLowerCase();
-          const section = person.section.toLowerCase();
+          const role = person.Role.toLowerCase();
+          const section = person.Section.toLowerCase();
 
           if (section === "barangay officials") {
             if (role === "barangay captain") {
@@ -239,8 +227,8 @@ export default function OfficialsPage() {
                 };
 
                 data.forEach((person) => {
-                  const role = person.role.toLowerCase();
-                  const section = person.section.toLowerCase();
+                  const role = person.Role.toLowerCase();
+                  const section = person.Section.toLowerCase();
 
                   if (section === "barangay officials") {
                     if (role === "barangay captain") {

@@ -97,7 +97,7 @@ export type Blotter = {
   type_: string;
   reported_by: string;
   involved: string;
-  incident_date: Date; // <- must be Date, not string
+  incident_date: Date; 
   location: string;
   zone: string;
   status: string;
@@ -106,7 +106,7 @@ export type Blotter = {
   witnesses: string;
   evidence: string;
   resolution: string;
-  hearing_date: Date; // <- must be Date, not string
+  hearing_date: Date; 
 };
 
 export type Settings = {

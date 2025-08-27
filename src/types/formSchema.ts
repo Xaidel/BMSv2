@@ -181,45 +181,45 @@ export const expenseSchema = z.object({
 });
 
 export const blotterSchema = z.object({
-  id: z.number().optional(), // Make optional if used for new entries
-  type_: z.string().min(1, "Type is required"),
-  reported_by: z.string().min(1, "Reporter is required"),
-  involved: z.string().min(1, "Involved parties are required"),
-  incident_date: z.date(),
-  location: z.string().min(1, "Location is required"),
-  zone: z.string().min(1, "Zone is required"),
-  status: z.string().min(1, "Status is required"),
-  narrative: z.string().min(1, "Narrative is required"),
-  action: z.string().min(1, "Action is required"),
-  witnesses: z.string().min(1, "Witnesses are required"),
-  evidence: z.string().min(1, "Evidence is required"),
-  resolution: z.string().min(1, "Resolution is required"),
-  hearing_date: z.date(),
+  ID: z.number().optional(), // Make optional if used for new entries
+  Type: z.string().min(1, "Type is required"),
+  ReportedBy: z.string().min(1, "Reporter is required"),
+  Involved: z.string().min(1, "Involved parties are required"),
+  IncidentDate: z.date(),
+  Location: z.string().min(1, "Location is required"),
+  Zone: z.string().min(1, "Zone is required"),
+  Status: z.string().min(1, "Status is required"),
+  Narrative: z.string().min(1, "Narrative is required"),
+  Action: z.string().min(1, "Action is required"),
+  Witnesses: z.string().min(1, "Witnesses are required"),
+  Evidence: z.string().min(1, "Evidence is required"),
+  Resolution: z.string().min(1, "Resolution is required"),
+  HearingDate: z.date(),
 });
 
 export const settingsSchema = z.object({
-  id: z.number().optional(),
-  barangay: z.string().min(1),
-  municipality: z.string().min(1),
-  province: z.string().min(1),
-  phone_number: z.string().min(1),
-  email: z.string().email(),
-  logo: z.string(),
-  logo_municipality: z.string(),
+  ID: z.number().optional(),
+  Barangay: z.string().min(1),
+  Municipality: z.string().min(1),
+  Province: z.string().min(1),
+  PhoneNumber: z.string().min(1),
+  Email: z.string().email(),
+  Logo: z.string(),
+  LogoMunicipality: z.string(),
 });
 
 
 export const officialSchema = z.object({
-  id: z.number().optional(),
-  name: z.string().min(2, { message: "Name is too short" }).max(100, { message: "Name is too long" }),
-  role: z.string().min(2, { message: "Role is too short" }).max(100, { message: "Role is too long" }),
-  age: z.number().min(18, { message: "Age must be at least 18" }),
-  contact: z.string().min(1, { message: "Contact is too short" }).max(20, { message: "Contact is too long" }),
-  term_start: z.date({ required_error: "Start of term is required" }),
-  term_end: z.date({ required_error: "End of term is required" }),
-  zone: z.string().min(1, { message: "Zone is required" }),
-  image: z.string().optional(),
-  section: z.string().min(1, { message: "Section is required" }),
+  ID: z.number().optional(),
+  Name: z.string().min(2, { message: "Name is too short" }).max(100, { message: "Name is too long" }),
+  Role: z.string().min(2, { message: "Role is too short" }).max(100, { message: "Role is too long" }),
+  Age: z.number().min(18, { message: "Age must be at least 18" }),
+  Contact: z.string().min(1, { message: "Contact is too short" }).max(20, { message: "Contact is too long" }),
+  TermStart: z.date({ required_error: "Start of term is required" }),
+  TermEnd: z.date({ required_error: "End of term is required" }),
+  Zone: z.string().min(1, { message: "Zone is required" }),
+  Image: z.string().optional(),
+  Section: z.string().min(1, { message: "Section is required" }),
 });
 
 export const logbookSchema = z.object({

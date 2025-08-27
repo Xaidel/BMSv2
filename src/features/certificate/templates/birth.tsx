@@ -1,9 +1,3 @@
-import { Buffer } from "buffer";
-
-if (!window.Buffer) {
-  window.Buffer = Buffer;
-}
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Command, CommandEmpty, CommandInput, CommandItem } from "@/components/ui/command";
@@ -20,6 +14,10 @@ import { Virtuoso } from "react-virtuoso";
 import { toast } from "sonner";
 import { ArrowLeftCircleIcon, ChevronsUpDown, Check } from "lucide-react";
 import CertificateHeader from "../certificateHeader";
+import { Buffer } from "buffer";
+if (!window.Buffer) {
+  window.Buffer = Buffer;
+}
 
 type Resident = {
   id?: number;

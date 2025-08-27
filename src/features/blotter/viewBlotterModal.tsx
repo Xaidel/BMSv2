@@ -37,7 +37,7 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Blotter } from "@/types/types";
+import { Blotter } from "@/types/apitypes";
 import { invoke } from '@tauri-apps/api/core';
 
 const selectStatus: string[] = [
@@ -54,19 +54,19 @@ export default function ViewBlotterModal(props: Blotter & { onSave: () => void }
   const form = useForm<z.infer<typeof blotterSchema>>({
     resolver: zodResolver(blotterSchema),
     defaultValues: {
-      type_: props.type_,
-      reported_by: props.reported_by,
-      involved: props.involved,
-      incident_date: new Date(props.incident_date), // Convert string to Date
-      location: props.location,
-      zone: props.zone,
-      status: props.status,
-      narrative: props.narrative,
-      action: props.action,
-      witnesses: props.witnesses,
-      evidence: props.evidence,
-      resolution: props.resolution,
-      hearing_date: new Date(props.hearing_date), // Convert string to Date
+      Type: props.Type,
+      ReportedBy: props.ReportedBy,
+      Involved: props.Involved,
+      IncidentDate: new Date(props.IncidentDate), 
+      Location: props.Location,
+      Zone: props.Zone,
+      Status: props.Status,
+      Narrative: props.Narrative,
+      Action: props.Action,
+      Witnesses: props.Witnesses,
+      Evidence: props.Evidence,
+      Resolution: props.Resolution,
+      HearingDate: new Date(props.HearingDate), 
     },
   });
 
@@ -74,15 +74,15 @@ export default function ViewBlotterModal(props: Blotter & { onSave: () => void }
     try {
       const blotterWithId = {
         ...values,
-        id: props.id,
-        incident_date: values.incident_date.toISOString(),
-        hearing_date: values.hearing_date.toISOString(),
+        id: props.ID,
+        IncidentDate: values.IncidentDate.toISOString(),
+        HearingDate: values.HearingDate.toISOString(),
       };
 
       await invoke("save_blotter_command", { blotter: blotterWithId });
 
       toast.success("Blotter updated successfully", {
-        description: `${values.type_} was updated.`,
+        description: `${values.Type} was updated.`,
       });
 
       setOpenModal(false);
@@ -123,7 +123,7 @@ export default function ViewBlotterModal(props: Blotter & { onSave: () => void }
                     <div>
                       <FormField
                         control={form.control}
-                        name="type_"
+                        name="Type"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel
@@ -134,7 +134,7 @@ export default function ViewBlotterModal(props: Blotter & { onSave: () => void }
                             </FormLabel>
                             <FormControl>
                               <Input
-                                id="type_"
+                                id="Type"
                                 type="text"
                                 placeholder="Enter full name"
                                 required
@@ -150,18 +150,18 @@ export default function ViewBlotterModal(props: Blotter & { onSave: () => void }
                     <div>
                       <FormField
                         control={form.control}
-                        name="reported_by"
+                        name="ReportedBy"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel
-                              htmlFor="reported_by"
+                              htmlFor="ReportedBy"
                               className="text-black font-bold text-xs"
                             >
                               Reported By
                             </FormLabel>
                             <FormControl>
                               <Input
-                                id="reported_by"
+                                id="ReportedBy"
                                 type="text"
                                 placeholder="Enter full name"
                                 required
@@ -177,18 +177,18 @@ export default function ViewBlotterModal(props: Blotter & { onSave: () => void }
                     <div>
                       <FormField
                         control={form.control}
-                        name="involved"
+                        name="Involved"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel
-                              htmlFor="involved"
+                              htmlFor="Involved"
                               className="text-black font-bold text-xs"
                             >
                               Person Involved
                             </FormLabel>
                             <FormControl>
                               <Input
-                                id="involved"
+                                id="Involved"
                                 type="text"
                                 placeholder="Enter full name"
                                 required
@@ -204,11 +204,11 @@ export default function ViewBlotterModal(props: Blotter & { onSave: () => void }
                     <div>
                       <FormField
                         control={form.control}
-                        name="incident_date"
+                        name="IncidentDate"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel
-                              htmlFor="incident_date"
+                              htmlFor="IncidentDate"
                               className="text-black font-bold text-xs"
                             >
                               Date
@@ -253,20 +253,20 @@ export default function ViewBlotterModal(props: Blotter & { onSave: () => void }
                     <div>
                       <FormField
                         control={form.control}
-                        name="location"
+                        name="Location"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel
-                              htmlFor="location"
+                              htmlFor="Location"
                               className="text-black font-bold text-xs"
                             >
                               Location
                             </FormLabel>
                             <FormControl>
                               <Input
-                                id="location"
+                                id="Location"
                                 type="text"
-                                placeholder="Enter location"
+                                placeholder="Enter Location"
                                 required
                                 {...field}
                                 className="text-black"
@@ -280,18 +280,18 @@ export default function ViewBlotterModal(props: Blotter & { onSave: () => void }
                     <div>
                       <FormField
                         control={form.control}
-                        name="zone"
+                        name="Zone"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel
-                              htmlFor="zone"
+                              htmlFor="Zone"
                               className="text-black font-bold text-xs"
                             >
                               Zone/Purok
                             </FormLabel>
                             <FormControl>
                               <Input
-                                id="zone"
+                                id="Zone"
                                 type="text"
                                 placeholder="Enter full name"
                                 required
@@ -307,11 +307,11 @@ export default function ViewBlotterModal(props: Blotter & { onSave: () => void }
                     <div>
                       <FormField
                         control={form.control}
-                        name="status"
+                        name="Status"
                         render={({ field }) => (
                           <FormItem className="w-full">
                             <FormLabel
-                              htmlFor="status"
+                              htmlFor="Status"
                               className="text-black font-bold text-xs"
                             >
                               Status
@@ -323,7 +323,7 @@ export default function ViewBlotterModal(props: Blotter & { onSave: () => void }
                               <FormControl>
                                 <SelectTrigger className="w-full text-black border-black/15">
                                   <SelectValue
-                                    placeholder={"Please select civil status"}
+                                    placeholder={"Please select civil Status"}
                                   />
                                 </SelectTrigger>
                               </FormControl>
@@ -351,20 +351,20 @@ export default function ViewBlotterModal(props: Blotter & { onSave: () => void }
                     <div>
                       <FormField
                         control={form.control}
-                        name="narrative"
+                        name="Narrative"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel
-                              htmlFor="narrative"
+                              htmlFor="Narrative"
                               className="text-black font-bold text-xs"
                             >
                               Narrative
                             </FormLabel>
                             <FormControl>
                               <Input
-                                id="narrative"
+                                id="Narrative"
                                 type="text"
-                                placeholder="Enter narrative"
+                                placeholder="Enter Narrative"
                                 required
                                 {...field}
                                 className="text-black"
@@ -378,20 +378,20 @@ export default function ViewBlotterModal(props: Blotter & { onSave: () => void }
                     <div>
                       <FormField
                         control={form.control}
-                        name="action"
+                        name="Action"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel
-                              htmlFor="action"
+                              htmlFor="Action"
                               className="text-black font-bold text-xs"
                             >
                               Action Taken
                             </FormLabel>
                             <FormControl>
                               <Input
-                                id="action"
+                                id="Action"
                                 type="text"
-                                placeholder="Enter action taken"
+                                placeholder="Enter Action taken"
                                 required
                                 {...field}
                                 className="text-black"
@@ -405,20 +405,20 @@ export default function ViewBlotterModal(props: Blotter & { onSave: () => void }
                     <div>
                       <FormField
                         control={form.control}
-                        name="witnesses"
+                        name="Witnesses"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel
-                              htmlFor="witnesses"
+                              htmlFor="Witnesses"
                               className="text-black font-bold text-xs"
                             >
                               Witnesses
                             </FormLabel>
                             <FormControl>
                               <Input
-                                id="witnesses"
+                                id="Witnesses"
                                 type="text"
-                                placeholder="Enter witnesses"
+                                placeholder="Enter Witnesses"
                                 required
                                 {...field}
                                 className="text-black"
@@ -432,20 +432,20 @@ export default function ViewBlotterModal(props: Blotter & { onSave: () => void }
                     <div>
                       <FormField
                         control={form.control}
-                        name="evidence"
+                        name="Evidence"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel
-                              htmlFor="evidence"
+                              htmlFor="Evidence"
                               className="text-black font-bold text-xs"
                             >
                               Evidence
                             </FormLabel>
                             <FormControl>
                               <Input
-                                id="evidence"
+                                id="Evidence"
                                 type="text"
-                                placeholder="Enter evidence"
+                                placeholder="Enter Evidence"
                                 required
                                 {...field}
                                 className="text-black"
@@ -459,20 +459,20 @@ export default function ViewBlotterModal(props: Blotter & { onSave: () => void }
                     <div>
                       <FormField
                         control={form.control}
-                        name="resolution"
+                        name="Resolution"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel
-                              htmlFor="resolution"
+                              htmlFor="Resolution"
                               className="text-black font-bold text-xs"
                             >
                               Resolution
                             </FormLabel>
                             <FormControl>
                               <Input
-                                id="resolution"
+                                id="Resolution"
                                 type="text"
-                                placeholder="Enter resolution"
+                                placeholder="Enter Resolution"
                                 required
                                 {...field}
                                 className="text-black"
@@ -486,11 +486,11 @@ export default function ViewBlotterModal(props: Blotter & { onSave: () => void }
                     <div>
                       <FormField
                         control={form.control}
-                        name="hearing_date"
+                        name="HearingDate"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel
-                              htmlFor="hearing_date"
+                              htmlFor="HearingDate"
                               className="text-black font-bold text-xs"
                             >
                               Hearing Date
