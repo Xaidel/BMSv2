@@ -1,20 +1,9 @@
-
-
 import { Document, Page, Text, View } from "@react-pdf/renderer";
 import { styles } from "./Stylesheet";
 import { format } from "date-fns";
+import { Resident } from "@/types/apitypes";
 
-type Resident = {
-  id: number;
-  first_name: string;
-  middle_name?: string;
-  last_name: string;
-  civil_status: string;
-  gender: string;
-  date_of_birth: Date;
-  zone: string;
-  status: string;
-};
+
 
 type Props = {
   filter: string;
@@ -51,21 +40,21 @@ export const ResidentPDF = ({ filter, residents }: Props) => {
                     styles.tableRow,
                     { backgroundColor: index % 2 === 0 ? "#f9f9f9" : "white" }
                   ]}
-                  key={resident.id}
+                  key={resident.ID}
                 >
-                  <View style={styles.tableCell}><Text>{resident.id}</Text></View>
+                  <View style={styles.tableCell}><Text>{resident.ID}</Text></View>
                   <View style={styles.tableCell}>
                     <Text>
-                      {resident.first_name} {resident.middle_name ?? ""} {resident.last_name}
+                      {resident.Firstname} {resident.Middlename ?? ""} {resident.Lastname} {resident.Suffix ?? ""}
                     </Text>
                   </View>
-                  <View style={styles.tableCell}><Text>{resident.civil_status}</Text></View>
-                  <View style={styles.tableCell}><Text>{resident.gender}</Text></View>
+                  <View style={styles.tableCell}><Text>{resident.CivilStatus}</Text></View>
+                  <View style={styles.tableCell}><Text>{resident.Gender}</Text></View>
                   <View style={styles.tableCell}>
-                    <Text>{format(new Date(resident.date_of_birth), "MMMM do, yyyy")}</Text>
+                    <Text>{format(new Date(resident.Birthday), "MMMM do, yyyy")}</Text>
                   </View>
-                  <View style={styles.tableCell}><Text>{resident.zone}</Text></View>
-                  <View style={styles.tableCell}><Text>{resident.status}</Text></View>
+                  <View style={styles.tableCell}><Text>{resident.Zone}</Text></View>
+                  <View style={styles.tableCell}><Text>{resident.Status}</Text></View>
                 </View>
               ))}
             </View>

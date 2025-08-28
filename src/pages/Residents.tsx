@@ -6,18 +6,19 @@ import Searchbar from "@/components/ui/searchbar";
 import AddResidentModal from "@/features/residents/addResidentModal";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { Trash, Users, UserCheck, UserMinus, Mars, Venus, User, Accessibility, Fingerprint, Eye } from "lucide-react";
+import { Trash, Users, UserCheck, UserMinus, Mars, Venus, User, Fingerprint, Eye } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { sort } from "@/service/resident/residentSort";
 import searchResident from "@/service/resident/searchResident";
 import SummaryCardResidents from "@/components/summary-card/residents";
 import { useResident } from "@/features/api/resident/useResident";
-import { Resident } from "@/types/apitypes";
+
 import { useDeleteResident } from "@/features/api/resident/useDeleteResident";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import ViewResidentModal from "@/features/residents/viewResidentModal";
+import { Resident } from "@/types/apitypes";
 
 const filters = ["All Residents", "Alphabetical", "Moved Out", "Active", "Dead", "Missing"];
 
@@ -150,6 +151,7 @@ export default function Residents() {
     return realAge >= 60; // for example, senior = 60+
   }).length;
   const registered = res.filter((r) => r.IsVoter).length;
+  const SoloParent = res.filter((r) => r.IsSolo).length;
 
   return (
     <>
@@ -164,9 +166,9 @@ export default function Residents() {
             const { toast } = await import("sonner");
             const { ResidentPDF } = await import("@/components/pdf/residentpdf");
 
-            const casted: Resident[] = data.map((r) => ({
+            const casted: Resident[] = res.map((r) => ({
               ...r,
-              date_of_birth: typeof r.Birthday === "string" ? new Date(r.Birthday) : r.Birthday,
+              Birthday: typeof r.Birthday === "string" ? new Date(r.Birthday) : r.Birthday,
             })) as Resident[];
 
             const blob = await pdf(<ResidentPDF filter="All Residents" residents={casted} />).toBlob();
@@ -192,10 +194,10 @@ export default function Residents() {
           const { toast } = await import("sonner");
           const { ResidentPDF } = await import("@/components/pdf/residentpdf");
 
-          const filtered = data.filter((r) => r.gender === "Male");
+          const filtered = res.filter((r) => r.Gender === "Male");
           const casted: Resident[] = filtered.map((r) => ({
             ...r,
-            date_of_birth: typeof r.date_of_birth === "string" ? new Date(r.date_of_birth) : r.date_of_birth,
+            Birthday: typeof r.Birthday === "string" ? new Date(r.Birthday) : r.Birthday,
           }));
 
           const blob = await pdf(<ResidentPDF filter="Male Residents" residents={casted} />).toBlob();
@@ -220,10 +222,10 @@ export default function Residents() {
           const { toast } = await import("sonner");
           const { ResidentPDF } = await import("@/components/pdf/residentpdf");
 
-          const filtered = data.filter((r) => r.gender === "Female");
+          const filtered = res.filter((r) => r.Gender === "Female");
           const casted: Resident[] = filtered.map((r) => ({
             ...r,
-            date_of_birth: typeof r.date_of_birth === "string" ? new Date(r.date_of_birth) : r.date_of_birth,
+            Birthday: typeof r.Birthday === "string" ? new Date(r.Birthday) : r.Birthday,
           }));
 
           const blob = await pdf(<ResidentPDF filter="Female Residents" residents={casted} />).toBlob();
@@ -248,10 +250,20 @@ export default function Residents() {
           const { toast } = await import("sonner");
           const { ResidentPDF } = await import("@/components/pdf/residentpdf");
 
-          const filtered = data.filter((r) => r.is_senior === true);
+          // Senior residents: age >= 60
+          const today = new Date();
+          const filtered = res.filter((r) => {
+            const birthDate = new Date(r.Birthday);
+            const age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            const realAge = m < 0 || (m === 0 && today.getDate() < birthDate.getDate())
+              ? age - 1
+              : age;
+            return realAge >= 60;
+          });
           const casted: Resident[] = filtered.map((r) => ({
             ...r,
-            date_of_birth: typeof r.date_of_birth === "string" ? new Date(r.date_of_birth) : r.date_of_birth,
+            Birthday: typeof r.Birthday === "string" ? new Date(r.Birthday) : r.Birthday,
           }));
 
           const blob = await pdf(<ResidentPDF filter="Senior Residents" residents={casted} />).toBlob();
@@ -276,10 +288,10 @@ export default function Residents() {
           const { toast } = await import("sonner");
           const { ResidentPDF } = await import("@/components/pdf/residentpdf");
 
-          const filtered = data.filter((r) => r.is_registered_voter === true);
+          const filtered = res.filter((r) => r.IsVoter === true);
           const casted: Resident[] = filtered.map((r) => ({
             ...r,
-            date_of_birth: typeof r.date_of_birth === "string" ? new Date(r.date_of_birth) : r.date_of_birth,
+            Birthday: typeof r.Birthday === "string" ? new Date(r.Birthday) : r.Birthday,
           }));
 
           const blob = await pdf(<ResidentPDF filter="Registered Voters" residents={casted} />).toBlob();
@@ -298,16 +310,44 @@ export default function Residents() {
             });
           }
         }} />
+        <SummaryCardResidents title="Solo Parent" value={SoloParent} icon={<User size={50} />} onClick={async () => {
+          const { pdf } = await import("@react-pdf/renderer");
+          const { writeFile, BaseDirectory } = await import("@tauri-apps/plugin-fs");
+          const { toast } = await import("sonner");
+          const { ResidentPDF } = await import("@/components/pdf/residentpdf");
+
+          const filtered = res.filter((r) => r.IsVoter === true);
+          const casted: Resident[] = filtered.map((r) => ({
+            ...r,
+            Birthday: typeof r.Birthday === "string" ? new Date(r.Birthday) : r.Birthday,
+          }));
+
+          const blob = await pdf(<ResidentPDF filter="Solo Parents" residents={casted} />).toBlob();
+          const buffer = await blob.arrayBuffer();
+          const contents = new Uint8Array(buffer);
+          try {
+            await writeFile("SoloParents.pdf", contents, {
+              baseDir: BaseDirectory.Document,
+            });
+            toast.success("Solo Parents PDF downloaded", {
+              description: "Saved in Documents folder",
+            });
+          } catch (e) {
+            toast.error("Error", {
+              description: "Failed to save Solo Parents PDF",
+            });
+          }
+        }} />
         <SummaryCardResidents title="Active" value={active} icon={<UserCheck size={50} />} onClick={async () => {
           const { pdf } = await import("@react-pdf/renderer");
           const { writeFile, BaseDirectory } = await import("@tauri-apps/plugin-fs");
           const { toast } = await import("sonner");
           const { ResidentPDF } = await import("@/components/pdf/residentpdf");
 
-          const filtered = data.filter((r) => r.status === "Active");
+          const filtered = res.filter((r) => r.Status === "Active");
           const casted: Resident[] = filtered.map((r) => ({
             ...r,
-            date_of_birth: typeof r.date_of_birth === "string" ? new Date(r.date_of_birth) : r.date_of_birth,
+            Birthday: typeof r.Birthday === "string" ? new Date(r.Birthday) : r.Birthday,
           }));
 
           const blob = await pdf(<ResidentPDF filter="Active Residents" residents={casted} />).toBlob();
@@ -332,10 +372,10 @@ export default function Residents() {
           const { toast } = await import("sonner");
           const { ResidentPDF } = await import("@/components/pdf/residentpdf");
 
-          const filtered = data.filter((r) => r.status === "Moved Out");
+          const filtered = res.filter((r) => r.Status === "Moved Out");
           const casted: Resident[] = filtered.map((r) => ({
             ...r,
-            date_of_birth: typeof r.date_of_birth === "string" ? new Date(r.date_of_birth) : r.date_of_birth,
+            Birthday: typeof r.Birthday === "string" ? new Date(r.Birthday) : r.Birthday,
           }));
 
           const blob = await pdf(<ResidentPDF filter="Moved Out Residents" residents={casted} />).toBlob();

@@ -34,17 +34,25 @@ import { z } from "zod";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { useState } from "react";
-import { residentSchema } from "@/types/formSchema";
+
 import { useAddResident } from "../api/resident/useAddResident";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { ErrorResponse } from "@/service/api/auth/login";
+import { residentSchema } from "@/types/formSchema";
 
 const civilStatusOptions = ["Single", "Married", "Widowed", "Separated"];
 const statusOption = ["Active", "Dead", "Missing", "Moved Out"];
 const genderOptions = ["Male", "Female"];
 const suffixOptions = ["Jr.", "Sr.", "II", "III"];
-const educAttainment = ["Elementary Graduate", "Highschool Graduate", "Senior Highschool Graduate", "College Graduate", "Masteral Degree", "Doctorate Degree"]
+const educAttainment = [
+  "Elementary Graduate",
+  "Highschool Graduate",
+  "Senior Highschool Graduate",
+  "College Graduate",
+  "Masteral Degree",
+  "Doctorate Degree",
+];
 
 export default function AddResidentModal() {
   const [openCalendar, setOpenCalendar] = useState(false);
@@ -71,77 +79,84 @@ export default function AddResidentModal() {
   const form = useForm<z.infer<typeof residentSchema>>({
     resolver: zodResolver(residentSchema),
     defaultValues: {
-      first_name: "",
-      middle_name: "",
-      last_name: "",
-      suffix: "",
-      civil_status: "",
-      status: "",
-      gender: "",
-      mobile_number: "",
-      date_of_birth: undefined,
-      town_of_birth: "",
-      nationality: "",
-      zone: "",
-      educAttainment: "",
-      barangay: "",
-      town: "",
-      province: "",
-      photo: null,
-      is_registered_voter: false,
-      is_pwd: false,
-      is_senior: false,
+      Firstname: "",
+      Middlename: "",
+      Lastname: "",
+      Suffix: "",
+      CivilStatus: "",
+      Status: "",
+      Gender: "",
+      MobileNumber: "",
+      Birthday: undefined,
+      Birthplace: "",
+      Nationality: "",
+      Zone: 0,
+      EducationalAttainment: "",
+      Barangay: "",
+      Town: "",
+      Province: "",
+      Image: null,
+      IsVoter: false,
+      IsPWD: false,
+      IsSolo: false,
+      IsSenior: false,
+      Occupation: "",
+      Religion: "",
+      AvgIncome: 0,
     },
   });
 
-  const addMutation = useAddResident()
-  const queryClient = useQueryClient()
+  const addMutation = useAddResident();
+  const queryClient = useQueryClient();
 
   const onSubmit = async (values: z.infer<typeof residentSchema>) => {
     toast.promise(
       addMutation.mutateAsync({
-        Firstname: values.first_name,
-        Middlename: values.middle_name,
-        Lastname: values.last_name,
-        CivilStatus: values.civil_status,
-        Gender: values.gender,
-        Nationality: values.nationality,
-        Religion: values.religion,
-        Status: values.status,
-        Birthplace: values.town_of_birth,
-        EducationalAttainment: values.educAttainment,
-        Birthday: values.date_of_birth,
-        IsVoter: values.is_registered_voter,
-        IsPWD: values.is_pwd,
+        Firstname: values.Firstname,
+        Middlename: values.Middlename,
+        Lastname: values.Lastname,
+        CivilStatus: values.CivilStatus,
+        Gender: values.Gender,
+        Nationality: values.Nationality,
+        Religion: values.Religion,
+        Status: values.Status,
+        Birthplace: values.Birthplace,
+        EducationalAttainment: values.EducationalAttainment,
+        Birthday: values.Birthday,
+        IsVoter: values.IsVoter,
+        IsPWD: values.IsPWD,
         Image: null,
-        Zone: Number(values.zone),
-        Barangay: values.barangay,
-        Town: values.town,
-        Province: values.province,
-        Suffix: values.suffix,
-        Occupation: values.occupation,
-        AvgIncome: values.income,
-        MobileNumber: values.mobile_number
-      }), {
-      loading: "Adding Resident please wait...",
-      success: (data) => {
-        const r = data.resident
-        queryClient.invalidateQueries({ queryKey: ["residents"] })
-        setOpenModal(false)
-        return {
-          message: "Resident Added successfully",
-          description: `${r.Firstname} ${r.Lastname} was added`
-        }
-      },
-      error: (error: ErrorResponse) => {
-        return {
-          message: "Adding resident failed",
-          description: `${error.error}`
-        }
+        Zone: Number(values.Zone),
+        Barangay: values.Barangay,
+        Town: values.Town,
+        Province: values.Province,
+        Suffix: values.Suffix,
+        Occupation: values.Occupation,
+        AvgIncome: values.AvgIncome,
+        MobileNumber: values.MobileNumber,
+        IsSolo: false,
+        IsSenior: false
+      }),
+      {
+        loading: "Adding Resident please wait...",
+        success: (data) => {
+          const r = data.resident;
+          queryClient.invalidateQueries({ queryKey: ["residents"] });
+          setOpenModal(false);
+          return {
+            message: "Resident Added successfully",
+            description: `${r.Firstname} ${r.Lastname} was added`,
+          };
+        },
+        error: (error: ErrorResponse) => {
+          return {
+            message: "Adding resident failed",
+            description: `${error.error}`,
+          };
+        },
       }
-    }
-    )
-  }
+    );
+  };
 
   return (
     <Dialog open={openModal} onOpenChange={setOpenModal}>
@@ -166,15 +181,14 @@ export default function AddResidentModal() {
                   Personal Information
                 </h2>
                 <div className="grid grid-cols-4 gap-4">
-
                   <div className="col-span-2">
                     <FormField
                       control={form.control}
-                      name="photo"
+                      name="Image"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Upload Profile Picture</FormLabel>
-                          <FormControl >
+                          <FormControl>
                             <>
                               <Input
                                 type="file"
@@ -184,8 +198,7 @@ export default function AddResidentModal() {
                                   if (file) {
                                     field.onChange(file);
                                     const reader = new FileReader();
-                                    reader.onload = () => {
-                                    };
+                                    reader.onload = () => {};
                                     reader.readAsDataURL(file);
                                   }
                                 }}
@@ -201,7 +214,7 @@ export default function AddResidentModal() {
                   <div className="col-span-2">
                     <FormField
                       control={form.control}
-                      name="first_name"
+                      name="Firstname"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>First Name</FormLabel>
@@ -223,7 +236,7 @@ export default function AddResidentModal() {
                   <div className="col-span-2">
                     <FormField
                       control={form.control}
-                      name="middle_name"
+                      name="Middlename"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Middle Name</FormLabel>
@@ -245,7 +258,7 @@ export default function AddResidentModal() {
                   <div className="col-span-2">
                     <FormField
                       control={form.control}
-                      name="last_name"
+                      name="Lastname"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Last Name</FormLabel>
@@ -267,7 +280,7 @@ export default function AddResidentModal() {
                   <div className="col-span-2">
                     <FormField
                       control={form.control}
-                      name="suffix"
+                      name="Suffix"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Suffix</FormLabel>
@@ -296,7 +309,7 @@ export default function AddResidentModal() {
                   <div className="col-span-2">
                     <FormField
                       control={form.control}
-                      name="civil_status"
+                      name="CivilStatus"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Civil Status</FormLabel>
@@ -325,7 +338,7 @@ export default function AddResidentModal() {
                   <div className="col-span-2">
                     <FormField
                       control={form.control}
-                      name="gender"
+                      name="Gender"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Gender</FormLabel>
@@ -354,7 +367,7 @@ export default function AddResidentModal() {
                   <div className="col-span-2">
                     <FormField
                       control={form.control}
-                      name="nationality"
+                      name="Nationality"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Nationality</FormLabel>
@@ -376,7 +389,7 @@ export default function AddResidentModal() {
                   <div className="col-span-2">
                     <FormField
                       control={form.control}
-                      name="mobile_number"
+                      name="MobileNumber"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Mobile Number</FormLabel>
@@ -398,7 +411,7 @@ export default function AddResidentModal() {
                   <div className="col-span-2">
                     <FormField
                       control={form.control}
-                      name="date_of_birth"
+                      name="Birthday"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Date of Birth</FormLabel>
@@ -436,7 +449,7 @@ export default function AddResidentModal() {
                   <div className="col-span-2">
                     <FormField
                       control={form.control}
-                      name="status"
+                      name="Status"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Status</FormLabel>
@@ -464,7 +477,7 @@ export default function AddResidentModal() {
                   <div className="col-span-2">
                     <FormField
                       control={form.control}
-                      name="educAttainment"
+                      name="EducationalAttainment"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Educational Attainment</FormLabel>
@@ -492,7 +505,7 @@ export default function AddResidentModal() {
                   <div className="col-span-2">
                     <FormField
                       control={form.control}
-                      name="religion"
+                      name="Religion"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Religion</FormLabel>
@@ -513,7 +526,7 @@ export default function AddResidentModal() {
                   <div className="col-span-2">
                     <FormField
                       control={form.control}
-                      name="occupation"
+                      name="Occupation"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Occupation</FormLabel>
@@ -534,7 +547,7 @@ export default function AddResidentModal() {
                   <div className="col-span-2">
                     <FormField
                       control={form.control}
-                      name="income"
+                      name="AvgIncome"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Estimated Income</FormLabel>
@@ -553,10 +566,10 @@ export default function AddResidentModal() {
                     />
                   </div>
                 </div>
-                <div className="col-span-4 grid grid-cols-3 gap-4 mt-4">
+                <div className="col-span-4 grid grid-cols-4 gap-1 mt-4">
                   <FormField
                     control={form.control}
-                    name="is_registered_voter"
+                    name="IsVoter"
                     render={({ field }) => (
                       <FormItem className="flex items-center space-x-2">
                         <FormControl>
@@ -567,13 +580,15 @@ export default function AddResidentModal() {
                             className="mr-2"
                           />
                         </FormControl>
-                        <FormLabel className="text-black">Registered Voter</FormLabel>
+                        <FormLabel className="text-black">
+                          Voter
+                        </FormLabel>
                       </FormItem>
                     )}
                   />
                   <FormField
                     control={form.control}
-                    name="is_pwd"
+                    name="IsPWD"
                     render={({ field }) => (
                       <FormItem className="flex items-center space-x-2">
                         <FormControl>
@@ -590,7 +605,7 @@ export default function AddResidentModal() {
                   />
                   <FormField
                     control={form.control}
-                    name="is_senior"
+                    name="IsSenior"
                     render={({ field }) => (
                       <FormItem className="flex items-center space-x-2">
                         <FormControl>
@@ -601,7 +616,28 @@ export default function AddResidentModal() {
                             className="mr-2"
                           />
                         </FormControl>
-                        <FormLabel className="text-black">Senior Citizen</FormLabel>
+                        <FormLabel className="text-black">
+                          Senior
+                        </FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="IsSolo"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-2">
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            checked={field.value}
+                            onChange={field.onChange}
+                            className="mr-2"
+                          />
+                        </FormControl>
+                        <FormLabel className="text-black">
+                          Solo Parent
+                        </FormLabel>
                       </FormItem>
                     )}
                   />
@@ -624,7 +660,7 @@ export default function AddResidentModal() {
                   <div className="col-span-2">
                     <FormField
                       control={form.control}
-                      name="town_of_birth"
+                      name="Birthplace"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Birthplace</FormLabel>
@@ -650,20 +686,32 @@ export default function AddResidentModal() {
                   <div className="col-span-2">
                     <FormField
                       control={form.control}
-                      name="zone"
+                      name="Zone"
                       render={({ field }) => (
                         <FormItem className="w-full">
-                          <FormLabel htmlFor="zone" className="text-black font-bold text-xs">Zone</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormLabel
+                            htmlFor="zone"
+                            className="text-black font-bold text-xs"
+                          >
+                            Zone
+                          </FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            // defaultValue={field.value}
+                          >
                             <FormControl>
                               <SelectTrigger className="w-full text-black border-black/15">
                                 <SelectValue placeholder="Select zone" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {["1", "2", "3", "4", "5", "6", "7"].map((option, i) => (
-                                <SelectItem value={option} key={i}>{option}</SelectItem>
-                              ))}
+                              {["1", "2", "3", "4", "5", "6", "7", "8"].map(
+                                (option, i) => (
+                                  <SelectItem value={option} key={i}>
+                                    {option}
+                                  </SelectItem>
+                                )
+                              )}
                             </SelectContent>
                           </Select>
                         </FormItem>
@@ -673,7 +721,7 @@ export default function AddResidentModal() {
                   <div className="col-span-2">
                     <FormField
                       control={form.control}
-                      name="barangay"
+                      name="Barangay"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Barangay</FormLabel>
@@ -694,7 +742,7 @@ export default function AddResidentModal() {
                   <div className="col-span-2">
                     <FormField
                       control={form.control}
-                      name="town"
+                      name="Town"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>City/Town</FormLabel>
@@ -715,7 +763,7 @@ export default function AddResidentModal() {
                   <div className="col-span-2">
                     <FormField
                       control={form.control}
-                      name="province"
+                      name="Province"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Province</FormLabel>
