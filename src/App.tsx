@@ -4,7 +4,6 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import AppLayout from "./components/ui/applayout";
 import Dashboard from "./pages/Dashboard";
-import LoginPage from "./pages/login";
 import Event from "./pages/Event";
 import Residents from "./pages/Residents";
 import Households from "./pages/Households";
@@ -17,7 +16,8 @@ import Settings from "./pages/Settings";
 import { Toaster } from "./components/ui/sonner";
 import IssueCertificate from "./pages/IssueCertificate";
 import Map from "./pages/Map";
-import Logbook from "./pages/logbook";
+import LoginPage from "./pages/Login";
+import LogbookPage from "./pages/Logbook";
 
 function App() {
   const queryClient: QueryClient = new QueryClient({
@@ -34,7 +34,7 @@ function App() {
         <Routes>
           <Route element={<AppLayout />}>
             <Route path="dashboard" element={<Dashboard />} />
-            <Route path="logbook" element={<Logbook />} />
+            <Route path="logbook" element={<LogbookPage />} />
             <Route path="event" element={<Event />} />
             <Route path="residents" element={<Residents />} />
             <Route path="households" element={<Households />} />

@@ -144,7 +144,7 @@ export default function OfficialsPage() {
           .then((result) => {
             if (result) setLogo(result as string);
           })
-          .catch(() => {});
+          .catch(() => { });
       }
     }, [person.image]);
 
