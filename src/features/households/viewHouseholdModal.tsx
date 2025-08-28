@@ -38,7 +38,7 @@ export default function ViewHouseholdModal({ household, open, onClose }: { house
                     <p className="text-sm">{`Overall Income: ${Math.trunc(overallIncome).toLocaleString("en-US")}`}</p>
                   </div>
                   <Table className="w-full">
-                    <TableCaption >{`Household details for Househol Number ${household.household_number}. Roles are displayed relative to their relationship with the household head`}</TableCaption>
+                    <TableCaption >{`Household details for Household Number ${household.household_number}. Roles are displayed relative to their relationship with the household head`}</TableCaption>
                     <TableHeader>
                       <TableRow >
                         <TableHead className="text-black" >

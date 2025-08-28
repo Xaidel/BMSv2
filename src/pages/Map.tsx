@@ -6,15 +6,41 @@ import Building from "@/assets/geojson/Building.json"
 import { GeoJSON, MapContainer, TileLayer } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 import 'leaflet/dist/leaflet.css';
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import type { Feature } from "geojson"
 import AddMappingModal from "@/features/map/AddMappingModal"
+import useMapping from "@/features/api/map/useMapping"
+import { Mapping } from "@/service/api/map/getMapping"
 
 const center: LatLngExpression = [13.579126, 123.063078];
 
 export default function Map() {
   const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const { data: mappings } = useMapping()
+
+  const building = useMemo(() => {
+    if (!mappings) return Building
+    return {
+      ...Building,
+      features: Building.features.map((feature: any) => {
+        const fid = Number(feature.properties?.id) // normalize to number
+        const mapping = mappings.mappings.find((m: Mapping) => m.FID === fid)
+        return {
+          ...feature,
+          properties: {
+            ...feature.properties,
+            ...(mapping ? {
+              type: mapping.Type,
+              mapping_name: mapping.HouseholdID ? `Household Number: ${mapping.Household?.HouseholdNumber}` : mapping.MappingName,
+              household_id: mapping.HouseholdID,
+              mapping_id: mapping.ID,
+            } : {})
+          }
+        }
+      })
+    }
+  }, [mappings])
 
   const roadStyle: L.PathOptions = {
     color: "#333446",
@@ -33,6 +59,14 @@ export default function Map() {
   }
 
   const infraStyle: L.PathOptions = {
+    color: "gray",
+    weight: 1,
+    fillColor: "gray",
+    fillOpacity: 0.1,
+    interactive: true
+  }
+
+  const updatedStyle: L.PathOptions = {
     color: "green",
     weight: 1,
     fillColor: "green",
@@ -63,26 +97,35 @@ export default function Map() {
       })
     })
   }
-
   const onEachInfra = (infra, layer) => {
-    const id = infra.properties?.id
-    const popupContent = String(id ?? 'No ID available')
+    const display = infra.properties?.mapping_name
+    const popupContent = String(display ?? "Not Assigned yet.")
 
     layer.bindPopup(popupContent)
     layer.on("mouseover", () => {
       layer.openPopup()
+      layer.setStyle({
+        color: "orange",
+        fillColor: "#F59E0B"
+      })
     })
 
-    layer.on("mouseout", (e) => {
-      const map = e.target._map;
-      map.closePopup();
+    layer.on("mouseout", () => {
+      layer.closePopup()
+      if (infra.properties?.type === "establishment") {
+        layer.setStyle({
+          color: "blue",
+          fillColor: "blue"
+        })
+      } else {
+        layer.setStyle(/Household Number:\s*\d+/.test(display) ? updatedStyle : infraStyle)
+      }
     })
 
-    layer.on("click", () => {
+    layer.on("click", (e) => {
       setSelectedFeature(infra)
       setDialogOpen(true)
     })
-
   }
 
   return (
@@ -114,8 +157,17 @@ export default function Map() {
           onEachFeature={onEachRoad}
         />
         <GeoJSON
-          data={Building.features as any}
-          style={infraStyle}
+          key={JSON.stringify(building)}
+          data={building as any}
+          style={(feature: any) => {
+            if (/Household Number:\s*\d+/.test(feature.properties?.mapping_name)) {
+              return updatedStyle
+            }
+            if (feature.properties?.type === "establishment") {
+              return { color: "blue", fillColor: "blue" }
+            }
+            return infraStyle
+          }}
           onEachFeature={onEachInfra}
         />
       </MapContainer>
