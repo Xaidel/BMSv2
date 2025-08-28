@@ -35,6 +35,8 @@ export type Resident = {
   Birthday: Date
   IsVoter: boolean
   IsPWD: boolean
+  IsSolo: boolean
+  IsSenior: boolean
   Image: File | null
   AvgIncome: number
   MobileNumber: string
