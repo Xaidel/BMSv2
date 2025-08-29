@@ -84,10 +84,10 @@ export default function AddResidentModal() {
       Lastname: "",
       Suffix: "",
       CivilStatus: "",
-      Status: "",
+      Status: "Active",
       Gender: "",
       MobileNumber: "",
-      Birthday: undefined,
+      Birthday: new Date(),
       Birthplace: "",
       Nationality: "",
       Zone: 0,
@@ -135,7 +135,7 @@ export default function AddResidentModal() {
         AvgIncome: values.AvgIncome,
         MobileNumber: values.MobileNumber,
         IsSolo: false,
-        IsSenior: false
+        IsSenior: false,
       }),
       {
         loading: "Adding Resident please wait...",
@@ -181,7 +181,7 @@ export default function AddResidentModal() {
                   Personal Information
                 </h2>
                 <div className="grid grid-cols-4 gap-4">
-                  <div className="col-span-2">
+                  <div className="col-span-4">
                     <FormField
                       control={form.control}
                       name="Image"
@@ -202,7 +202,7 @@ export default function AddResidentModal() {
                                     reader.readAsDataURL(file);
                                   }
                                 }}
-                                className="mt-2 "
+                                className="mt-2 bg-gray-400 text-white file:bg-gray-400 file:text-white file:border-0 file:rounded-md file:px-3 file:py-1"
                               />
                             </>
                           </FormControl>
@@ -407,7 +407,27 @@ export default function AddResidentModal() {
                       )}
                     />
                   </div>
-
+                  <div className="col-span-2">
+                    <FormField
+                      control={form.control}
+                      name="Religion"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Religion</FormLabel>
+                          <FormControl>
+                            <Input
+                              id="religion"
+                              type="text"
+                              placeholder="Enter Religion"
+                              required
+                              {...field}
+                              className="text-black"
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                   <div className="col-span-2">
                     <FormField
                       control={form.control}
@@ -449,34 +469,6 @@ export default function AddResidentModal() {
                   <div className="col-span-2">
                     <FormField
                       control={form.control}
-                      name="Status"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Status</FormLabel>
-                          <FormControl>
-                            <Select
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select Status" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {statusOption.map((option) => (
-                                  <SelectItem key={option} value={option}>
-                                    {option}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="col-span-2">
-                    <FormField
-                      control={form.control}
                       name="EducationalAttainment"
                       render={({ field }) => (
                         <FormItem>
@@ -505,61 +497,26 @@ export default function AddResidentModal() {
                   <div className="col-span-2">
                     <FormField
                       control={form.control}
-                      name="Religion"
+                      name="Status"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Religion</FormLabel>
+                          <FormLabel>Status</FormLabel>
                           <FormControl>
-                            <Input
-                              id="religion"
-                              type="text"
-                              placeholder="Enter Religion"
-                              required
-                              {...field}
-                              className="text-black"
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="col-span-2">
-                    <FormField
-                      control={form.control}
-                      name="Occupation"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Occupation</FormLabel>
-                          <FormControl>
-                            <Input
-                              id="occupation"
-                              type="text"
-                              placeholder="Enter Occupation"
-                              required
-                              {...field}
-                              className="text-black"
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="col-span-2">
-                    <FormField
-                      control={form.control}
-                      name="AvgIncome"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Estimated Income</FormLabel>
-                          <FormControl>
-                            <Input
-                              id="income"
-                              type="number"
-                              placeholder="Enter Estimated Income"
-                              required
-                              {...field}
-                              className="text-black"
-                            />
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select Status" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {statusOption.map((option) => (
+                                  <SelectItem key={option} value={option}>
+                                    {option}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </FormControl>
                         </FormItem>
                       )}
@@ -580,9 +537,7 @@ export default function AddResidentModal() {
                             className="mr-2"
                           />
                         </FormControl>
-                        <FormLabel className="text-black">
-                          Voter
-                        </FormLabel>
+                        <FormLabel className="text-black">Voter</FormLabel>
                       </FormItem>
                     )}
                   />
@@ -616,9 +571,7 @@ export default function AddResidentModal() {
                             className="mr-2"
                           />
                         </FormControl>
-                        <FormLabel className="text-black">
-                          Senior
-                        </FormLabel>
+                        <FormLabel className="text-black">Senior</FormLabel>
                       </FormItem>
                     )}
                   />
@@ -727,7 +680,7 @@ export default function AddResidentModal() {
                           <FormLabel>Barangay</FormLabel>
                           <FormControl>
                             <Input
-                              id="barangay"
+                              id="Barangay"
                               type="text"
                               placeholder="Enter present barangay"
                               required
@@ -748,7 +701,7 @@ export default function AddResidentModal() {
                           <FormLabel>City/Town</FormLabel>
                           <FormControl>
                             <Input
-                              id="town"
+                              id="Town"
                               type="text"
                               placeholder="Enter present town"
                               required
@@ -769,9 +722,56 @@ export default function AddResidentModal() {
                           <FormLabel>Province</FormLabel>
                           <FormControl>
                             <Input
-                              id="province"
+                              id="Province"
                               type="text"
                               placeholder="Enter present province"
+                              required
+                              {...field}
+                              className="text-black"
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+                <h2 className="text-md font-semibold text-gray-900 mt-2">
+                  Employment Information
+                </h2>
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="col-span-2">
+                    <FormField
+                      control={form.control}
+                      name="Occupation"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Occupation</FormLabel>
+                          <FormControl>
+                            <Input
+                              id="Occupation"
+                              type="text"
+                              placeholder="Enter Occupation"
+                              required
+                              {...field}
+                              className="text-black"
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <FormField
+                      control={form.control}
+                      name="AvgIncome"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Estimated Income</FormLabel>
+                          <FormControl>
+                            <Input
+                              id="AvgIncome"
+                              type="number"
+                              placeholder="Enter Estimated Income"
                               required
                               {...field}
                               className="text-black"

@@ -2,6 +2,7 @@ import { api } from "@/service/api";
 import { User } from "@/types/apitypes";
 
 export interface ErrorResponse {
+  message: string;
   error: string
 }
 export interface LoginResponse {

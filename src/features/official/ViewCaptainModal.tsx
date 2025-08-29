@@ -1,14 +1,15 @@
+import { Button } from "@/components/ui/button"
 import { useResident } from "../api/resident/useResident"
 import { useMemo, useState } from "react"
 import { getAge } from "@/lib/utils"
-import useOfficial from "../api/official/useOfficial"
+
 
 interface SelectedResident {
-  id: string
-  name: string
-  role: string
-  age: number
-  zone: number
+  ID: string
+  Name: string
+  Role: string
+  Age: number
+  Zone: number
 }
 export default function ViewCaptainModal() {
   const { data: residentsData } = useResident()
@@ -22,18 +23,32 @@ export default function ViewCaptainModal() {
         : ""
 
       return {
-        id: r.ID.toString(),
-        name: `${r.Firstname}${middleInitial} ${r.Lastname}`.trim(),
-        role: "",
-        age: getAge(r.Birthday.toString()),
-        zone: r.Zone
+        ID: r.ID.toString(),
+        Name: `${r.Firstname}${middleInitial} ${r.Lastname}`.trim(),
+        Role: "",
+        Age: getAge(r.Birthday.toString()),
+        Zone: r.Zone
       }
     })
   }, [residentsData])
+  // Simulate saving selected residents
+  const handleSave = () => {
+    console.log(selectedResident)
+    // TODO: Replace with API call to save selectedResident
+  }
   return (
     <>
       <div>
-
+        {/* Example form, can be extended as needed */}
+        <form
+          onSubmit={e => {
+            e.preventDefault()
+            handleSave()
+          }}
+        >
+          {/* You can add inputs here to select residents, etc. */}
+          <Button type="submit">Save</Button>
+        </form>
       </div>
     </>
   )

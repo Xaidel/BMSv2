@@ -6,7 +6,17 @@ import Searchbar from "@/components/ui/searchbar";
 import AddResidentModal from "@/features/residents/addResidentModal";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { Trash, Users, UserCheck, UserMinus, Mars, Venus, User, Fingerprint, Eye } from "lucide-react";
+import {
+  Trash,
+  Users,
+  UserCheck,
+  UserMinus,
+  Mars,
+  Venus,
+  User,
+  Eye,
+  Accessibility,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { sort } from "@/service/resident/residentSort";
@@ -19,16 +29,26 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import ViewResidentModal from "@/features/residents/viewResidentModal";
 import { Resident } from "@/types/apitypes";
+import { ResidentPDF } from "@/components/pdf/residentpdf";
+import { pdf } from "@react-pdf/renderer";
+import { writeFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 
-const filters = ["All Residents", "Alphabetical", "Moved Out", "Active", "Dead", "Missing"];
+const filters = [
+  "All Residents",
+  "Alphabetical",
+  "Moved Out",
+  "Active",
+  "Dead",
+  "Missing",
+];
 
 const columns: ColumnDef<Resident>[] = [
   {
     header: "Full Name",
     cell: ({ row }) => {
       const r = row.original;
-      const middleName = r.Middlename ? r.Middlename : ""
-      const fullName = `${r.Lastname} ${r.Firstname} ${middleName}`
+      const middleName = r.Middlename ? r.Middlename : "";
+      const fullName = `${r.Lastname}, ${r.Firstname} ${middleName}`;
       return <div>{fullName}</div>;
     },
   },
@@ -55,12 +75,13 @@ const columns: ColumnDef<Resident>[] = [
     accessorKey: "status",
     cell: ({ row }) => {
       const status = row.original.Status;
-      let color = {
-        "Moved Out": "#BD0000",
-        "Active": "#00BD29",
-        "Dead": "#000000",
-        "Missing": "#FFB30F"
-      }[status] || "#000000";
+      let color =
+        {
+          "Moved Out": "#BD0000",
+          Active: "#00BD29",
+          Dead: "#000000",
+          Missing: "#FFB30F",
+        }[status] || "#000000";
       return <div style={{ color }}>{status}</div>;
     },
   },
@@ -70,19 +91,18 @@ export default function Residents() {
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedResidents, setSelectedResidents] = useState<number[]>([])
-  const deleteMutation = useDeleteResident()
-  const { data: residents } = useResident()
-  const queryClient = useQueryClient()
-  const [viewResidentId, setViewResidentId] = useState<number | null>(null)
+  const [selectedResidents, setSelectedResidents] = useState<number[]>([]);
+  const deleteMutation = useDeleteResident();
+  const { data: residents } = useResident();
+  const queryClient = useQueryClient();
+  const [viewResidentId, setViewResidentId] = useState<number | null>(null);
   const handleSortChange = (sortValue: string) => {
     searchParams.set("sort", sortValue);
     setSearchParams(searchParams);
   };
 
-
   const filteredData = useMemo(() => {
-    if (!residents) return []
+    if (!residents) return [];
     const sortValue = searchParams.get("sort") ?? "All Residents";
     let sorted = sort(residents.residents, sortValue);
 
@@ -94,64 +114,15 @@ export default function Residents() {
     return sorted;
   }, [searchParams, searchQuery, residents]);
 
-  /* const fetchResidents = () => {
-     invoke<Resident[]>("fetch_all_residents_command")
-       .then((fetched) => {
-         setData(fetched);
-       })
-       .catch((err) => console.error("Failed to fetch residents:", err));
-   };
- 
-   useEffect(() => {
-     fetchResidents();
-   }, []); */
-
-  /*const handleDeleteSelected = async () => {
-    const selectedIds = Object.keys(rowSelection)
-      .map((key) => filteredData[parseInt(key)])
-      .filter((row) => !!row)
-      .map((row) => row.id);
-
-    if (selectedIds.length === 0) {
-      toast.error("No residents selected.");
-      return;
-    }
-
-    try {
-      for (const id of selectedIds) {
-        if (id !== undefined) {
-          await invoke("delete_resident_command", { id });
-        }
-      }
-      toast.success("Selected residents deleted.");
-      fetchResidents(); // Refresh the table
-      setRowSelection({}); // Reset selection
-    } catch (err) {
-      toast.error("Failed to delete selected residents");
-      console.error("Delete error:", err);
-    }
-  }; */
-
-  const res = residents?.residents || []
+  const res = residents?.residents || [];
   const total = res.length;
   const active = res.filter((r) => r.Status === "Active").length;
   const movedOut = res.filter((r) => r.Status === "Moved Out").length;
   const male = res.filter((r) => r.Gender === "Male").length;
   const female = res.filter((r) => r.Gender === "Female").length;
-  const today = new Date()
-  const senior = res.filter((r) => {
-    const birthDate = new Date(r.Birthday);
-    const age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-
-    const realAge = m < 0 || (m === 0 && today.getDate() < birthDate.getDate())
-      ? age - 1
-      : age;
-
-    return realAge >= 60; // for example, senior = 60+
-  }).length;
-  const registered = res.filter((r) => r.IsVoter).length;
+  const senior = res.filter((r) => r.IsSenior).length;
   const SoloParent = res.filter((r) => r.IsSolo).length;
+  const IsPWD = res.filter((r) => r.IsPWD).length;
 
   return (
     <>
@@ -161,21 +132,21 @@ export default function Residents() {
           value={total}
           icon={<Users size={50} />}
           onClick={async () => {
-            const { pdf } = await import("@react-pdf/renderer");
-            const { writeFile, BaseDirectory } = await import("@tauri-apps/plugin-fs");
-            const { toast } = await import("sonner");
-            const { ResidentPDF } = await import("@/components/pdf/residentpdf");
-
             const casted: Resident[] = res.map((r) => ({
               ...r,
-              Birthday: typeof r.Birthday === "string" ? new Date(r.Birthday) : r.Birthday,
+              Birthday:
+                typeof r.Birthday === "string"
+                  ? new Date(r.Birthday)
+                  : r.Birthday,
             })) as Resident[];
 
-            const blob = await pdf(<ResidentPDF filter="All Residents" residents={casted} />).toBlob();
+            const blob = await pdf(
+              <ResidentPDF filter="All Residents" residents={casted} />
+            ).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
             try {
-              await writeFile("ResidentRecords.pdf", contents, {
+              writeFile("ResidentRecords.pdf", contents, {
                 baseDir: BaseDirectory.Document,
               });
               toast.success("Resident Record successfully downloaded", {
@@ -188,253 +159,287 @@ export default function Residents() {
             }
           }}
         />
-        <SummaryCardResidents title="Male" value={male} icon={<Mars size={50} />} onClick={async () => {
-          const { pdf } = await import("@react-pdf/renderer");
-          const { writeFile, BaseDirectory } = await import("@tauri-apps/plugin-fs");
-          const { toast } = await import("sonner");
-          const { ResidentPDF } = await import("@/components/pdf/residentpdf");
+        <SummaryCardResidents
+          title="Male"
+          value={male}
+          icon={<Mars size={50} />}
+          onClick={async () => {
+            const filtered = res.filter((r) => r.Gender === "Male");
+            const casted: Resident[] = filtered.map((r) => ({
+              ...r,
+              Birthday:
+                typeof r.Birthday === "string"
+                  ? new Date(r.Birthday)
+                  : r.Birthday,
+            }));
 
-          const filtered = res.filter((r) => r.Gender === "Male");
-          const casted: Resident[] = filtered.map((r) => ({
-            ...r,
-            Birthday: typeof r.Birthday === "string" ? new Date(r.Birthday) : r.Birthday,
-          }));
+            const blob = await pdf(
+              <ResidentPDF filter="Male Residents" residents={casted} />
+            ).toBlob();
+            const buffer = await blob.arrayBuffer();
+            const contents = new Uint8Array(buffer);
+            try {
+              await writeFile("MaleResidents.pdf", contents, {
+                baseDir: BaseDirectory.Document,
+              });
+              toast.success("Male Resident PDF downloaded", {
+                description: "Saved in Documents folder",
+              });
+            } catch (e) {
+              toast.error("Error", {
+                description: "Failed to save Male Resident PDF",
+              });
+            }
+          }}
+        />
+        <SummaryCardResidents
+          title="Female"
+          value={female}
+          icon={<Venus size={50} />}
+          onClick={async () => {
+            const filtered = res.filter((r) => r.Gender === "Female");
+            const casted: Resident[] = filtered.map((r) => ({
+              ...r,
+              Birthday:
+                typeof r.Birthday === "string"
+                  ? new Date(r.Birthday)
+                  : r.Birthday,
+            }));
 
-          const blob = await pdf(<ResidentPDF filter="Male Residents" residents={casted} />).toBlob();
-          const buffer = await blob.arrayBuffer();
-          const contents = new Uint8Array(buffer);
-          try {
-            await writeFile("MaleResidents.pdf", contents, {
-              baseDir: BaseDirectory.Document,
-            });
-            toast.success("Male Resident PDF downloaded", {
-              description: "Saved in Documents folder",
-            });
-          } catch (e) {
-            toast.error("Error", {
-              description: "Failed to save Male Resident PDF",
-            });
-          }
-        }} />
-        <SummaryCardResidents title="Female" value={female} icon={<Venus size={50} />} onClick={async () => {
-          const { pdf } = await import("@react-pdf/renderer");
-          const { writeFile, BaseDirectory } = await import("@tauri-apps/plugin-fs");
-          const { toast } = await import("sonner");
-          const { ResidentPDF } = await import("@/components/pdf/residentpdf");
+            const blob = await pdf(
+              <ResidentPDF filter="Female Residents" residents={casted} />
+            ).toBlob();
+            const buffer = await blob.arrayBuffer();
+            const contents = new Uint8Array(buffer);
+            try {
+              await writeFile("FemaleResidents.pdf", contents, {
+                baseDir: BaseDirectory.Document,
+              });
+              toast.success("Female Resident PDF downloaded", {
+                description: "Saved in Documents folder",
+              });
+            } catch (e) {
+              toast.error("Error", {
+                description: "Failed to save Female Resident PDF",
+              });
+            }
+          }}
+        />
+        <SummaryCardResidents
+          title="Senior"
+          value={senior}
+          icon={<User size={50} />}
+          onClick={async () => {
+            const filtered = res.filter((r) => r.IsSenior);
+            const casted: Resident[] = filtered.map((r) => ({
+              ...r,
+              Birthday:
+                typeof r.Birthday === "string"
+                  ? new Date(r.Birthday)
+                  : r.Birthday,
+            }));
 
-          const filtered = res.filter((r) => r.Gender === "Female");
-          const casted: Resident[] = filtered.map((r) => ({
-            ...r,
-            Birthday: typeof r.Birthday === "string" ? new Date(r.Birthday) : r.Birthday,
-          }));
+            const blob = await pdf(
+              <ResidentPDF filter="Senior Residents" residents={casted} />
+            ).toBlob();
+            const buffer = await blob.arrayBuffer();
+            const contents = new Uint8Array(buffer);
+            try {
+              await writeFile("SeniorResidents.pdf", contents, {
+                baseDir: BaseDirectory.Document,
+              });
+              toast.success("Senior Resident PDF downloaded", {
+                description: "Saved in Documents folder",
+              });
+            } catch (e) {
+              toast.error("Error", {
+                description: "Failed to save Senior Resident PDF",
+              });
+            }
+          }}
+        />
+        <SummaryCardResidents
+          title="PWD"
+          value={IsPWD}
+          icon={<Accessibility size={50} />}
+          onClick={async () => {
+            const filtered = res.filter((r) => r.IsVoter === true);
+            const casted: Resident[] = filtered.map((r) => ({
+              ...r,
+              Birthday:
+                typeof r.Birthday === "string"
+                  ? new Date(r.Birthday)
+                  : r.Birthday,
+            }));
 
-          const blob = await pdf(<ResidentPDF filter="Female Residents" residents={casted} />).toBlob();
-          const buffer = await blob.arrayBuffer();
-          const contents = new Uint8Array(buffer);
-          try {
-            await writeFile("FemaleResidents.pdf", contents, {
-              baseDir: BaseDirectory.Document,
-            });
-            toast.success("Female Resident PDF downloaded", {
-              description: "Saved in Documents folder",
-            });
-          } catch (e) {
-            toast.error("Error", {
-              description: "Failed to save Female Resident PDF",
-            });
-          }
-        }} />
-        <SummaryCardResidents title="Senior" value={senior} icon={<User size={50} />} onClick={async () => {
-          const { pdf } = await import("@react-pdf/renderer");
-          const { writeFile, BaseDirectory } = await import("@tauri-apps/plugin-fs");
-          const { toast } = await import("sonner");
-          const { ResidentPDF } = await import("@/components/pdf/residentpdf");
+            const blob = await pdf(
+              <ResidentPDF filter="PWD" residents={casted} />
+            ).toBlob();
+            const buffer = await blob.arrayBuffer();
+            const contents = new Uint8Array(buffer);
+            try {
+              await writeFile("PWDs.pdf", contents, {
+                baseDir: BaseDirectory.Document,
+              });
+              toast.success("PWDs PDF downloaded", {
+                description: "Saved in Documents folder",
+              });
+            } catch (e) {
+              toast.error("Error", {
+                description: "Failed to save PWD PDF",
+              });
+            }
+          }}
+        />
+        <SummaryCardResidents
+          title="Solo Parent"
+          value={SoloParent}
+          icon={<User size={50} />}
+          onClick={async () => {
+            const filtered = res.filter((r) => r.IsVoter === true);
+            const casted: Resident[] = filtered.map((r) => ({
+              ...r,
+              Birthday:
+                typeof r.Birthday === "string"
+                  ? new Date(r.Birthday)
+                  : r.Birthday,
+            }));
 
-          // Senior residents: age >= 60
-          const today = new Date();
-          const filtered = res.filter((r) => {
-            const birthDate = new Date(r.Birthday);
-            const age = today.getFullYear() - birthDate.getFullYear();
-            const m = today.getMonth() - birthDate.getMonth();
-            const realAge = m < 0 || (m === 0 && today.getDate() < birthDate.getDate())
-              ? age - 1
-              : age;
-            return realAge >= 60;
-          });
-          const casted: Resident[] = filtered.map((r) => ({
-            ...r,
-            Birthday: typeof r.Birthday === "string" ? new Date(r.Birthday) : r.Birthday,
-          }));
+            const blob = await pdf(
+              <ResidentPDF filter="Solo Parents" residents={casted} />
+            ).toBlob();
+            const buffer = await blob.arrayBuffer();
+            const contents = new Uint8Array(buffer);
+            try {
+              await writeFile("SoloParents.pdf", contents, {
+                baseDir: BaseDirectory.Document,
+              });
+              toast.success("Solo Parents PDF downloaded", {
+                description: "Saved in Documents folder",
+              });
+            } catch (e) {
+              toast.error("Error", {
+                description: "Failed to save Solo Parents PDF",
+              });
+            }
+          }}
+        />
+        <SummaryCardResidents
+          title="Active"
+          value={active}
+          icon={<UserCheck size={50} />}
+          onClick={async () => {
+            const filtered = res.filter((r) => r.Status === "Active");
+            const casted: Resident[] = filtered.map((r) => ({
+              ...r,
+              Birthday:
+                typeof r.Birthday === "string"
+                  ? new Date(r.Birthday)
+                  : r.Birthday,
+            }));
 
-          const blob = await pdf(<ResidentPDF filter="Senior Residents" residents={casted} />).toBlob();
-          const buffer = await blob.arrayBuffer();
-          const contents = new Uint8Array(buffer);
-          try {
-            await writeFile("SeniorResidents.pdf", contents, {
-              baseDir: BaseDirectory.Document,
-            });
-            toast.success("Senior Resident PDF downloaded", {
-              description: "Saved in Documents folder",
-            });
-          } catch (e) {
-            toast.error("Error", {
-              description: "Failed to save Senior Resident PDF",
-            });
-          }
-        }} />
-        <SummaryCardResidents title="Registered Voters" value={registered} icon={<Fingerprint size={50} />} onClick={async () => {
-          const { pdf } = await import("@react-pdf/renderer");
-          const { writeFile, BaseDirectory } = await import("@tauri-apps/plugin-fs");
-          const { toast } = await import("sonner");
-          const { ResidentPDF } = await import("@/components/pdf/residentpdf");
+            const blob = await pdf(
+              <ResidentPDF filter="Active Residents" residents={casted} />
+            ).toBlob();
+            const buffer = await blob.arrayBuffer();
+            const contents = new Uint8Array(buffer);
+            try {
+              await writeFile("ActiveResidents.pdf", contents, {
+                baseDir: BaseDirectory.Document,
+              });
+              toast.success("Active Resident PDF downloaded", {
+                description: "Saved in Documents folder",
+              });
+            } catch (e) {
+              toast.error("Error", {
+                description: "Failed to save Active Resident PDF",
+              });
+            }
+          }}
+        />
+        <SummaryCardResidents
+          title="Moved Out"
+          value={movedOut}
+          icon={<UserMinus size={50} />}
+          onClick={async () => {
+            const filtered = res.filter((r) => r.Status === "Moved Out");
+            const casted: Resident[] = filtered.map((r) => ({
+              ...r,
+              Birthday:
+                typeof r.Birthday === "string"
+                  ? new Date(r.Birthday)
+                  : r.Birthday,
+            }));
 
-          const filtered = res.filter((r) => r.IsVoter === true);
-          const casted: Resident[] = filtered.map((r) => ({
-            ...r,
-            Birthday: typeof r.Birthday === "string" ? new Date(r.Birthday) : r.Birthday,
-          }));
-
-          const blob = await pdf(<ResidentPDF filter="Registered Voters" residents={casted} />).toBlob();
-          const buffer = await blob.arrayBuffer();
-          const contents = new Uint8Array(buffer);
-          try {
-            await writeFile("RegisteredVoters.pdf", contents, {
-              baseDir: BaseDirectory.Document,
-            });
-            toast.success("Registered Voters PDF downloaded", {
-              description: "Saved in Documents folder",
-            });
-          } catch (e) {
-            toast.error("Error", {
-              description: "Failed to save Registered Voters PDF",
-            });
-          }
-        }} />
-        <SummaryCardResidents title="Solo Parent" value={SoloParent} icon={<User size={50} />} onClick={async () => {
-          const { pdf } = await import("@react-pdf/renderer");
-          const { writeFile, BaseDirectory } = await import("@tauri-apps/plugin-fs");
-          const { toast } = await import("sonner");
-          const { ResidentPDF } = await import("@/components/pdf/residentpdf");
-
-          const filtered = res.filter((r) => r.IsVoter === true);
-          const casted: Resident[] = filtered.map((r) => ({
-            ...r,
-            Birthday: typeof r.Birthday === "string" ? new Date(r.Birthday) : r.Birthday,
-          }));
-
-          const blob = await pdf(<ResidentPDF filter="Solo Parents" residents={casted} />).toBlob();
-          const buffer = await blob.arrayBuffer();
-          const contents = new Uint8Array(buffer);
-          try {
-            await writeFile("SoloParents.pdf", contents, {
-              baseDir: BaseDirectory.Document,
-            });
-            toast.success("Solo Parents PDF downloaded", {
-              description: "Saved in Documents folder",
-            });
-          } catch (e) {
-            toast.error("Error", {
-              description: "Failed to save Solo Parents PDF",
-            });
-          }
-        }} />
-        <SummaryCardResidents title="Active" value={active} icon={<UserCheck size={50} />} onClick={async () => {
-          const { pdf } = await import("@react-pdf/renderer");
-          const { writeFile, BaseDirectory } = await import("@tauri-apps/plugin-fs");
-          const { toast } = await import("sonner");
-          const { ResidentPDF } = await import("@/components/pdf/residentpdf");
-
-          const filtered = res.filter((r) => r.Status === "Active");
-          const casted: Resident[] = filtered.map((r) => ({
-            ...r,
-            Birthday: typeof r.Birthday === "string" ? new Date(r.Birthday) : r.Birthday,
-          }));
-
-          const blob = await pdf(<ResidentPDF filter="Active Residents" residents={casted} />).toBlob();
-          const buffer = await blob.arrayBuffer();
-          const contents = new Uint8Array(buffer);
-          try {
-            await writeFile("ActiveResidents.pdf", contents, {
-              baseDir: BaseDirectory.Document,
-            });
-            toast.success("Active Resident PDF downloaded", {
-              description: "Saved in Documents folder",
-            });
-          } catch (e) {
-            toast.error("Error", {
-              description: "Failed to save Active Resident PDF",
-            });
-          }
-        }} />
-        <SummaryCardResidents title="Moved Out" value={movedOut} icon={<UserMinus size={50} />} onClick={async () => {
-          const { pdf } = await import("@react-pdf/renderer");
-          const { writeFile, BaseDirectory } = await import("@tauri-apps/plugin-fs");
-          const { toast } = await import("sonner");
-          const { ResidentPDF } = await import("@/components/pdf/residentpdf");
-
-          const filtered = res.filter((r) => r.Status === "Moved Out");
-          const casted: Resident[] = filtered.map((r) => ({
-            ...r,
-            Birthday: typeof r.Birthday === "string" ? new Date(r.Birthday) : r.Birthday,
-          }));
-
-          const blob = await pdf(<ResidentPDF filter="Moved Out Residents" residents={casted} />).toBlob();
-          const buffer = await blob.arrayBuffer();
-          const contents = new Uint8Array(buffer);
-          try {
-            await writeFile("MovedOutResidents.pdf", contents, {
-              baseDir: BaseDirectory.Document,
-            });
-            toast.success("Moved Out Resident PDF downloaded", {
-              description: "Saved in Documents folder",
-            });
-          } catch (e) {
-            toast.error("Error", {
-              description: "Failed to save Moved Out Resident PDF",
-            });
-          }
-        }} />
+            const blob = await pdf(
+              <ResidentPDF filter="Moved Out Residents" residents={casted} />
+            ).toBlob();
+            const buffer = await blob.arrayBuffer();
+            const contents = new Uint8Array(buffer);
+            try {
+              await writeFile("MovedOutResidents.pdf", contents, {
+                baseDir: BaseDirectory.Document,
+              });
+              toast.success("Moved Out Resident PDF downloaded", {
+                description: "Saved in Documents folder",
+              });
+            } catch (e) {
+              toast.error("Error", {
+                description: "Failed to save Moved Out Resident PDF",
+              });
+            }
+          }}
+        />
       </div>
 
       <div className="flex gap-5 w-full items-center justify-center">
-        <Searchbar onChange={(value) => setSearchQuery(value)} placeholder="Search Resident" classname="flex flex-5" />
-        <Filter onChange={handleSortChange} filters={filters} initial="All Residents" classname="flex-1" />
-        <Button variant="destructive" size="lg" disabled={Object.keys(rowSelection).length === 0}
-
+        <Searchbar
+          onChange={(value) => setSearchQuery(value)}
+          placeholder="Search Resident"
+          classname="flex flex-5"
+        />
+        <Filter
+          onChange={handleSortChange}
+          filters={filters}
+          initial="All Residents"
+          classname="flex-1"
+        />
+        <Button
+          variant="destructive"
+          size="lg"
+          disabled={Object.keys(rowSelection).length === 0}
           onClick={() => {
             if (selectedResidents) {
-              toast.promise(
-                deleteMutation.mutateAsync(selectedResidents), {
+              toast.promise(deleteMutation.mutateAsync(selectedResidents), {
                 loading: "Deleting residents, Please wait...",
                 success: () => {
-                  queryClient.invalidateQueries({ queryKey: ["residents"] })
+                  queryClient.invalidateQueries({ queryKey: ["residents"] });
                   setRowSelection((prevSelection) => {
-                    const newSelection = { ...prevSelection }
+                    const newSelection = { ...prevSelection };
                     selectedResidents.forEach((_, i) => {
-                      delete newSelection[i]
-                    })
-                    return newSelection
-                  })
-                  setSelectedResidents([])
+                      delete newSelection[i];
+                    });
+                    return newSelection;
+                  });
+                  setSelectedResidents([]);
                   return {
-                    message: "Resident successfully deleted"
-                  }
+                    message: "Resident successfully deleted",
+                  };
                 },
                 error: (error: { error: string }) => {
                   return {
                     message: "Failed to delete residents",
-                    description: error.error
-                  }
-                }
-              }
-              )
+                    description: error.error,
+                  };
+                },
+              });
             }
           }}
         >
           <Trash /> Delete Selected
         </Button>
         <AddResidentModal />
-      </div >
+      </div>
 
       <DataTable<Resident>
         classname="py-5"
@@ -449,16 +454,18 @@ export default function Residents() {
                   table.getIsAllPageRowsSelected()
                     ? true
                     : table.getIsSomePageRowsSelected()
-                      ? "indeterminate"
-                      : false
+                    ? "indeterminate"
+                    : false
                 }
                 onCheckedChange={(value) => {
-                  table.toggleAllPageRowsSelected(!!value)
+                  table.toggleAllPageRowsSelected(!!value);
                   if (value) {
-                    const allVisibileRows = table.getRowModel().rows.map(row => row.original.ID)
-                    setSelectedResidents(allVisibileRows)
+                    const allVisibileRows = table
+                      .getRowModel()
+                      .rows.map((row) => row.original.ID);
+                    setSelectedResidents(allVisibileRows);
                   } else {
-                    setSelectedResidents([])
+                    setSelectedResidents([]);
                   }
                 }}
                 aria-label="Select all"
@@ -469,12 +476,13 @@ export default function Residents() {
               <Checkbox
                 checked={row.getIsSelected()}
                 onCheckedChange={(value) => {
-                  row.toggleSelected(!!value)
+                  row.toggleSelected(!!value);
                   if (value) {
-                    setSelectedResidents(prev => [...prev, row.original.ID])
+                    setSelectedResidents((prev) => [...prev, row.original.ID]);
                   } else {
-                    setSelectedResidents(prev =>
-                      prev.filter(res => res !== row.original.ID))
+                    setSelectedResidents((prev) =>
+                      prev.filter((res) => res !== row.original.ID)
+                    );
                   }
                 }}
                 aria-label="Select row"
@@ -504,7 +512,7 @@ export default function Residents() {
       />
       {viewResidentId !== null && (
         <ViewResidentModal
-          resident={residents.residents.find((e => e.ID === viewResidentId))}
+          resident={residents.residents.find((e) => e.ID === viewResidentId)}
           open={true}
           onClose={() => setViewResidentId(null)}
         />

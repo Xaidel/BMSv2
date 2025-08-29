@@ -16,14 +16,19 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarIcon, Plus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
-import { invoke } from "@tauri-apps/api/core";
 import { logbookSchema } from "@/types/formSchema";
 import {
   Popover,
@@ -33,60 +38,52 @@ import {
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 
-export default function AddLogbookModal({ onSave }: { onSave: () => void }) {
+import { useQueryClient } from "@tanstack/react-query";
+import { Logbook } from "@/types/apitypes";
+import { ErrorResponse } from "@/service/api/auth/login";
+import { useAddLogbook } from "../api/logbook/useAddLogbook";
+import { useOfficial } from "../api/official/useOfficial";
+
+export default function AddLogbookModal({  }: { onSave: () => void }) {
   const [openCalendar, setOpenCalendar] = useState(false);
   const [openModal, setOpenModal] = useState(false);
-  const [officials, setOfficials] = useState<{id: number, full_name: string}[]>([]);
+  const { data: officials } = useOfficial();
   const form = useForm<z.infer<typeof logbookSchema>>({
     resolver: zodResolver(logbookSchema),
     defaultValues: {
-      official_name: "",
-      date: new Date(),
-      time_in_am: "00:00",
-      time_out_am: "00:00",
-      time_in_pm: "12:00",
-      time_out_pm: "12:00",
-      remarks: "",
-      status: "Ongoing",
-      total_hours: 0
+      Name: "",
+      Date: new Date(),
+      TimeInAm: "00:00",
+      TimeOutAm: "00:00",
+      TimeInPm: "12:00",
+      TimeOutPm: "12:00",
+      Remarks: "",
+      Status: "Ongoing",
+      TotalHours: 0,
     },
   });
 
-  useEffect(() => {
-    async function fetchOfficials() {
-      try {
-        const result = await invoke("fetch_all_officials_command") as {id: number, name: string}[];
-        setOfficials(result.map(o => ({ id: o.id, full_name: o.name })));
-      } catch (err) {
-        console.error("Failed to fetch officials:", err);
-        toast.error("Failed to load officials");
-      }
-    }
-    fetchOfficials();
-  }, []);
+  const addMutation = useAddLogbook();
+  const queryClient = useQueryClient();
 
   async function onSubmit(values: z.infer<typeof logbookSchema>) {
-    try {
-      await invoke("insert_logbook_entry_command", {
-        entry: {
-          ...values,
-          date: values.date.toISOString(), // must be string for Rust
-        },
-      });
-
-      toast.success("Logbook Entry added successfully", {
-        description: `Logbook entry was added.`,
-      });
-
-      setOpenModal(false);
-      form.reset();
-      onSave(); // refresh the data in parent
-    } catch (err) {
-      console.error("Insert logbook entry failed:", err);
-      toast.error("Failed to add logbook entry");
-    }
+    toast.promise(addMutation.mutateAsync(values as unknown as Logbook), {
+      loading: "Adding logbook please wait...",
+      success: () => {
+        setOpenModal(false);
+        queryClient.invalidateQueries({ queryKey: ["logbooks"] });
+        return {
+          message: "Logbook added successfully",
+        };
+      },
+      error: (error: ErrorResponse) => {
+        return {
+          message: "Adding logbook failed",
+          description: `${error.error}`,
+        };
+      },
+    });
   }
-
   return (
     <>
       <Dialog open={openModal} onOpenChange={setOpenModal}>
@@ -100,7 +97,9 @@ export default function AddLogbookModal({ onSave }: { onSave: () => void }) {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
               <DialogHeader>
-                <DialogTitle className="text-black">Create Logbook Entry</DialogTitle>
+                <DialogTitle className="text-black">
+                  Create Logbook Entry
+                </DialogTitle>
                 <DialogDescription className="text-sm">
                   All the fields are required unless it is mentioned otherwise
                 </DialogDescription>
@@ -112,7 +111,7 @@ export default function AddLogbookModal({ onSave }: { onSave: () => void }) {
                 {/* Official Name */}
                 <FormField
                   control={form.control}
-                  name="official_name"
+                  name="Name"
                   render={({ field }) => (
                     <FormItem className="w-full">
                       <FormLabel className="text-black font-bold text-xs">
@@ -120,7 +119,9 @@ export default function AddLogbookModal({ onSave }: { onSave: () => void }) {
                       </FormLabel>
                       <FormControl>
                         <Select
-                          onValueChange={(value) => field.onChange(value === "" ? undefined : value)}
+                          onValueChange={(value) =>
+                            field.onChange(value === "" ? undefined : value)
+                          }
                           value={field.value ?? ""}
                         >
                           <SelectTrigger className="text-black w-full">
@@ -129,9 +130,9 @@ export default function AddLogbookModal({ onSave }: { onSave: () => void }) {
                             </SelectValue>
                           </SelectTrigger>
                           <SelectContent className="w-full">
-                            {officials.map((official) => (
-                              <SelectItem key={official.id} value={official.full_name}>
-                                {official.full_name}
+                            {officials.officials.map((official) => (
+                              <SelectItem key={official.ID} value={official.Name}>
+                                {official.Name}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -144,7 +145,7 @@ export default function AddLogbookModal({ onSave }: { onSave: () => void }) {
                 {/* Date */}
                 <FormField
                   control={form.control}
-                  name="date"
+                  name="Date"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel
@@ -189,7 +190,7 @@ export default function AddLogbookModal({ onSave }: { onSave: () => void }) {
                 {/* Time In AM */}
                 <FormField
                   control={form.control}
-                  name="time_in_am"
+                  name="TimeInAm"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-black font-bold text-xs">
@@ -210,7 +211,7 @@ export default function AddLogbookModal({ onSave }: { onSave: () => void }) {
                 {/* Time Out AM */}
                 <FormField
                   control={form.control}
-                  name="time_out_am"
+                  name="TimeOutAm"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-black font-bold text-xs">
@@ -231,7 +232,7 @@ export default function AddLogbookModal({ onSave }: { onSave: () => void }) {
                 {/* Time In PM */}
                 <FormField
                   control={form.control}
-                  name="time_in_pm"
+                  name="TimeInPm"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-black font-bold text-xs">
@@ -252,7 +253,7 @@ export default function AddLogbookModal({ onSave }: { onSave: () => void }) {
                 {/* Time Out PM */}
                 <FormField
                   control={form.control}
-                  name="time_out_pm"
+                  name="TimeOutPm"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-black font-bold text-xs">
@@ -273,7 +274,7 @@ export default function AddLogbookModal({ onSave }: { onSave: () => void }) {
                 {/* Remarks */}
                 <FormField
                   control={form.control}
-                  name="remarks"
+                  name="Remarks"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-black font-bold text-xs">
@@ -294,7 +295,7 @@ export default function AddLogbookModal({ onSave }: { onSave: () => void }) {
                 {/* Total Hours */}
                 <FormField
                   control={form.control}
-                  name="total_hours"
+                  name="TotalHours"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-black font-bold text-xs">

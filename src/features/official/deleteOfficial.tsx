@@ -14,17 +14,17 @@ import { invoke } from "@tauri-apps/api/core";
 
 
 interface Props {
-  id: number;
-  name: string;
+  ID: number;
+  Name: string;
   onDelete: () => void;
 }
 
-export default function DeleteOfficialModal({ id, name, onDelete }: Props) {
+export default function DeleteOfficialModal({ ID, Name, onDelete }: Props) {
   async function onConfirm() {
     try {
-      await invoke("delete_official_command", { id });
+      await invoke("delete_official_command", { ID });
       toast.success("Official deleted", {
-        description: `${name} was deleted.`,
+        description: `${Name} was deleted.`,
       });
       onDelete();
       window.location.reload();

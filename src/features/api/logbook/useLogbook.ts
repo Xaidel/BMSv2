@@ -1,11 +1,11 @@
 
-import getOfficial, { OfficialResponse } from "@/service/api/official/getOfficial";
+import getLogbook, { LogbookResponse } from "@/service/api/logbook/getLogbook";
 import { useQuery } from "@tanstack/react-query";
 
-export function useOfficial(id?: number) {
+export function useLogbook(id?: number) {
   const query = useQuery({
-    queryKey: ['officials'],
-    queryFn: (): Promise<OfficialResponse> => getOfficial(id),
+    queryKey: ['logbooks'],
+    queryFn: (): Promise<LogbookResponse> => getLogbook(id),
     refetchInterval: 5000,
     structuralSharing: true,
   })

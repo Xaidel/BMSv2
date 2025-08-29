@@ -69,7 +69,7 @@ const columns: ColumnDef<Event>[] = [
           break;
         }
         case "Ongoing": {
-          color = "#00BD29";
+          color = "#FFB30F";
           break;
         }
         case "Cancelled": {
@@ -77,7 +77,7 @@ const columns: ColumnDef<Event>[] = [
           break;
         }
         case "Finished": {
-          color = "#FFB30F";
+          color = "#00BD29";
           break;
         }
         default: {

@@ -17,16 +17,13 @@ import { ColumnDef } from "@tanstack/react-table";
 import { toast } from "sonner";
 import { pdf } from "@react-pdf/renderer";
 import { writeFile, BaseDirectory } from "@tauri-apps/plugin-fs";
-
 import DataTable from "@/components/ui/datatable";
 import Filter from "@/components/ui/filter";
 import Searchbar from "@/components/ui/searchbar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-
 import AddIncomeModal from "@/features/income/addIncomeModal";
 import ViewIncomeModal from "@/features/income/viewIncomeModal";
-
 import { useIncome } from "@/features/api/income/useIncome";
 import { useDeleteIncome } from "@/features/api/income/useDeleteIncome";
 import { IncomePDF } from "@/components/pdf/incomepdf";

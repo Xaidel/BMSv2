@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarIcon, Eye } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import {
@@ -9,7 +9,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -31,68 +30,70 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { logbookSchema } from "@/types/formSchema";
 import { invoke } from "@tauri-apps/api/core";
+import { Logbook } from "@/types/apitypes";
+import editLogbook from "@/service/api/logbook/editLogbook";
+import { useEditLogbook } from "../api/logbook/useEditLogbook";
 
-type ViewPropsLogbook = {
-  id?: number;
-  official_name: string;
-  date: Date;
-  time_in_am?: string;
-  time_out_am?: string;
-  time_in_pm?: string;
-  time_out_pm?: string;
-  remarks?: string;
-  status?: string;
-  total_hours?: number;
-  onSave: () => void;
+type ViewLogbookModal = {
+  logbook: Logbook;
+  open: boolean;
+  onClose: () => void;
 };
 
-export default function ViewLogbookModal(props: ViewPropsLogbook) {
+export default function ViewLogbookModal({logbook,onClose,open}: ViewLogbookModal) {
   const [openCalendar, setOpenCalendar] = useState(false);
-  const [openModal, setOpenModal] = useState(false);
+
   const form = useForm<z.infer<typeof logbookSchema>>({
     resolver: zodResolver(logbookSchema),
     defaultValues: {
-      official_name: props.official_name,
-      date: props.date,
-      time_in_am: props.time_in_am,
-      time_out_am: props.time_out_am,
-      time_in_pm: props.time_in_pm,
-      time_out_pm: props.time_out_pm,
-      remarks: props.remarks,
-      status: props.status,
-      total_hours: props.total_hours,
+      Name: logbook.Name,
+      Date: logbook.Date,
+      TimeInAm: logbook.TimeInAm,
+      TimeOutAm: logbook.TimeOutAm,
+      TimeInPm: logbook.TimeInPm,
+      TimeOutPm: logbook.TimeOutPm,
+      Remarks: logbook.Remarks,
+      Status: logbook.Status,
+      TotalHours: logbook.TotalHours,
     },
   });
 
-  async function onSubmit(values: z.infer<typeof logbookSchema>) {
-    try {
-      const logbookWithId = {
-        ...values,
-        id: props.id,
-        date: values.date.toISOString(),
-      };
+   async function onSubmit(values: z.infer<typeof logbookSchema>) {
+      const updatedFields: Partial<z.infer<typeof logbookSchema>> = {};
 
-      await invoke("save_logbook_entry_command", { entry: logbookWithId });
+    if (values.Name !== logbook.Name) updatedFields.Name = values.Name;
+    if (values.Date.getTime() !== new Date(logbook.Date).getTime())
+      updatedFields.Date = values.Date;
+    if (values.TimeInAm !== logbook.TimeInAm) updatedFields.TimeInAm = values.TimeInAm;
+    if (values.TimeOutAm !== logbook.TimeOutAm) updatedFields.TimeOutAm = values.TimeOutAm;
+    if (values.TimeInPm !== logbook.TimeInPm) updatedFields.TimeInPm = values.TimeInPm;
+    if (values.TimeOutPm !== logbook.TimeOutPm) updatedFields.TimeOutPm = values.TimeOutPm;
+    if (values.Remarks !== logbook.Remarks) updatedFields.Remarks = values.Remarks;
+    if (values.Status !== logbook.Status) updatedFields.Status = values.Status;
+    if (values.TotalHours !== logbook.TotalHours) updatedFields.TotalHours = values.TotalHours;
 
-      toast.success("Logbook entry updated successfully");
+    const payload = {
+      ...updatedFields,
+      ...(updatedFields.Date
+        ? { Date: updatedFields.Date instanceof Date ? updatedFields.Date : new Date(updatedFields.Date) }
+        : {}),
+    };
 
-      setOpenModal(false);
-      props.onSave();
-    } catch (error) {
-      toast.error("Update failed", {
-        description: error instanceof Error ? error.message : "Unknown error",
-      });
+      toast.promise(editLogbook(logbook.ID, payload), {
+       loading: "Updating logbook...",
+       success: "Logbook updated successfully",
+       error: "Failed to update logbook",
+     });
+      onClose();
     }
-  }
 
   return (
-    <Dialog open={openModal} onOpenChange={setOpenModal}>
-      <DialogTrigger asChild>
-        <Button>
-          <Eye />
-          View More
-        </Button>
-      </DialogTrigger>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) onClose();
+      }}
+    >
       <DialogContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -105,7 +106,7 @@ export default function ViewLogbookModal(props: ViewPropsLogbook) {
             <div className="flex flex-col gap-3">
               <FormField
                 control={form.control}
-                name="official_name"
+                name="Name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-black font-bold text-xs">Official Name</FormLabel>
@@ -124,7 +125,7 @@ export default function ViewLogbookModal(props: ViewPropsLogbook) {
               {/* Date */}
               <FormField
                 control={form.control}
-                name="date"
+                name="Date"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-black font-bold text-xs">Date</FormLabel>
@@ -154,7 +155,7 @@ export default function ViewLogbookModal(props: ViewPropsLogbook) {
               {/* Time fields */}
               <FormField
                 control={form.control}
-                name="time_in_am"
+                name="TimeInAm"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-black font-bold text-xs">Time In AM</FormLabel>
@@ -172,7 +173,7 @@ export default function ViewLogbookModal(props: ViewPropsLogbook) {
               />
               <FormField
                 control={form.control}
-                name="time_out_am"
+                name="TimeOutAm"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-black font-bold text-xs">Time Out AM</FormLabel>
@@ -190,7 +191,7 @@ export default function ViewLogbookModal(props: ViewPropsLogbook) {
               />
               <FormField
                 control={form.control}
-                name="time_in_pm"
+                name="TimeInPm"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-black font-bold text-xs">Time In PM</FormLabel>
@@ -208,7 +209,7 @@ export default function ViewLogbookModal(props: ViewPropsLogbook) {
               />
               <FormField
                 control={form.control}
-                name="time_out_pm"
+                name="TimeOutPm"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-black font-bold text-xs">Time Out PM</FormLabel>
@@ -227,7 +228,7 @@ export default function ViewLogbookModal(props: ViewPropsLogbook) {
               {/* Remarks */}
                 <FormField
                   control={form.control}
-                  name="remarks"
+                  name="Remarks"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-black font-bold text-xs">
@@ -236,7 +237,7 @@ export default function ViewLogbookModal(props: ViewPropsLogbook) {
                       <FormControl>
                         <Input
                           type="text"
-                          placeholder="Enter remarks"
+                          placeholder="Enter Remarks"
                           {...field}
                           className="text-black"
                         />
@@ -248,7 +249,7 @@ export default function ViewLogbookModal(props: ViewPropsLogbook) {
                 {/* Status */}
                 <FormField
                   control={form.control}
-                  name="status"
+                  name="Status"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-black font-bold text-xs">
@@ -257,7 +258,7 @@ export default function ViewLogbookModal(props: ViewPropsLogbook) {
                       <FormControl>
                         <Input
                           type="text"
-                          placeholder="Enter status"
+                          placeholder="Enter Status"
                           {...field}
                           className="text-black"
                         />
@@ -269,7 +270,7 @@ export default function ViewLogbookModal(props: ViewPropsLogbook) {
               {/* Total Hours */}
               <FormField
                 control={form.control}
-                name="total_hours"
+                name="TotalHours"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-black font-bold text-xs">Total Hours</FormLabel>

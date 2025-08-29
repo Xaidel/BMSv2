@@ -81,7 +81,7 @@ export default function ViewResidentModal({
       IsVoter: resident.IsVoter,
       IsPWD: resident.IsPWD,
       Image: null,
-      Zone: Number(resident.Zone),
+      Zone: resident.Zone ?? 0,
       Barangay: resident.Barangay,
       Town: resident.Town,
       Province: resident.Province,
@@ -89,8 +89,8 @@ export default function ViewResidentModal({
       Occupation: resident.Occupation,
       AvgIncome: resident.AvgIncome,
       MobileNumber: resident.MobileNumber,
-      IsSolo: false,
-      IsSenior: false,
+      IsSolo: resident.IsSolo,
+      IsSenior: resident.IsSenior,
     },
   });
 
@@ -135,7 +135,7 @@ export default function ViewResidentModal({
 
       if (formValue !== residentValue) {
         // ✅ Special case for date_of_birth -> format as YYYY-MM-DD
-        if (key === "date_of_birth" && formValue instanceof Date) {
+        if (key === "Birthday" && formValue instanceof Date) {
           updated[residentKey] = formValue.toISOString().split("T")[0]; // "2002-08-03"
         } else {
           updated[residentKey] = formValue as any;
@@ -189,7 +189,7 @@ export default function ViewResidentModal({
                     Personal Information
                   </h2>
                   <div className="grid grid-cols-4 gap-4">
-                    <div className="col-span-2">
+                    <div className="col-span-4">
                       <FormField
                         control={form.control}
                         name="Image"
@@ -210,7 +210,7 @@ export default function ViewResidentModal({
                                       reader.readAsDataURL(file);
                                     }
                                   }}
-                                  className="mt-2"
+                                  className="mt-2 bg-gray-400 text-white file:bg-gray-400 file:text-white file:border-0 file:rounded-md file:px-3 file:py-1"
                                 />
                               </>
                             </FormControl>
@@ -228,7 +228,7 @@ export default function ViewResidentModal({
                             <FormLabel>First Name</FormLabel>
                             <FormControl>
                               <Input
-                                id="Firstname"
+                                id="first_name"
                                 type="text"
                                 placeholder="Enter first name"
                                 required
@@ -250,7 +250,7 @@ export default function ViewResidentModal({
                             <FormLabel>Middle Name</FormLabel>
                             <FormControl>
                               <Input
-                                id="Middlename"
+                                id="middle_name"
                                 type="text"
                                 placeholder="Enter middle name"
                                 required
@@ -272,7 +272,7 @@ export default function ViewResidentModal({
                             <FormLabel>Last Name</FormLabel>
                             <FormControl>
                               <Input
-                                id="Lastname"
+                                id="last_name"
                                 type="text"
                                 placeholder="Enter last name"
                                 required
@@ -381,7 +381,7 @@ export default function ViewResidentModal({
                             <FormLabel>Nationality</FormLabel>
                             <FormControl>
                               <Input
-                                id="Nationality"
+                                id="nationality"
                                 type="text"
                                 placeholder="Enter nationality"
                                 required
@@ -403,7 +403,7 @@ export default function ViewResidentModal({
                             <FormLabel>Mobile Number</FormLabel>
                             <FormControl>
                               <Input
-                                id="MobileNumber"
+                                id="mobileNumber"
                                 type="text"
                                 placeholder="Enter mobile number"
                                 required
@@ -415,7 +415,27 @@ export default function ViewResidentModal({
                         )}
                       />
                     </div>
-
+                    <div className="col-span-2">
+                      <FormField
+                        control={form.control}
+                        name="Religion"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Religion</FormLabel>
+                            <FormControl>
+                              <Input
+                                id="religion"
+                                type="text"
+                                placeholder="Enter Religion"
+                                required
+                                {...field}
+                                className="text-black"
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                     <div className="col-span-2">
                       <FormField
                         control={form.control}
@@ -457,34 +477,6 @@ export default function ViewResidentModal({
                     <div className="col-span-2">
                       <FormField
                         control={form.control}
-                        name="Status"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Status</FormLabel>
-                            <FormControl>
-                              <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select Status" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {statusOption.map((option) => (
-                                    <SelectItem key={option} value={option}>
-                                      {option}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <FormField
-                        control={form.control}
                         name="EducationalAttainment"
                         render={({ field }) => (
                           <FormItem>
@@ -513,68 +505,33 @@ export default function ViewResidentModal({
                     <div className="col-span-2">
                       <FormField
                         control={form.control}
-                        name="Religion"
+                        name="Status"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Religion</FormLabel>
+                            <FormLabel>Status</FormLabel>
                             <FormControl>
-                              <Input
-                                id="Religion"
-                                type="text"
-                                placeholder="Enter Religion"
-                                required
-                                {...field}
-                                className="text-black"
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <FormField
-                        control={form.control}
-                        name="Occupation"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Occupation</FormLabel>
-                            <FormControl>
-                              <Input
-                                id="Occupation"
-                                type="text"
-                                placeholder="Enter Occupation"
-                                required
-                                {...field}
-                                className="text-black"
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <FormField
-                        control={form.control}
-                        name="AvgIncome"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Estimated Income</FormLabel>
-                            <FormControl>
-                              <Input
-                                id="AvgIncome"
-                                type="number"
-                                placeholder="Enter Estimated Income"
-                                required
-                                {...field}
-                                className="text-black"
-                              />
+                              <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select Status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {statusOption.map((option) => (
+                                    <SelectItem key={option} value={option}>
+                                      {option}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             </FormControl>
                           </FormItem>
                         )}
                       />
                     </div>
                   </div>
-                  <div className="col-span-4 grid grid-cols-3 gap-4 mt-4">
+                  <div className="col-span-4 grid grid-cols-4 gap-1 mt-4">
                     <FormField
                       control={form.control}
                       name="IsVoter"
@@ -588,9 +545,7 @@ export default function ViewResidentModal({
                               className="mr-2"
                             />
                           </FormControl>
-                          <FormLabel className="text-black">
-                            Registered Voter
-                          </FormLabel>
+                          <FormLabel className="text-black">Voter</FormLabel>
                         </FormItem>
                       )}
                     />
@@ -624,9 +579,7 @@ export default function ViewResidentModal({
                               className="mr-2"
                             />
                           </FormControl>
-                          <FormLabel className="text-black">
-                            Senior Citizen
-                          </FormLabel>
+                          <FormLabel className="text-black">Senior</FormLabel>
                         </FormItem>
                       )}
                     />
@@ -644,7 +597,7 @@ export default function ViewResidentModal({
                             />
                           </FormControl>
                           <FormLabel className="text-black">
-                            Senior Citizen
+                            Solo Parent
                           </FormLabel>
                         </FormItem>
                       )}
@@ -674,7 +627,7 @@ export default function ViewResidentModal({
                             <FormLabel>Birthplace</FormLabel>
                             <FormControl>
                               <Input
-                                id="Birthplace"
+                                id="townOfBirth"
                                 type="text"
                                 placeholder="Enter town/city of birth"
                                 required
@@ -698,13 +651,14 @@ export default function ViewResidentModal({
                         render={({ field }) => (
                           <FormItem className="w-full">
                             <FormLabel
-                              htmlFor="Zone"
+                              htmlFor="zone"
                               className="text-black font-bold text-xs"
                             >
                               Zone
                             </FormLabel>
                             <Select
-                              onValueChange={field.onChange}
+                              onValueChange={(val) => field.onChange(Number(val))}
+                              value={String(field.value)}
                             >
                               <FormControl>
                                 <SelectTrigger className="w-full text-black border-black/15">
@@ -779,6 +733,53 @@ export default function ViewResidentModal({
                                 id="Province"
                                 type="text"
                                 placeholder="Enter present province"
+                                required
+                                {...field}
+                                className="text-black"
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                  <h2 className="text-md font-semibold text-gray-900 mt-2">
+                    Employment Information
+                  </h2>
+                  <div className="grid grid-cols-4 gap-4">
+                    <div className="col-span-2">
+                      <FormField
+                        control={form.control}
+                        name="Occupation"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Occupation</FormLabel>
+                            <FormControl>
+                              <Input
+                                id="Occupation"
+                                type="text"
+                                placeholder="Enter Occupation"
+                                required
+                                {...field}
+                                className="text-black"
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <FormField
+                        control={form.control}
+                        name="AvgIncome"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Estimated Income</FormLabel>
+                            <FormControl>
+                              <Input
+                                id="AvgIncome"
+                                type="number"
+                                placeholder="Enter Estimated Income"
                                 required
                                 {...field}
                                 className="text-black"

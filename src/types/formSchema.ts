@@ -224,14 +224,14 @@ export const officialSchema = z.object({
 });
 
 export const logbookSchema = z.object({
-  id: z.number().optional(),
-  official_name: z.string().min(1, "Please select an official"),
-  date: z.date({ required_error: "Please specify the log date" }),
-  time_in_am: z.string().optional(),
-  time_out_am: z.string().optional(),
-  time_in_pm: z.string().optional(),
-  time_out_pm: z.string().optional(),
-  remarks: z.string().optional(),
-  status: z.string().optional(),
-  total_hours: z.number().optional(),
+  ID: z.number().optional(),
+  Name: z.string().min(1, "Please select an official"),
+  Date: z.date({ required_error: "Please specify the log date" }),
+  TimeInAm: z.string().optional(),
+  TimeOutAm: z.string().optional(),
+  TimeInPm: z.string().optional(),
+  TimeOutPm: z.string().optional(),
+  Remarks: z.string().optional(),
+  Status: z.string().optional(),
+  TotalHours: z.number().optional(),
 });
