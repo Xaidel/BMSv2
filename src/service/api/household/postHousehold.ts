@@ -1,8 +1,7 @@
 import { api } from "@/service/api"
 
 export type HouseholdProps = {
-  dateOfResidency: string; // ISO date string
-  householdNumber: string;
+  dateOfResidency: string; // ISO date string householdNumber: string;
   householdType: "owner" | "renter" | string;
   members: {
     id: number;

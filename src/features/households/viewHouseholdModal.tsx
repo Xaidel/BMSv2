@@ -30,6 +30,7 @@ export default function ViewHouseholdModal({ household, open, onClose }: { house
               <Tabs defaultValue="general" >
                 <TabsList className="text-black">
                   <TabsTrigger value="general" className="text-black data-[state=active]:bg-blue-500 data-[state=active]:text-white">General Info</TabsTrigger>
+                  <TabsTrigger value="edit" className="text-black data-[state=active]:bg-blue-500 data-[state=active]:text-white">Edit Household</TabsTrigger>
                   {/*<TabsTrigger value="tree" className="text-black data-[state=active]:bg-blue-500 data-[state=active]:text-white">Family Tree</TabsTrigger>*/}
                 </TabsList>
                 <TabsContent value="general">
@@ -38,7 +39,7 @@ export default function ViewHouseholdModal({ household, open, onClose }: { house
                     <p className="text-sm">{`Overall Income: ${Math.trunc(overallIncome).toLocaleString("en-US")}`}</p>
                   </div>
                   <Table className="w-full">
-                    <TableCaption >{`Household details for Househol Number ${household.household_number}. Roles are displayed relative to their relationship with the household head`}</TableCaption>
+                    <TableCaption >{`Household details for Household Number ${household.household_number}. Roles are displayed relative to their relationship with the household head`}</TableCaption>
                     <TableHeader>
                       <TableRow >
                         <TableHead className="text-black" >
@@ -67,10 +68,8 @@ export default function ViewHouseholdModal({ household, open, onClose }: { house
                     </TableBody>
                   </Table>
                 </TabsContent>
-                <TabsContent value="tree">
-                  <div style={{ width: "100%", height: "600px" }}>
-                    {!root && <div>No root found</div>}
-                  </div>
+                <TabsContent value="edit">
+                  <div>Edit Household tab</div>
                 </TabsContent>
               </Tabs>
             </div>

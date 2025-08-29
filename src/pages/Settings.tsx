@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { settingsSchema } from "@/types/formSchema";
 import { z } from "zod";
-import LogoPlaceholder from "../assets/new_Logo_small.png";
+import LogoPlaceholder from "@/assets/new_logo_small.png";
 import { toast } from "sonner";
 
 export default function Settings() {
