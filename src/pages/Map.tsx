@@ -25,7 +25,7 @@ export default function Map() {
       ...Building,
       features: Building.features.map((feature: any) => {
         const fid = Number(feature.properties?.id) // normalize to number
-        const mapping = mappings.mappings.find((m: Mapping) => m.FID === fid)
+        const mapping = mappings?.mappings?.find((m: Mapping) => m.FID === fid)
         return {
           ...feature,
           properties: {
