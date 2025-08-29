@@ -1,4 +1,4 @@
-import { Logbook } from "@/types/types";
+import { Logbook } from "@/types/apitypes";
 import sanitize from "../sanitize";
 
 export default function searchLogbook(term: string, data: Logbook[]): Logbook[] {
@@ -6,10 +6,10 @@ export default function searchLogbook(term: string, data: Logbook[]): Logbook[] 
   const pattern = new RegExp(sanitizedQuery, "i");
 
   return data.filter((entry: Logbook) =>
-    pattern.test(entry.official_name.toString()) ||
-    pattern.test(entry.remarks ?? "") ||
-    pattern.test(entry.status ?? "") ||
-    pattern.test(entry.total_hours !== undefined ? entry.total_hours.toString() : "") ||
-    pattern.test(entry.date.toString())
+    pattern.test(entry.Name.toString()) ||
+    pattern.test(entry.Remarks ?? "") ||
+    pattern.test(entry.Status ?? "") ||
+    pattern.test(entry.TotalHours !== undefined ? entry.TotalHours.toString() : "") ||
+    pattern.test(entry.Date.toString())
   );
 }

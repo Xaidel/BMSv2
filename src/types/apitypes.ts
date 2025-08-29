@@ -105,3 +105,16 @@ export type Settings = {
   Logo?: string;
   LogoMunicipality?: string;
 };
+
+export type Logbook = {
+  ID: number;
+  Name: string;
+  Date: Date;
+  TimeInAm?: string;
+  TimeOutAm?: string;
+  TimeInPm?: string;
+  TimeOutPm?: string;
+  Remarks?: string;
+  Status?: string;
+  TotalHours?: number;
+};

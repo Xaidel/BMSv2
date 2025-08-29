@@ -15,12 +15,12 @@ import { invoke } from "@tauri-apps/api/core";
 
 type DeleteLogbookModalProps = {
   id: number;
-  official_name: string;
+  name: string;
   date: string;
   onDelete: () => void;
 };
 
-export default function DeleteLogbookModal({ id, official_name, date, onDelete }: DeleteLogbookModalProps) {
+export default function DeleteLogbookModal({ id, name, date, onDelete }: DeleteLogbookModalProps) {
   const [open, setOpen] = useState(false);
 
   const handleDelete = async () => {
@@ -47,7 +47,7 @@ export default function DeleteLogbookModal({ id, official_name, date, onDelete }
         <DialogHeader>
           <DialogTitle>Delete Logbook Entry?</DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete logbook entry for {official_name} on {date}?
+            Are you sure you want to delete logbook entry for {name} on {date}?
           </DialogDescription>
         </DialogHeader>
         <div className="flex justify-end gap-3 mt-4">

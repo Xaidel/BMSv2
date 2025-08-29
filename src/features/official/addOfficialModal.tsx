@@ -22,7 +22,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useState } from "react";
 import { toast } from "sonner";
-import { invoke } from "@tauri-apps/api/core";
 import { officialSchema } from "@/types/formSchema";
 import {
   Popover,
@@ -38,6 +37,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Official } from "@/types/apitypes";
+import { useQueryClient } from "@tanstack/react-query";
+import { useAddOfficial } from "../api/official/useAddOfficial";
+import { ErrorResponse } from "@/service/api/auth/login";
 
 export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
   const [openCalendarTermStart, setOpenCalendarTermStart] = useState(false);
@@ -59,29 +62,41 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
       Zone: "",
     },
   });
-  console.log(imagePreview)
+  console.log(imagePreview);
+
+  const addMutation = useAddOfficial();
+  const queryClient = useQueryClient();
   async function onSubmit(values: z.infer<typeof officialSchema>) {
-    try {
-      await invoke("insert_official_command", {
-        official: {
-          ...values,
-          TermStart: values.TermStart?.toISOString().split("T")[0], // must be string for Rust
-          TermEnd: values.TermEnd?.toISOString().split("T")[0],
+    const reformattedValues = {
+      ...values,
+      TermStart: values.TermStart
+        ? new Date(values.TermStart).toISOString()
+        : undefined,
+      TermEnd: values.TermEnd
+        ? new Date(values.TermEnd).toISOString()
+        : undefined,
+    };
+
+    toast.promise(
+      addMutation.mutateAsync(reformattedValues as unknown as Official),
+      {
+        loading: "Adding official, please wait...",
+        success: () => {
+          setOpenModal(false);
+          setImagePreview("");
+          form.reset();
+          queryClient.invalidateQueries({ queryKey: ["officials"] });
+          if (onSave) onSave();
+          return { message: "Official added successfully" };
         },
-      });
-
-      toast.success("Official added successfully", {
-        description: `${values.Name} was added.`,
-      });
-
-      setOpenModal(false);
-      form.reset();
-      setImagePreview("");
-      onSave(); // refresh the data in parent
-    } catch (err) {
-      console.error("Insert official failed:", err);
-      toast.error("Failed to add official");
-    }
+        error: (error: ErrorResponse) => {
+          return {
+            message: "Adding official failed",
+            description: `${error.error}`,
+          };
+        },
+      }
+    );
   }
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -109,7 +124,10 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
       </DialogTrigger>
       <DialogContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="text-center text-black space-y-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="text-center text-black space-y-4"
+          >
             <DialogHeader>
               <DialogTitle className="text-black">Create Official</DialogTitle>
               <DialogDescription className="text-sm">
@@ -149,16 +167,25 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
                       Section
                     </FormLabel>
                     <FormControl>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger className="w-full text-black border-black/15">
                             <SelectValue placeholder="Select Section" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="Barangay Officials">Barangay Officials</SelectItem>
-                          <SelectItem value="SK Officials">SK Officials</SelectItem>
-                          <SelectItem value="Tanod Officials">Tanod Officials</SelectItem>
+                          <SelectItem value="Barangay Officials">
+                            Barangay Officials
+                          </SelectItem>
+                          <SelectItem value="SK Officials">
+                            SK Officials
+                          </SelectItem>
+                          <SelectItem value="Tanod Officials">
+                            Tanod Officials
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </FormControl>
@@ -176,7 +203,10 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
                       Role
                     </FormLabel>
                     <FormControl>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger className="w-full text-black border-black/15">
                             <SelectValue placeholder="Select Role" />
@@ -185,24 +215,42 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
                         <SelectContent>
                           {form.watch("Section") === "Barangay Officials" && (
                             <>
-                              <SelectItem value="Barangay Captain">Barangay Captain</SelectItem>
-                              <SelectItem value="Barangay Councilor">Barangay Councilor</SelectItem>
-                              <SelectItem value="Secretary">Secretary</SelectItem>
-                              <SelectItem value="Treasurer">Treasurer</SelectItem>
+                              <SelectItem value="Barangay Captain">
+                                Barangay Captain
+                              </SelectItem>
+                              <SelectItem value="Barangay Councilor">
+                                Barangay Councilor
+                              </SelectItem>
+                              <SelectItem value="Secretary">
+                                Secretary
+                              </SelectItem>
+                              <SelectItem value="Treasurer">
+                                Treasurer
+                              </SelectItem>
                               <SelectItem value="Driver">Driver</SelectItem>
-                              <SelectItem value="Care Taker">Care Taker</SelectItem>
+                              <SelectItem value="Care Taker">
+                                Care Taker
+                              </SelectItem>
                             </>
                           )}
                           {form.watch("Section") === "SK Officials" && (
                             <>
-                              <SelectItem value="SK Chairman">SK Chairman</SelectItem>
-                              <SelectItem value="SK Councilor">SK Councilor</SelectItem>
+                              <SelectItem value="SK Chairman">
+                                SK Chairman
+                              </SelectItem>
+                              <SelectItem value="SK Councilor">
+                                SK Councilor
+                              </SelectItem>
                             </>
                           )}
                           {form.watch("Section") === "Tanod Officials" && (
                             <>
-                              <SelectItem value="Chief Tanod">Chief Tanod</SelectItem>
-                              <SelectItem value="Tanod Member">Tanod Member</SelectItem>
+                              <SelectItem value="Chief Tanod">
+                                Chief Tanod
+                              </SelectItem>
+                              <SelectItem value="Tanod Member">
+                                Tanod Member
+                              </SelectItem>
                             </>
                           )}
                         </SelectContent>
@@ -387,7 +435,9 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
             </div>
 
             <div className="flex justify-end pt-4 space-x-2">
-              <Button type="submit" variant="default" className="px-4 py-2">Save Official</Button>
+              <Button type="submit" variant="default" className="px-4 py-2">
+                Save Official
+              </Button>
             </div>
           </form>
         </Form>

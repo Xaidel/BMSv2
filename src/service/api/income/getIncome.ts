@@ -6,7 +6,7 @@ export interface IncomeResponse {
   incomes: Income[]
 }
 
-export default async function getEvent(id?: number): Promise<IncomeResponse> {
+export default async function getIncome(id?: number): Promise<IncomeResponse> {
   try {
     const url = id ? `${api}/incomes/${id}` : `${api}/incomes`
     const res = await fetch(url, {

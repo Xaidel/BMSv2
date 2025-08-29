@@ -1,6 +1,6 @@
-import { Logbook } from "@/types/types";
+import { Logbook } from "@/types/apitypes";
 
-export function logbookSort(data: Logbook[], term: string): Logbook[] {
+export function sort(data: Logbook[], term: string): Logbook[] {
   switch (term) {
     case "Date ASC":
       return sortDateAsc(data);
@@ -24,25 +24,25 @@ export function logbookSort(data: Logbook[], term: string): Logbook[] {
 }
 
 function sortDateAsc(data: Logbook[]): Logbook[] {
-  return [...data].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  return [...data].sort((a, b) => new Date(a.Date).getTime() - new Date(b.Date).getTime());
 }
 function sortDateDesc(data: Logbook[]): Logbook[] {
-  return [...data].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  return [...data].sort((a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime());
 }
 function filterByOngoing(data: Logbook[]): Logbook[] {
-  return data.filter((entry) => entry.status === "Ongoing");
+  return data.filter((entry) => entry.Status === "Ongoing");
 }
 function filterByHalfDay(data: Logbook[]): Logbook[] {
-  return data.filter((entry) => entry.status === "Half Day");
+  return data.filter((entry) => entry.Status === "Half Day");
 }
 function filterByAbsent(data: Logbook[]): Logbook[] {
-  return data.filter((entry) => entry.status === "Absent");
+  return data.filter((entry) => entry.Status === "Absent");
 }
 function filterByActiveToday(data: Logbook[]): Logbook[] {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   return data.filter((entry) => {
-    const entryDate = new Date(entry.date);
+    const entryDate = new Date(entry.Date);
     entryDate.setHours(0, 0, 0, 0);
     return entryDate.getTime() === today.getTime();
   });
@@ -52,7 +52,7 @@ function filterByThisMonth(data: Logbook[]): Logbook[] {
   const currentMonth = today.getMonth();
   const currentYear = today.getFullYear();
   return data.filter((entry) => {
-    const entryDate = new Date(entry.date);
+    const entryDate = new Date(entry.Date);
     return entryDate.getMonth() === currentMonth && entryDate.getFullYear() === currentYear;
   });
 }

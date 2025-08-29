@@ -5,16 +5,16 @@ import { styles } from "./Stylesheet";
 import { format } from "date-fns";
 
 type Logbook = {
-  id: number;
-  official_name: string;
-  date: Date;
-  time_in_am?: string;
-  time_out_am?: string;
-  time_in_pm?: string;
-  time_out_pm?: string;
-  remarks?: string;
-  status?: string;
-  total_hours?: number;
+  ID: number;
+  Name: string;
+  Date: Date;
+  TimeInAm?: string;
+  TimeOutAM?: string;
+  TimeInPm?: string;
+  TimeOutPm?: string;
+  Remarks?: string;
+  Status?: string;
+  TotalHours?: number;
 };
 
 type Props = {
@@ -55,20 +55,20 @@ export const LogbookPDF = ({ filter, logbook }: Props) => {
                     styles.tableRow,
                     { backgroundColor: index % 2 === 0 ? "#f9f9f9" : "white" }
                   ]}
-                  key={entry.id}
+                  key={entry.ID}
                 >
-                  <View style={styles.tableCell}><Text>{entry.id}</Text></View>
-                  <View style={styles.tableCell}><Text>{entry.official_name}</Text></View>
-                  <View style={styles.tableCell}><Text>{format(entry.date, "MMMM do, yyyy")}</Text></View>
-                  <View style={styles.tableCell}><Text>{entry.time_in_am || ""}</Text></View>
-                  <View style={styles.tableCell}><Text>{entry.time_out_am || ""}</Text></View>
-                  <View style={styles.tableCell}><Text>{entry.time_in_pm || ""}</Text></View>
-                  <View style={styles.tableCell}><Text>{entry.time_out_pm || ""}</Text></View>
-                  <View style={styles.tableCell}><Text>{entry.remarks || ""}</Text></View>
-                  <View style={styles.tableCell}><Text>{entry.status || ""}</Text></View>
+                  <View style={styles.tableCell}><Text>{entry.ID}</Text></View>
+                  <View style={styles.tableCell}><Text>{entry.Name}</Text></View>
+                  <View style={styles.tableCell}><Text>{format(entry.Date, "MMMM do, yyyy")}</Text></View>
+                  <View style={styles.tableCell}><Text>{entry.TimeInAm || ""}</Text></View>
+                  <View style={styles.tableCell}><Text>{entry.TimeOutAM || ""}</Text></View>
+                  <View style={styles.tableCell}><Text>{entry.TimeInPm || ""}</Text></View>
+                  <View style={styles.tableCell}><Text>{entry.TimeOutPm || ""}</Text></View>
+                  <View style={styles.tableCell}><Text>{entry.Remarks || ""}</Text></View>
+                  <View style={styles.tableCell}><Text>{entry.Status || ""}</Text></View>
                   <View style={styles.tableCell}>
                     <Text>
-                      {entry.total_hours !== undefined ? entry.total_hours.toFixed(2) + " hrs" : ""}
+                      {entry.TotalHours !== undefined ? entry.TotalHours.toFixed(2) + " hrs" : ""}
                     </Text>
                   </View>
                 </View>

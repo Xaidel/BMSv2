@@ -5,21 +5,28 @@ import Filter from "@/components/ui/filter";
 import Searchbar from "@/components/ui/searchbar";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import {Trash, CalendarPlus, CalendarCheck, CalendarX2, CalendarClock,} from "lucide-react";
-import { useMemo, useState, useEffect } from "react";
+import {
+  Trash,
+  CalendarPlus,
+  CalendarCheck,
+  CalendarX2,
+  CalendarClock,
+  Eye,
+} from "lucide-react";
+import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { invoke } from "@tauri-apps/api/core";
 import { toast } from "sonner";
-import { Logbook } from "@/types/types";
+import { Logbook } from "@/types/apitypes";
 import { pdf } from "@react-pdf/renderer";
 import { writeFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 import { LogbookPDF } from "@/components/pdf/logbook";
 import SummaryCardLogbook from "@/components/summary-card/logbook";
 import AddLogbookModal from "@/features/logbook/addLogbookModal";
-import DeleteLogbookModal from "@/features/logbook/deleteLogbookModal";
 import ViewLogbookModal from "@/features/logbook/viewLogbookModal";
-import { logbookSort } from "@/service/logbook/logbookSort";
+import { sort } from "@/service/logbook/logbookSort";
 import searchLogbook from "@/service/logbook/searchLogbook";
+import { useLogbook } from "@/features/api/logbook/useLogbook";
+import { useDeleteLogbook } from "@/features/api/logbook/useDeleteLogbok";
 
 const filters = [
   "All Logbook Entries",
@@ -34,95 +41,111 @@ const filters = [
 ];
 
 const columns: ColumnDef<Logbook>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected()
-            ? true
-            : table.getIsSomePageRowsSelected()
-            ? "indeterminate"
-            : false
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        className="flex items-center justify-center"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        className="flex items-center justify-center"
-      />
-    ),
-  },
+
   {
     header: "Official Name",
-    accessorKey: "official_name",
+    accessorKey: "Name",
   },
   {
     header: "Date",
-    accessorKey: "date",
+    accessorKey: "Date",
     cell: ({ row }) => {
-      return <div>{format(row.original.date, "MMMM d, yyyy")}</div>;
+      try {
+        const dateValue = row.original.Date;
+        const dateObj =
+          dateValue instanceof Date ? dateValue : new Date(dateValue);
+        if (isNaN(dateObj.getTime())) return <div>Invalid Date</div>;
+        return <div>{format(dateObj, "MMMM d, yyyy")}</div>;
+      } catch {
+        return <div>Invalid Date</div>;
+      }
     },
   },
   {
     header: "In AM",
-    accessorKey: "time_in_am",
+    accessorKey: "TimeInAm",
     cell: ({ row }) => {
-      const timeValue = row.original.time_in_am;
+      const timeValue = row.original.TimeInAm;
       if (!timeValue) return null;
-      return (
-        <div>{format(new Date("1970-01-01T" + timeValue), "hh:mm a")}</div>
-      );
+      try {
+        const parts = timeValue.split(":");
+        if (parts.length < 2) return <div>Invalid Time</div>;
+        const [h, m] = parts;
+        const safeTime = `${h.padStart(2, "0")}:${m.padStart(2, "0")}`;
+        const dateObj = new Date(`1970-01-01T${safeTime}`);
+        if (isNaN(dateObj.getTime())) return <div>Invalid Time</div>;
+        return <div>{format(dateObj, "hh:mm a")}</div>;
+      } catch {
+        return <div>Invalid Time</div>;
+      }
     },
   },
   {
     header: "Out AM",
-    accessorKey: "time_out_am",
+    accessorKey: "TimeOutAm",
     cell: ({ row }) => {
-      const timeValue = row.original.time_out_am;
+      const timeValue = row.original.TimeOutAm;
       if (!timeValue) return null;
-      return (
-        <div>{format(new Date("1970-01-01T" + timeValue), "hh:mm a")}</div>
-      );
+      try {
+        const parts = timeValue.split(":");
+        if (parts.length < 2) return <div>Invalid Time</div>;
+        const [h, m] = parts;
+        const safeTime = `${h.padStart(2, "0")}:${m.padStart(2, "0")}`;
+        const dateObj = new Date(`1970-01-01T${safeTime}`);
+        if (isNaN(dateObj.getTime())) return <div>Invalid Time</div>;
+        return <div>{format(dateObj, "hh:mm a")}</div>;
+      } catch {
+        return <div>Invalid Time</div>;
+      }
     },
   },
   {
     header: "In PM",
-    accessorKey: "time_in_pm",
+    accessorKey: "TimeInPm",
     cell: ({ row }) => {
-      const timeValue = row.original.time_in_pm;
+      const timeValue = row.original.TimeInPm;
       if (!timeValue) return null;
-      return (
-        <div>{format(new Date("1970-01-01T" + timeValue), "hh:mm a")}</div>
-      );
+      try {
+        const parts = timeValue.split(":");
+        if (parts.length < 2) return <div>Invalid Time</div>;
+        const [h, m] = parts;
+        const safeTime = `${h.padStart(2, "0")}:${m.padStart(2, "0")}`;
+        const dateObj = new Date(`1970-01-01T${safeTime}`);
+        if (isNaN(dateObj.getTime())) return <div>Invalid Time</div>;
+        return <div>{format(dateObj, "hh:mm a")}</div>;
+      } catch {
+        return <div>Invalid Time</div>;
+      }
     },
   },
   {
     header: "Out PM",
-    accessorKey: "time_out_pm",
+    accessorKey: "TimeOutPm",
     cell: ({ row }) => {
-      const timeValue = row.original.time_out_pm;
+      const timeValue = row.original.TimeOutPm;
       if (!timeValue) return null;
-      return (
-        <div>{format(new Date("1970-01-01T" + timeValue), "hh:mm a")}</div>
-      );
+      try {
+        const parts = timeValue.split(":");
+        if (parts.length < 2) return <div>Invalid Time</div>;
+        const [h, m] = parts;
+        const safeTime = `${h.padStart(2, "0")}:${m.padStart(2, "0")}`;
+        const dateObj = new Date(`1970-01-01T${safeTime}`);
+        if (isNaN(dateObj.getTime())) return <div>Invalid Time</div>;
+        return <div>{format(dateObj, "hh:mm a")}</div>;
+      } catch {
+        return <div>Invalid Time</div>;
+      }
     },
   },
   {
     header: "Remarks",
-    accessorKey: "remarks",
+    accessorKey: "Remarks",
   },
   {
     header: "Status",
-    accessorKey: "status",
+    accessorKey: "Status",
     cell: ({ row }) => {
-      const status = row.original.status;
+      const status = row.original.Status;
       let color: string;
       if (status === "Absent") {
         color = "red";
@@ -136,9 +159,9 @@ const columns: ColumnDef<Logbook>[] = [
   },
   {
     header: "Total Hours",
-    accessorKey: "total_hours",
+    accessorKey: "TotalHours",
     cell: ({ row }) => {
-      const hours = row.original.total_hours;
+      const hours = row.original.TotalHours;
       return <div>{hours !== undefined ? hours.toFixed(2) + " hrs" : ""}</div>;
     },
   },
@@ -159,95 +182,60 @@ export default function LogbookPage() {
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
-  const [data, setData] = useState<Logbook[]>([]);
-  const fetchLogbookEntries = () => {
-    invoke<Logbook[]>("fetch_all_logbook_entries_command")
-      .then((fetched) => {
-        const parsed = fetched.map((entry) => {
-          const dateObj = new Date(entry.date);
-          const amHours = calculateHours(entry.time_in_am, entry.time_out_am);
-          const pmHours = calculateHours(entry.time_in_pm, entry.time_out_pm);
-          const totalHours = amHours + pmHours;
-          const today = new Date();
-          const isBeforeToday =
-            dateObj.setHours(0, 0, 0, 0) < today.setHours(0, 0, 0, 0);
-          let status = entry.status;
-          if (isBeforeToday) {
-            if (totalHours >= 7) {
-              status = "Full Day";
-            } else if (totalHours >= 3.5) {
-              status = "Half Day";
-            } else if (totalHours === 0) {
-              status = "Absent";
-            }
-          }
-          return {
-            ...entry,
-            date: dateObj,
-            total_hours: totalHours,
-            status,
-          };
-        });
-        setData(parsed);
-      })
-      .catch((err) => console.error("Failed to fetch logbook entries:", err));
-  };
+  const [selectedLogbook, setSelectedLogbook] = useState<number[]>([]);
+  const { data: logbookResponse } = useLogbook();
+  const { mutateAsync: deleteLogbook } = useDeleteLogbook();
 
-  useEffect(() => {
-    fetchLogbookEntries();
-  }, []);
+  const logbook = useMemo(() => {
+    const fetched = logbookResponse?.logbooks ?? [];
+    const parsed = fetched.map((entry) => {
+      const dateObj = new Date(entry.Date);
+      const amHours = calculateHours(entry.TimeInAm, entry.TimeOutAm);
+      const pmHours = calculateHours(entry.TimeInPm, entry.TimeOutPm);
+      const totalHours = amHours + pmHours;
+      const today = new Date();
+      const isBeforeToday =
+        dateObj.setHours(0, 0, 0, 0) < today.setHours(0, 0, 0, 0);
+      let status = entry.Status;
+      if (isBeforeToday) {
+        if (totalHours >= 7) {
+          status = "Full Day";
+        } else if (totalHours >= 3.5) {
+          status = "Half Day";
+        } else if (totalHours === 0) {
+          status = "Absent";
+        }
+      }
+      return {
+        ...entry,
+        Date: dateObj,
+        TotalHours: totalHours,
+        Status: status,
+      };
+    });
+    return parsed;
+  }, [logbookResponse]);
 
-  <AddLogbookModal onSave={fetchLogbookEntries} />;
+  const total = logbook.length;
 
   const handleSortChange = (sortValue: string) => {
     searchParams.set("sort", sortValue);
     setSearchParams(searchParams);
   };
 
-  const handleSearch = (searchTerm: string) => {
-    setSearchQuery(searchTerm);
+  const handleSearch = (term: string) => {
+    setSearchQuery(term);
   };
 
   const filteredData = useMemo(() => {
-    const sortedData = logbookSort(
-      data,
-      searchParams.get("sort") ?? "All Logbook Entries"
-    );
-
+    const sorted = sort(logbook, searchParams.get("sort") ?? "All Logbook");
     if (searchQuery.trim()) {
-      return searchLogbook(searchQuery, sortedData);
+      return searchLogbook(searchQuery, sorted);
     }
-
-    return sortedData;
-  }, [searchParams, data, searchQuery]);
-
-  const total = data.length;
-
-  const handleDeleteSelected = async () => {
-    const selectedIds = Object.keys(rowSelection)
-      .map((key) => filteredData[parseInt(key)])
-      .filter((row) => !!row)
-      .map((row) => row.id);
-
-    if (selectedIds.length === 0) {
-      toast.error("No logbook entries selected.");
-      return;
-    }
-
-    try {
-      for (const id of selectedIds) {
-        if (id !== undefined) {
-          await invoke("delete_logbook_entry_command", { id });
-        }
-      }
-      toast.success("Selected logbook entries deleted.");
-      fetchLogbookEntries(); // Refresh the table
-      setRowSelection({}); // Reset selection
-    } catch (err) {
-      toast.error("Failed to delete selected logbook entries");
-      console.error("Delete error:", err);
-    }
-  };
+    return sorted;
+  }, [searchParams, logbook, searchQuery]);
+  
+  const [viewLogbookId, setViewLogbookId] = useState<number | null>(null);
   return (
     <>
       <div className="flex flex-wrap gap-5 justify-around mb-5 mt-1">
@@ -257,7 +245,7 @@ export default function LogbookPage() {
           icon={<CalendarClock size={50} />}
           onClick={async () => {
             const blob = await pdf(
-              <LogbookPDF filter="All Logbook Entries" logbook={data} />
+              <LogbookPDF filter="All Logbook Entries" logbook={filteredData} />
             ).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
@@ -278,23 +266,23 @@ export default function LogbookPage() {
         <SummaryCardLogbook
           title="Active Today"
           value={
-            data.filter((entry) => {
+            logbook.filter((entry) => {
               const today = new Date();
               return (
-                entry.date.getFullYear() === today.getFullYear() &&
-                entry.date.getMonth() === today.getMonth() &&
-                entry.date.getDate() === today.getDate()
+                entry.Date.getFullYear() === today.getFullYear() &&
+                entry.Date.getMonth() === today.getMonth() &&
+                entry.Date.getDate() === today.getDate()
               );
             }).length
           }
           icon={<CalendarPlus size={50} />}
           onClick={async () => {
             const today = new Date();
-            const filtered = data.filter(
+            const filtered = logbook.filter(
               (entry) =>
-                entry.date.getFullYear() === today.getFullYear() &&
-                entry.date.getMonth() === today.getMonth() &&
-                entry.date.getDate() === today.getDate()
+                entry.Date.getFullYear() === today.getFullYear() &&
+                entry.Date.getMonth() === today.getMonth() &&
+                entry.Date.getDate() === today.getDate()
             );
             const blob = await pdf(
               <LogbookPDF filter="Active Today" logbook={filtered} />
@@ -318,25 +306,25 @@ export default function LogbookPage() {
         <SummaryCardLogbook
           title="Absent Today"
           value={
-            data.filter((entry) => {
+            logbook.filter((entry) => {
               const today = new Date();
               return (
-                entry.status === "Absent" &&
-                entry.date.getFullYear() === today.getFullYear() &&
-                entry.date.getMonth() === today.getMonth() &&
-                entry.date.getDate() === today.getDate()
+                entry.Status === "Absent" &&
+                entry.Date.getFullYear() === today.getFullYear() &&
+                entry.Date.getMonth() === today.getMonth() &&
+                entry.Date.getDate() === today.getDate()
               );
             }).length
           }
           icon={<CalendarX2 size={50} />}
           onClick={async () => {
             const today = new Date();
-            const filtered = data.filter(
+            const filtered = logbook.filter(
               (entry) =>
-                entry.status === "Absent" &&
-                entry.date.getFullYear() === today.getFullYear() &&
-                entry.date.getMonth() === today.getMonth() &&
-                entry.date.getDate() === today.getDate()
+                entry.Status === "Absent" &&
+                entry.Date.getFullYear() === today.getFullYear() &&
+                entry.Date.getMonth() === today.getMonth() &&
+                entry.Date.getDate() === today.getDate()
             );
             const blob = await pdf(
               <LogbookPDF filter="Absent Today" logbook={filtered} />
@@ -360,25 +348,25 @@ export default function LogbookPage() {
         <SummaryCardLogbook
           title="Present Today"
           value={
-            data.filter((entry) => {
+            logbook.filter((entry) => {
               const today = new Date();
               return (
-                entry.status === "Full Day" &&
-                entry.date.getFullYear() === today.getFullYear() &&
-                entry.date.getMonth() === today.getMonth() &&
-                entry.date.getDate() === today.getDate()
+                entry.Status === "Full Day" &&
+                entry.Date.getFullYear() === today.getFullYear() &&
+                entry.Date.getMonth() === today.getMonth() &&
+                entry.Date.getDate() === today.getDate()
               );
             }).length
           }
           icon={<CalendarCheck size={50} />}
           onClick={async () => {
             const today = new Date();
-            const filtered = data.filter(
+            const filtered = logbook.filter(
               (entry) =>
-                entry.status === "Full Day" &&
-                entry.date.getFullYear() === today.getFullYear() &&
-                entry.date.getMonth() === today.getMonth() &&
-                entry.date.getDate() === today.getDate()
+                entry.Status === "Full Day" &&
+                entry.Date.getFullYear() === today.getFullYear() &&
+                entry.Date.getMonth() === today.getMonth() &&
+                entry.Date.getDate() === today.getDate()
             );
             const blob = await pdf(
               <LogbookPDF filter="Present Today" logbook={filtered} />
@@ -416,49 +404,110 @@ export default function LogbookPage() {
         <Button
           variant="destructive"
           size="lg"
-          disabled={Object.keys(rowSelection).length === 0}
-          onClick={handleDeleteSelected}
+          disabled={selectedLogbook.length === 0}
+          onClick={() => {
+            if (selectedLogbook.length > 0) {
+              toast.promise(deleteLogbook(selectedLogbook), {
+                loading: "Deleting selected logbooks. Please wait",
+                success: () => {
+                  setSelectedLogbook([]);
+                  setRowSelection({});
+                  return {
+                    message: "Selected logbooks deleted successfully",
+                  };
+                },
+                error: () => {
+                  return {
+                    message: "Failed to delete selected logbooks",
+                  };
+                },
+              });
+            }
+          }}
         >
           <Trash />
           Delete Selected
         </Button>
-        <AddLogbookModal onSave={fetchLogbookEntries} />
+        <AddLogbookModal onSave={() => {}} />
       </div>
 
+      {/* Data Table */}
       <DataTable<Logbook>
         classname="py-5"
         height="43.3rem"
         data={filteredData}
         columns={[
+          {
+            id: "select",
+            header: ({ table }) => (
+              <Checkbox
+                checked={
+                  table.getIsAllPageRowsSelected()
+                    ? true
+                    : table.getIsSomePageRowsSelected()
+                    ? "indeterminate"
+                    : false
+                }
+                onCheckedChange={(value) => {
+                  table.toggleAllPageRowsSelected(!!value);
+                  if (value) {
+                    const allVisibleRows = table
+                      .getRowModel()
+                      .rows.map((row) => row.original.ID);
+                    setSelectedLogbook(allVisibleRows);
+                  } else {
+                    setSelectedLogbook([]);
+                  }
+                }}
+                aria-label="Select all"
+                className="flex items-center justify-center"
+              />
+            ),
+            cell: ({ row }) => (
+              <Checkbox
+                checked={row.getIsSelected()}
+                onCheckedChange={(value) => {
+                  row.toggleSelected(!!value);
+                  if (value) {
+                    setSelectedLogbook((prev) => [...prev, row.original.ID]);
+                  } else {
+                    setSelectedLogbook((prev) =>
+                      prev.filter((logbook) => logbook !== row.original.ID)
+                    );
+                  }
+                }}
+                aria-label="Select row"
+                className="flex items-center justify-center"
+              />
+            ),
+          },
           ...columns,
           {
             id: "view",
             header: "",
-            cell: ({ row }) => {
-              const status = row.original.status;
-              return (
-                <div className="flex gap-3">
-                  <ViewLogbookModal
-                    {...row.original}
-                    onSave={fetchLogbookEntries}
-                  />
-                  {status !== "Ongoing" &&
-                    status !== "Half Day" &&
-                    status !== "Full Day" && (
-                      <DeleteLogbookModal
-                        {...row.original}
-                        date={row.original.date.toISOString()}
-                        onDelete={fetchLogbookEntries}
-                      />
-                    )}
-                </div>
-              );
-            },
+            cell: ({ row }) => (
+              <Button onClick={() => setViewLogbookId(row.original.ID)}>
+                <Eye /> View More
+              </Button>
+            ),
           },
         ]}
         rowSelection={rowSelection}
-        onRowSelectionChange={setRowSelection}
+        onRowSelectionChange={(selected) => {
+          setRowSelection(selected);
+          const selectedIds = Object.keys(selected)
+            .filter((key) => selected[key])
+            .map((key) => Number(key));
+          setSelectedLogbook(selectedIds);
+        }}
       />
+      {viewLogbookId !== null && (
+        <ViewLogbookModal
+          logbook={logbook.find((e) => e.ID === viewLogbookId) ?? null}
+          open={true}
+          onClose={() => setViewLogbookId(null)}
+        />
+      )}
     </>
   );
 }

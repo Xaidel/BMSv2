@@ -4,9 +4,9 @@ import { twMerge } from "tailwind-merge";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
-export const getAge = (birthday: string) => {
-  if (!birthday) return null
-  const birthDate = new Date(birthday)
+export const getAge = (Birthday: string) => {
+  if (!Birthday) return null
+  const birthDate = new Date(Birthday)
   const today = new Date()
 
   let age = today.getFullYear() - birthDate.getFullYear()

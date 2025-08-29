@@ -57,15 +57,9 @@ type ViewIncomeModalProps = {
   onClose: () => void;
 };
 
-export default function ViewIncomeModal({
-  income,
-  open,
-  onClose,
-}: ViewIncomeModalProps) {
+export default function ViewIncomeModal({income,open, onClose,}: ViewIncomeModalProps) {
   const [openCalendar, setOpenCalendar] = useState(false);
-
   const { mutateAsync: editIncome } = useEditIncome();
-
   const form = useForm<z.infer<typeof incomeSchema>>({
     resolver: zodResolver(incomeSchema),
     defaultValues: {
@@ -110,14 +104,11 @@ export default function ViewIncomeModal({
         : {}),
     };
     // Use toast.promise to provide feedback
-    await toast.promise(
-      editIncome({ ID: income.ID, updated: payload }),
-      {
-        loading: "Updating income...",
-        success: "Income updated successfully",
-        error: "Failed to update income",
-      }
-    );
+    await toast.promise(editIncome({ ID: income.ID, updated: payload }), {
+      loading: "Updating income...",
+      success: "Income updated successfully",
+      error: "Failed to update income",
+    });
     onClose();
   }
 
