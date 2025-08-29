@@ -69,7 +69,7 @@ export default function ViewEventModal({ event, open, onClose }: { event: Event,
       }
     })
     toast.promise(
-      editMutation.mutateAsync({ event_id: event.ID, updated }), {
+      editMutation.mutateAsync({ ID: event.ID, updated }), {
       loading: "Editing new event please wait...",
       success: (data) => {
         queryClient.invalidateQueries({ queryKey: ['events'] })

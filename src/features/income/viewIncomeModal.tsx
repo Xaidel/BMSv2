@@ -70,7 +70,7 @@ export default function ViewIncomeModal({income,open, onClose,}: ViewIncomeModal
       ReceivedFrom: income.ReceivedFrom,
       ReceivedBy: income.ReceivedBy,
       DateReceived:
-        income.DateReceived instanceof Date
+      income.DateReceived instanceof Date
           ? income.DateReceived
           : new Date(income.DateReceived),
     },

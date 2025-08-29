@@ -1,15 +1,15 @@
 import { ResProps } from "@/service/api/household/getHousehold";
 
-export type Event = {
-  id: number;
-  name: string,
-  type_: string,
-  status: "Upcoming" | "Finished" | "Ongoing" | "Cancelled",
-  date: Date,
-  venue: string,
-  attendee: string,
-  notes: string
-}
+// export type Event = {
+//   id: number;
+//   name: string,
+//   type_: string,
+//   status: "Upcoming" | "Finished" | "Ongoing" | "Cancelled",
+//   date: Date,
+//   venue: string,
+//   attendee: string,
+//   notes: string
+// }
 
 export type Resident = {
   id: number;
@@ -70,16 +70,17 @@ export type Income = {
   date: Date,
 }
 
-export type Expense = {
-  id?: number;
-  type_: string;
-  category: string;
-  amount: number;
-  or_number: number;
-  paid_to: string;
-  paid_by: string;
-  date: Date;
-};
+// export type Expense = {
+//   [x: string]: any;
+//   id?: number;
+//   type_: string;
+//   category: string;
+//   amount: number;
+//   or_number: number;
+//   paid_to: string;
+//   paid_by: string;
+//   date: Date;
+// };
 
 export type Certificate = {
   id?: number;

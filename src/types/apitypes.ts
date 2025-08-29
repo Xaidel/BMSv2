@@ -54,6 +54,17 @@ export type Income = {
   DateReceived: Date
 }
 
+export type Expense = {
+  ID: number;
+  Category: string;
+  Type: string;
+  Amount: number;
+  OR: string;
+  PaidTo: string;
+  PaidBy: string;
+  Date: string | Date;
+};
+
 export type Certificate = {
   ID?: number;
   Name: string;
