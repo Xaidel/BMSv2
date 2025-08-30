@@ -1,6 +1,6 @@
 import { api } from "@/service/api"
 export type PatchIncome = Partial<{
-  ID?: number
+  ID: number
   Category: string
   Type: string
   Amount: number

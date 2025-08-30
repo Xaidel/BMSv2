@@ -62,7 +62,6 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
       Zone: "",
     },
   });
-  console.log(imagePreview);
 
   const addMutation = useAddOfficial();
   const queryClient = useQueryClient();
@@ -271,7 +270,7 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Enter name"
+                        placeholder="Enter Name"
                         className="text-black"
                         {...field}
                       />
@@ -291,6 +290,7 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
                     </FormLabel>
                     <FormControl>
                       <Input
+                        placeholder="Enter Age"
                         type="number"
                         onChange={(e) =>
                           field.onChange(

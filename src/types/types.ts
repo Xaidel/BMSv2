@@ -58,17 +58,17 @@ export type Household = {
   selectedResidents?: string[]; // optional list of selected members
 };
 
-export type Income = {
-  [x: string]: any;
-  id?: number;
-  category: string,
-  type_: string,
-  amount: number,
-  or_number: number,
-  received_from: string,
-  received_by: string,
-  date: Date,
-}
+// export type Income = {
+//   [x: string]: any;
+//   id?: number;
+//   category: string,
+//   type_: string,
+//   amount: number,
+//   or_number: number,
+//   received_from: string,
+//   received_by: string,
+//   date: Date,
+// }
 
 // export type Expense = {
 //   [x: string]: any;
@@ -110,30 +110,30 @@ export type Blotter = {
   hearing_date: Date; 
 };
 
-export type Settings = {
-  id?: number;
-  barangay: string;
-  municipality: string;
-  province: string;
-  phone_number: string;
-  email: string;
-  logo?: string;
-  logo_municipality?: string;
-};
+// export type Settings = {
+//   id?: number;
+//   barangay: string;
+//   municipality: string;
+//   province: string;
+//   phone_number: string;
+//   email: string;
+//   logo?: string;
+//   logo_municipality?: string;
+// };
 
 
-export type Official = {
-  id: number;
-  name: string;
-  role: string;
-  image: string;
-  section: string;
-  age: number;
-  contact: string;
-  term_start: string;
-  term_end: string;
-  zone: string;
-};
+// export type Official = {
+//   id: number;
+//   name: string;
+//   role: string;
+//   image: string;
+//   section: string;
+//   age: number;
+//   contact: string;
+//   term_start: string;
+//   term_end: string;
+//   zone: string;
+// };
 
 export type User = {
   id?: number;

@@ -77,10 +77,10 @@ export default function ViewIncomeModal({income,open, onClose,}: ViewIncomeModal
   });
 
   async function onSubmit(values: z.infer<typeof incomeSchema>) {
-    // Compare changed fields with original income
+    // Prepare updated fields comparing with original income
     const updatedFields: Partial<z.infer<typeof incomeSchema>> = {};
-    if (values.Category !== income.Category)
-      updatedFields.Category = values.Category;
+
+    if (values.Category !== income.Category) updatedFields.Category = values.Category;
     if (values.Type !== income.Type) updatedFields.Type = values.Type;
     if (values.Amount !== income.Amount) updatedFields.Amount = values.Amount;
     if (values.OR !== income.OR) updatedFields.OR = values.OR;
@@ -88,7 +88,8 @@ export default function ViewIncomeModal({income,open, onClose,}: ViewIncomeModal
       updatedFields.ReceivedFrom = values.ReceivedFrom;
     if (values.ReceivedBy !== income.ReceivedBy)
       updatedFields.ReceivedBy = values.ReceivedBy;
-    // For DateReceived, compare as ISO string
+
+    // Handle DateReceived
     const origDate =
       income.DateReceived instanceof Date
         ? income.DateReceived
@@ -96,19 +97,25 @@ export default function ViewIncomeModal({income,open, onClose,}: ViewIncomeModal
     if (values.DateReceived.getTime() !== origDate.getTime()) {
       updatedFields.DateReceived = values.DateReceived;
     }
-    // Prepare payload
-    const payload = {
-      ...updatedFields,
-      ...(updatedFields.DateReceived
-        ? { DateReceived: (updatedFields.DateReceived as Date).toISOString() }
-        : {}),
-    };
-    // Use toast.promise to provide feedback
-    await toast.promise(editIncome({ ID: income.ID, updated: payload }), {
-      loading: "Updating income...",
-      success: "Income updated successfully",
-      error: "Failed to update income",
-    });
+
+    // If no changes, show error and exit
+    if (Object.keys(updatedFields).length === 0) {
+      toast.error("No changes detected.");
+      return;
+    }
+
+    console.log("Updated fields:", updatedFields);
+
+    // Send updated fields directly as Date (keep types consistent)
+    await toast.promise(
+      editIncome({ ID: income.ID, updated: updatedFields }),
+      {
+        loading: "Updating income...",
+        success: "Income updated successfully",
+        error: "Failed to update income",
+      }
+    );
+
     onClose();
   }
 

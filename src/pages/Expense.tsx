@@ -141,13 +141,13 @@ export default function ExpenseNewPage() {
           title="Infrastructure Expenses"
           value={new Intl.NumberFormat("en-US").format(
             filteredData
-              .filter((d) => d.category === "Infrastructure")
+              .filter((d) => d.Category === "Infrastructure")
               .reduce((acc, item) => acc + item.Amount, 0)
           )}
           icon={<Landmark size={50} />}
           onClick={async () => {
             const filtered = filteredData.filter(
-              (d) => d.category === "Infrastructure"
+              (d) => d.Category === "Infrastructure"
             );
             try {
               const blob = await pdf(
@@ -174,13 +174,13 @@ export default function ExpenseNewPage() {
           title="Honoraria"
           value={new Intl.NumberFormat("en-US").format(
             filteredData
-              .filter((d) => d.category === "Honoraria")
+              .filter((d) => d.Category === "Honoraria")
               .reduce((acc, item) => acc + item.Amount, 0)
           )}
           icon={<PiggyBank size={50} />}
           onClick={async () => {
             const filtered = filteredData.filter(
-              (d) => d.category === "Honoraria"
+              (d) => d.Category === "Honoraria"
             );
             try {
               const blob = await pdf(
@@ -204,13 +204,13 @@ export default function ExpenseNewPage() {
           title="Utilities"
           value={new Intl.NumberFormat("en-US").format(
             filteredData
-              .filter((d) => d.category === "Utilities")
+              .filter((d) => d.Category === "Utilities")
               .reduce((acc, item) => acc + item.Amount, 0)
           )}
           icon={<Wallet size={50} />}
           onClick={async () => {
             const filtered = filteredData.filter(
-              (d) => d.category === "Utilities"
+              (d) => d.Category === "Utilities"
             );
             try {
               const blob = await pdf(
@@ -234,13 +234,13 @@ export default function ExpenseNewPage() {
           title="Local Funds Used"
           value={new Intl.NumberFormat("en-US").format(
             filteredData
-              .filter((d) => d.category === "Local Funds")
+              .filter((d) => d.Category === "Local Funds")
               .reduce((acc, item) => acc + item.Amount, 0)
           )}
           icon={<Banknote size={50} />}
           onClick={async () => {
             const filtered = filteredData.filter(
-              (d) => d.category === "Local Funds"
+              (d) => d.Category === "Local Funds"
             );
             try {
               const blob = await pdf(
@@ -264,12 +264,12 @@ export default function ExpenseNewPage() {
           title="Foods"
           value={new Intl.NumberFormat("en-US").format(
             filteredData
-              .filter((d) => d.category === "Foods")
+              .filter((d) => d.Category === "Foods")
               .reduce((acc, item) => acc + item.Amount, 0)
           )}
           icon={<Salad size={50} />}
           onClick={async () => {
-            const filtered = filteredData.filter((d) => d.category === "Foods");
+            const filtered = filteredData.filter((d) => d.Category === "Foods");
             try {
               const blob = await pdf(
                 <ExpensePDF filter="Foods Expenses" expenses={filtered} />
@@ -292,12 +292,12 @@ export default function ExpenseNewPage() {
           title="IRA Used"
           value={new Intl.NumberFormat("en-US").format(
             filteredData
-              .filter((d) => d.category === "IRA")
+              .filter((d) => d.Category === "IRA")
               .reduce((acc, item) => acc + item.Amount, 0)
           )}
           icon={<Layers size={50} />}
           onClick={async () => {
-            const filtered = filteredData.filter((d) => d.category === "IRA");
+            const filtered = filteredData.filter((d) => d.Category === "IRA");
             try {
               const blob = await pdf(
                 <ExpensePDF filter="IRA Expenses" expenses={filtered} />
@@ -318,13 +318,13 @@ export default function ExpenseNewPage() {
           title="Others"
           value={new Intl.NumberFormat("en-US").format(
             filteredData
-              .filter((d) => d.category === "Others")
+              .filter((d) => d.Category === "Others")
               .reduce((acc, item) => acc + item.Amount, 0)
           )}
           icon={<Shirt size={50} />}
           onClick={async () => {
             const filtered = filteredData.filter(
-              (d) => d.category === "Others"
+              (d) => d.Category === "Others"
             );
             try {
               const blob = await pdf(

@@ -1,15 +1,19 @@
-import { invoke } from "@tauri-apps/api/core";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { settingsSchema } from "@/types/formSchema";
 import { z } from "zod";
-import LogoPlaceholder from "@/assets/new_logo_small.png";
+import ImageBPlaceholder from "@/assets/new_logo_small.png";
 import { toast } from "sonner";
-
-export default function Settings() {
-  const [Logo, setLogo] = useState(LogoPlaceholder);
-  const [LogoMunicipality, setLogoMunicipality] = useState(LogoPlaceholder);
+import { useQueryClient } from "@tanstack/react-query";
+import { ErrorResponse } from "@/service/api/auth/login";
+import { useAddSettings } from "@/features/api/settings/useAddSettings";
+import { useEditSettings } from "@/features/api/settings/useEditSettings";
+export default function Settings({ onSave }: { onSave: () => void })  {
+  const [ImageB, setImageB] = useState(ImageBPlaceholder);
+  const [ImageM, setImageM] = useState(ImageBPlaceholder);
+  const [openModal, setOpenModal] = useState(false);
+  const [imagePreview, setImagePreview] = useState("");
 
   const form = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
@@ -20,26 +24,37 @@ export default function Settings() {
       Province: "",
       PhoneNumber: "",
       Email: "",
-      Logo: "",
-      LogoMunicipality: "",
+      ImageB: "",
+      ImageM: "",
     },
   });
 
   useEffect(() => {
     async function loadSettings() {
       try {
-        const loaded = (await invoke("fetch_settings_command")) as z.infer<
-          typeof settingsSchema
-        >;
+        const res = await fetch("/api/settings"); // adjust endpoint if necessary
+        if (!res.ok) throw new Error("Failed to load settings");
+        let loaded: z.infer<typeof settingsSchema> | null = null;
+        try {
+          loaded = (await res.json()) as z.infer<typeof settingsSchema>;
+        } catch {
+          console.warn("Settings endpoint did not return valid JSON, using defaults");
+        }
         if (loaded) {
           form.reset(loaded);
-          if (loaded.Logo && typeof loaded.Logo === "string") {
-            setLogo(loaded.Logo);
-            form.setValue("Logo", loaded.Logo); // <- Add this line
+          if (loaded.ImageB && typeof loaded.ImageB === "string") {
+            const isDataUrlB = loaded.ImageB.startsWith("data:");
+            const previewB = isDataUrlB ? loaded.ImageB : `data:image/png;base64,${loaded.ImageB}`;
+            setImageB(previewB);
+            const base64B = isDataUrlB ? loaded.ImageB.split(",")[1] ?? loaded.ImageB : loaded.ImageB;
+            form.setValue("ImageB", base64B);
           }
-          if (loaded.LogoMunicipality && typeof loaded.LogoMunicipality === "string") {
-            setLogoMunicipality(loaded.LogoMunicipality);
-            form.setValue("LogoMunicipality", loaded.LogoMunicipality);
+          if (loaded.ImageM && typeof loaded.ImageM === "string") {
+            const isDataUrlM = loaded.ImageM.startsWith("data:");
+            const previewM = isDataUrlM ? loaded.ImageM : `data:image/png;base64,${loaded.ImageM}`;
+            setImageM(previewM);
+            const base64M = isDataUrlM ? loaded.ImageM.split(",")[1] ?? loaded.ImageM : loaded.ImageM;
+            form.setValue("ImageM", base64M);
           }
         }
       } catch (error) {
@@ -50,44 +65,68 @@ export default function Settings() {
     loadSettings();
   }, []);
 
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageBChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
         if (typeof reader.result === "string") {
-          setLogo(reader.result);
-          form.setValue("Logo", reader.result); // set in form
+          setImageB(reader.result); // keep full Data URL for preview
+          const base64 = reader.result.split(",")[1] ?? reader.result; // strip data URL prefix
+          form.setValue("ImageB", base64); // send only base64 to backend
         }
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleLogoMunicipalityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageMChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
         if (typeof reader.result === "string") {
-          setLogoMunicipality(reader.result);
-          form.setValue("LogoMunicipality", reader.result);
+          setImageM(reader.result); // keep full Data URL for preview
+          const base64 = reader.result.split(",")[1] ?? reader.result; // strip data URL prefix
+          form.setValue("ImageM", base64); // send only base64 to backend
         }
       };
       reader.readAsDataURL(file);
     }
   };
 
+  const addMutation = useAddSettings();
+  const editMutation = useEditSettings();
+  const queryClient = useQueryClient();
   async function onSubmit(values: z.infer<typeof settingsSchema>) {
-    try {
-      await invoke("save_settings_command", { settings: values });
-      toast.success("Settings saved successfully!", {
-        description: <p>All changes to Barangay info were saved.</p>,
-      });
-    } catch (error) {
-      console.error("Failed to save settings:", error);
-      toast.error("Saving failed. Please try again.");
-    }
+    const isUpdate = Boolean(values.ID);
+    const promise = isUpdate
+      ? editMutation.mutateAsync({ ID: values.ID as number, updated: values }).then(() => undefined)
+      : addMutation.mutateAsync(values).then(() => undefined);
+
+    toast.promise(promise, {
+      loading: isUpdate
+        ? "Updating settings, please wait..."
+        : "Adding settings, please wait...",
+      success: () => {
+        form.reset(values);
+        queryClient.invalidateQueries({ queryKey: ["settings"] });
+        if (onSave) onSave();
+        return {
+          message: isUpdate
+            ? "Settings updated successfully"
+            : "Settings added successfully",
+        };
+      },
+      error: (error: ErrorResponse) => {
+        return {
+          message: isUpdate
+            ? "Updating settings failed"
+            : "Adding settings failed",
+          description: `${error.error}`,
+        };
+      },
+    });
   }
 
   return (
@@ -98,12 +137,12 @@ export default function Settings() {
         </h1>
 
         <div className="flex flex-col md:flex-row items-center justify-center gap-10">
-          {/* Logo Upload Section */}
+          {/* ImageB Upload Section */}
           <div className="flex flex-col items-center">
             <div className="w-40 h-40 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
               <img
-                src={Logo}
-                alt="Logo"
+                src={ImageB}
+                alt="ImageB"
                 className="object-cover w-full h-full"
               />
             </div>
@@ -122,20 +161,20 @@ export default function Settings() {
                   d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 16H9v-2.828z"
                 />
               </svg>
-              Change Banrangay Logo
+              Change Banrangay ImageB
               <input
                 type="file"
                 accept="image/*"
                 className="hidden"
-                onChange={handleLogoChange}
+                onChange={handleImageBChange}
               />
             </label>
 
             <div className="mt-8 flex flex-col items-center">
               <div className="w-40 h-40 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
                 <img
-                  src={LogoMunicipality}
-                  alt="Municipality Logo"
+                  src={ImageM}
+                  alt="Municipality ImageB"
                   className="object-cover w-full h-full"
                 />
               </div>
@@ -154,12 +193,12 @@ export default function Settings() {
                     d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 16H9v-2.828z"
                   />
                 </svg>
-                Change Municipality Logo
+                Change Municipality ImageB
                 <input
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={handleLogoMunicipalityChange}
+                  onChange={handleImageMChange}
                 />
               </label>
             </div>
@@ -216,8 +255,8 @@ export default function Settings() {
               />
             </div>
 
-            <input type="hidden" {...form.register("Logo")} />
-            <input type="hidden" {...form.register("LogoMunicipality")} />
+            <input type="hidden" {...form.register("ImageB")} />
+            <input type="hidden" {...form.register("ImageM")} />
 
             <div className="text-right">
               <button

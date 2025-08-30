@@ -170,9 +170,9 @@ export const expenseSchema = z.object({
   }).max(50, {
     message: "Paid By name is too long",
   }),
-
+  
   Date: z.date({
-    required_error: "Please specify the event date"
+    required_error: "Please specify the expense date"
   }),
 });
 
@@ -200,8 +200,8 @@ export const settingsSchema = z.object({
   Province: z.string().min(1),
   PhoneNumber: z.string().min(1),
   Email: z.string().email(),
-  Logo: z.string(),
-  LogoMunicipality: z.string(),
+  ImageB: z.string(),
+  ImageM: z.string(),
 });
 
 

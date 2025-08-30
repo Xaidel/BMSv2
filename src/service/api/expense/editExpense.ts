@@ -1,14 +1,13 @@
 import { api } from "@/service/api"
-
 export type PatchExpense = Partial<{
-  ID?: number
+  ID: number
   Category: string
   Type: string
   Amount: number
   OR: string
   PaidBy: string
   PaidTo: string
-  Date: string | Date
+  Date: string
 }>
 export default async function editExpense(ID: number, updated: PatchExpense) {
   try {

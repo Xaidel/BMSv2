@@ -38,7 +38,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import editExpense from "@/service/api/expense/editExpense";
+import { useQueryClient } from "@tanstack/react-query";
 
 const selectOption = [
   "Infrastructure",
@@ -50,15 +50,19 @@ const selectOption = [
   "Others",
 ];
 
-type ViewExpenseModalProps = {
+export default function ViewExpenseModal({
+  expense,
+  open,
+  onClose,
+}: {
   expense: Expense;
   open: boolean;
   onClose: () => void;
-};
-
-export default function ViewExpenseModal({ expense, open, onClose,}: ViewExpenseModalProps) {
+}) {
   const [openCalendar, setOpenCalendar] = useState(false);
-
+  // const [openModal, setOpenModal] = useState(false)
+  const queryClient = useQueryClient();
+  const editMutation = useEditExpense();
   const form = useForm<z.infer<typeof expenseSchema>>({
     resolver: zodResolver(expenseSchema),
     defaultValues: {
@@ -68,37 +72,52 @@ export default function ViewExpenseModal({ expense, open, onClose,}: ViewExpense
       OR: expense.OR,
       PaidTo: expense.PaidTo,
       PaidBy: expense.PaidBy,
-      Date: expense.Date instanceof Date ? expense.Date : new Date(expense.Date),
+      Date:
+        expense.Date instanceof Date ? expense.Date : new Date(expense.Date),
     },
   });
-  
+
+ 
+
   async function onSubmit(values: z.infer<typeof expenseSchema>) {
-    const updatedFields: Partial<z.infer<typeof expenseSchema>> = {};
+    type ExpensePatch = Partial<
+      Omit<z.infer<typeof expenseSchema>, "Date"> & { Date: string }
+    >;
 
-    if (values.Category !== expense.Category) updatedFields.Category = values.Category;
-    if (values.Type !== expense.Type) updatedFields.Type = values.Type;
-    if (values.Amount !== expense.Amount) updatedFields.Amount = values.Amount;
-    if (values.OR !== expense.OR) updatedFields.OR = values.OR;
-    if (values.PaidTo !== expense.PaidTo) updatedFields.PaidTo = values.PaidTo;
-    if (values.PaidBy !== expense.PaidBy) updatedFields.PaidBy = values.PaidBy;
-    if (new Date(values.Date).getTime() !== new Date(expense.Date).getTime()) {
-      updatedFields.Date = values.Date;
-    }
+    const updated: ExpensePatch = {};
+    (Object.keys(values) as (keyof ExpensePatch)[]).forEach((key) => {
+      const formValue = values[key as keyof typeof values];
+      let expenseValue = expense[key as keyof Expense];
 
-    const payload = {
-      ...updatedFields,
-      ...(updatedFields.Date
-        ? { Date: updatedFields.Date instanceof Date ? updatedFields.Date : new Date(updatedFields.Date) }
-        : {}),
-    };
+      if (key === "Date" && typeof expenseValue === "string") {
+        expenseValue = new Date(expenseValue) as any;
+      }
 
-    toast.promise(editExpense( expense.ID, payload), {
-      loading: "Updating expense...",
-      success: "Expense updated successfully",
-      error: "Failed to update expense",
+      if (formValue !== expenseValue) {
+        if (key === "Date" && formValue instanceof Date) {
+          updated.Date = formValue.toISOString();
+        } else {
+          (updated as Record<string, unknown>)[key] = formValue;
+        }
+      }
     });
-
-    onClose();
+    toast.promise(editMutation.mutateAsync({ ID: expense.ID, updated }), {
+      loading: "Editing new expense please wait...",
+      success: (expense) => {
+        queryClient.invalidateQueries({ queryKey: ["expenses"] });
+        onClose();
+        return {
+          message: "Expense edited successfully",
+          description: `${expense.Type} was edited`,
+        };
+      },
+      error: (error: { error: string }) => {
+        return {
+          message: "Editing expense failed",
+          description: `${error.error}`,
+        };
+      },
+    });
   }
 
   return (
@@ -129,7 +148,7 @@ export default function ViewExpenseModal({ expense, open, onClose,}: ViewExpense
                     <FormControl>
                       <Select
                         onValueChange={field.onChange}
-                        value={field.value ?? ""}
+                        defaultValue={field.value}
                       >
                         <SelectTrigger className="w-full text-black border-black/15">
                           <SelectValue
@@ -290,7 +309,7 @@ export default function ViewExpenseModal({ expense, open, onClose,}: ViewExpense
                       htmlFor="date"
                       className="text-black font-bold text-xs"
                     >
-                      Date of Residency
+                      Date
                     </FormLabel>
                     <Popover open={openCalendar} onOpenChange={setOpenCalendar}>
                       <FormControl>
@@ -298,13 +317,13 @@ export default function ViewExpenseModal({ expense, open, onClose,}: ViewExpense
                           asChild
                           className="w-full text-black hover:bg-primary hover:text-white"
                         >
-                          <Button variant="outline" type="button">
+                          <Button variant="outline">
                             {field.value ? (
                               format(field.value, "PPP")
                             ) : (
                               <span>Pick a date</span>
                             )}
-                            <CalendarIcon className="ml-auto h-4 w-4 hover:text-white" />
+                            <CalendarIcon className="ml-auto h-4 w-4  hover:text-white" />
                           </Button>
                         </PopoverTrigger>
                       </FormControl>
@@ -315,6 +334,7 @@ export default function ViewExpenseModal({ expense, open, onClose,}: ViewExpense
                           onSelect={field.onChange}
                           captionLayout="dropdown"
                           onDayClick={() => setOpenCalendar(false)}
+                          disabled={(date) => date < new Date()}
                         />
                       </PopoverContent>
                     </Popover>

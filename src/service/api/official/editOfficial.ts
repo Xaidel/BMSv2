@@ -1,5 +1,6 @@
 import { api } from "@/service/api"
 export type PatchOfficial = Partial<{
+  ID: number
   Name: string
   Role: string
   Section: string
