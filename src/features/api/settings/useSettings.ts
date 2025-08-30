@@ -1,4 +1,3 @@
-
 import getSettings, { SettingsResponse } from "@/service/api/settings/getSettings";
 import { useQuery } from "@tanstack/react-query";
 

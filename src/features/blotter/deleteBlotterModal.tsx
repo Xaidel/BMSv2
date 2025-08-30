@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Blotter } from "@/types/types";
+import { Blotter } from "@/types/apitypes";
 import { XIcon } from "lucide-react";
 import { toast } from "sonner";
 import { invoke } from "@tauri-apps/api/core";
@@ -17,12 +17,12 @@ type DeleteBlotterModalProps = Blotter & {
   onDelete: () => void;
 };
 
-export default function DeleteBlotterModal({ id, type_, onDelete }: DeleteBlotterModalProps) {
+export default function DeleteBlotterModal({ ID, Type, onDelete }: DeleteBlotterModalProps) {
   async function onConfirm() {
     try {
-      await invoke("delete_blotter_command", { id });
+      await invoke("delete_blotter_command", { ID });
       toast.success("Blotter deleted", {
-        description: `${type_} was deleted.`,
+        description: `${Type} was deleted.`,
       });
       onDelete(); // ✅ Refresh table
     } catch (error) {

@@ -101,8 +101,8 @@ export default function Settings({ onSave }: { onSave: () => void })  {
   async function onSubmit(values: z.infer<typeof settingsSchema>) {
     const isUpdate = Boolean(values.ID);
     const promise = isUpdate
-      ? editMutation.mutateAsync({ ID: values.ID as number, updated: values }).then(() => undefined)
-      : addMutation.mutateAsync(values).then(() => undefined);
+      ? editMutation.mutateAsync({ ID: values.ID as number, updated: values }).then(() => ({ settings: values }))
+      : addMutation.mutateAsync(values);
 
     toast.promise(promise, {
       loading: isUpdate

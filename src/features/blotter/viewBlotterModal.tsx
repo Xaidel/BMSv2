@@ -10,7 +10,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -38,7 +37,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Blotter } from "@/types/apitypes";
-import { invoke } from '@tauri-apps/api/core';
+import { useQueryClient } from "@tanstack/react-query";
+import { useEditBlotter } from "../api/blotter/useEditBlotter";
 
 const selectStatus: string[] = [
   "On Going",
@@ -47,62 +47,97 @@ const selectStatus: string[] = [
   "Closed",
 ];
 
-export default function ViewBlotterModal(props: Blotter & { onSave: () => void }) {
+export default function ViewBlotterModal({
+  blotter,
+  open,
+  onClose,
+}: {
+  blotter: Blotter;
+  open: boolean;
+  onClose: () => void;
+}) {
+  const queryClient = useQueryClient();
+  const editMutation = useEditBlotter();
   const [openCalendar, setOpenCalendar] = useState(false);
-  const [openModal, setOpenModal] = useState(false);
   const [step, setStep] = useState(1);
   const form = useForm<z.infer<typeof blotterSchema>>({
     resolver: zodResolver(blotterSchema),
     defaultValues: {
-      Type: props.Type,
-      ReportedBy: props.ReportedBy,
-      Involved: props.Involved,
-      IncidentDate: new Date(props.IncidentDate), 
-      Location: props.Location,
-      Zone: props.Zone,
-      Status: props.Status,
-      Narrative: props.Narrative,
-      Action: props.Action,
-      Witnesses: props.Witnesses,
-      Evidence: props.Evidence,
-      Resolution: props.Resolution,
-      HearingDate: new Date(props.HearingDate), 
+      Type: blotter.Type,
+      ReportedBy: blotter.ReportedBy,
+      Involved: blotter.Involved,
+      IncidentDate: new Date(blotter.IncidentDate),
+      Location: blotter.Location,
+      Zone: blotter.Zone,
+      Status: blotter.Status,
+      Narrative: blotter.Narrative,
+      Action: blotter.Action,
+      Witnesses: blotter.Witnesses,
+      Evidence: blotter.Evidence,
+      Resolution: blotter.Resolution,
+      HearingDate: new Date(blotter.HearingDate),
     },
   });
 
   async function onSubmit(values: z.infer<typeof blotterSchema>) {
-    try {
-      const blotterWithId = {
-        ...values,
-        id: props.ID,
-        IncidentDate: values.IncidentDate.toISOString(),
-        HearingDate: values.HearingDate.toISOString(),
-      };
+    type BlotterPatch = Partial<
+      Omit<z.infer<typeof blotterSchema>, "IncidentDate" | "HearingDate"> & {
+        IncidentDate: string;
+        HearingDate: string;
+      }
+    >;
 
-      await invoke("save_blotter_command", { blotter: blotterWithId });
+    const updated: BlotterPatch = {};
+    (Object.keys(values) as (keyof BlotterPatch)[]).forEach((key) => {
+      const formValue = values[key as keyof typeof values];
+      let blotterValue = blotter[key as keyof Blotter];
 
-      toast.success("Blotter updated successfully", {
-        description: `${values.Type} was updated.`,
-      });
+      // For date fields, parse the string to Date for comparison
+      if (
+        (key === "IncidentDate" || key === "HearingDate") &&
+        typeof blotterValue === "string"
+      ) {
+        blotterValue = new Date(blotterValue) as any;
+      }
 
-      setOpenModal(false);
-      props.onSave();
-    } catch (error) {
-      toast.error("Update failed", {
-        description: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
+      if (formValue !== blotterValue) {
+        if (
+          (key === "IncidentDate" || key === "HearingDate") &&
+          formValue instanceof Date
+        ) {
+          (updated as any)[key] = formValue.toISOString();
+        } else {
+          (updated as Record<string, unknown>)[key] = formValue;
+        }
+      }
+    });
+    toast.promise(editMutation.mutateAsync({ ID: blotter.ID, updated }), {
+      loading: "Editing new blotter please wait...",
+      success: (blotter) => {
+        queryClient.invalidateQueries({ queryKey: ["blotters"] });
+        onClose();
+        return {
+          message: "Blotter edited successfully",
+          description: `${blotter.Type} was edited`,
+        };
+      },
+      error: (error: { error: string }) => {
+        return {
+          message: "Editing blotter failed",
+          description: `${error.error}`,
+        };
+      },
+    });
   }
 
   return (
     <>
-      <Dialog open={openModal} onOpenChange={setOpenModal}>
-        <DialogTrigger asChild>
-          <Button>
-            <Eye />
-            View More
-          </Button>
-        </DialogTrigger>
+      <Dialog
+        open={open}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) onClose();
+        }}
+      >
         <DialogContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -345,8 +380,7 @@ export default function ViewBlotterModal(props: Blotter & { onSave: () => void }
 
                 {step === 2 && (
                   <>
-                    <div>
-                    </div>
+                    <div></div>
 
                     <div>
                       <FormField
@@ -558,9 +592,7 @@ export default function ViewBlotterModal(props: Blotter & { onSave: () => void }
                       Next
                     </Button>
                   )}
-                  {step === 2 && (
-                    <Button type="submit">Save Blotter</Button>
-                  )}
+                  {step === 2 && <Button type="submit">Save Blotter</Button>}
                 </div>
               </div>
             </form>

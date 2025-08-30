@@ -1,4 +1,4 @@
-import { Blotter } from "@/types/types"
+import { Blotter } from "@/types/apitypes"
 import { Document, Page, Text, View } from "@react-pdf/renderer"
 import { styles } from "./Stylesheet"
 import { format } from "date-fns"
@@ -44,18 +44,18 @@ export const BlotterPDF = ({ filter, blotters }: Props) => {
                     styles.tableRow,
                     { backgroundColor: index % 2 === 0 ? "#f9f9f9" : "white" }
                   ]}
-                  key={blotter.id}
+                  key={blotter.ID}
                 >
-                  <View style={styles.tableCell}><Text>{blotter.id}</Text></View>
-                  <View style={styles.tableCell}><Text>{blotter.type_}</Text></View>
-                  <View style={styles.tableCell}><Text>{blotter.reported_by}</Text></View>
-                  <View style={styles.tableCell}><Text>{blotter.involved}</Text></View>
+                  <View style={styles.tableCell}><Text>{blotter.ID}</Text></View>
+                  <View style={styles.tableCell}><Text>{blotter.Type}</Text></View>
+                  <View style={styles.tableCell}><Text>{blotter.ReportedBy}</Text></View>
+                  <View style={styles.tableCell}><Text>{blotter.Involved}</Text></View>
                   <View style={styles.tableCell}>
-                    <Text>{format(blotter.incident_date, "MMMM do, yyyy")}</Text>
+                    <Text>{format(blotter.IncidentDate, "MMMM do, yyyy")}</Text>
                   </View>
-                  <View style={styles.tableCell}><Text>{`Brgy. ${blotter.location}`}</Text></View>
-                  <View style={styles.tableCell}><Text>{blotter.zone}</Text></View>
-                  <View style={styles.tableCell}><Text>{blotter.status}</Text></View>
+                  <View style={styles.tableCell}><Text>{`Brgy. ${blotter.Location}`}</Text></View>
+                  <View style={styles.tableCell}><Text>{blotter.Zone}</Text></View>
+                  <View style={styles.tableCell}><Text>{blotter.Status}</Text></View>
                 </View>
               ))}
             </View>

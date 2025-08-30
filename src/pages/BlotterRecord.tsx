@@ -6,7 +6,6 @@ import Searchbar from "@/components/ui/searchbar";
 import AddBlotterModal from "@/features/blotter/addBlotterModal";
 import DeleteBlotterModal from "@/features/blotter/deleteBlotterModal";
 import ViewBlotterModal from "@/features/blotter/viewBlotterModal";
-import { pdf } from "@react-pdf/renderer"
 import {
   DollarSign,
   Eye,
@@ -20,15 +19,13 @@ import { format } from "date-fns";
 import { Trash } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Blotter } from "@/types/types";
+import { Blotter } from "@/types/apitypes";
 import sort from "@/service/blotter/blotterSort";
 import searchBlotter from "@/service/blotter/searchBlotter";
-import SummaryCardBlotter from "@/components/summary-card/blotter";
-import { useEffect } from "react";
-import { invoke } from "@tauri-apps/api/core";
+import { useDeleteBlotter } from "@/features/api/blotter/useDeleteBlotter";
+import { useBlotter } from "@/features/api/blotter/useBlotter";
 import { toast } from "sonner";
-import { BlotterPDF } from "@/components/pdf/blotterpdf";
-import { writeFile, BaseDirectory } from "@tauri-apps/plugin-fs"
+import SummaryCardBlotter from "@/components/summary-card/blotter";
 
 const filters = [
   "All Blotter Records",
@@ -43,66 +40,42 @@ const filters = [
 
 const columns: ColumnDef<Blotter>[] = [
   {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected()
-            ? true
-            : table.getIsSomePageRowsSelected()
-              ? "indeterminate"
-              : false
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        className="flex items-center justify-center"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        className="flex items-center justify-center"
-      />
-    ),
-  },
-  {
     header: "Blotter ID",
-    accessorKey: "id",
+    accessorKey: "ID",
   },
   {
     header: "Type",
-    accessorKey: "type_",
+    accessorKey: "Type",
   },
   {
     header: "Reported By",
-    accessorKey: "reported_by",
+    accessorKey: "ReportedBy",
   },
   {
     header: "Involved",
-    accessorKey: "involved",
+    accessorKey: "Involved",
   },
   {
     header: "Date Incident",
-    accessorKey: "incident_date",
+    accessorKey: "IncidentDate",
     cell: ({ row }) => {
-      return <div>{format(row.original.incident_date, "MMMM do, yyyy")}</div>;
+      return <div>{format(row.original.IncidentDate, "MMMM do, yyyy")}</div>;
     },
   },
   {
     header: "Zone",
-    accessorKey: "zone",
+    accessorKey: "Zone",
   },
   {
     header: "Status",
-    accessorKey: "status",
+    accessorKey: "Status",
     cell: ({ row }) => {
-      const status = row.original.status;
+      const Status = row.original.Status;
       let color: string;
-      switch (status) {
+      switch (Status) {
         case "On Going": {
-          color = "#BD0000";
+          color = "#FFB30F";
+          
           break;
         }
         case "Active": {
@@ -114,103 +87,59 @@ const columns: ColumnDef<Blotter>[] = [
           break;
         }
         case "Transferred to Police": {
-          color = "#FFB30F";
+          color = "#BD0000";
           break;
         }
         default: {
           color = "#000000";
         }
       }
-      return <div style={{ color: color }}>{status}</div>;
+      return <div style={{ color: color }}>{Status}</div>;
     },
   },
 ];
 
-
-export default function Blotters() {
+export default function BlotterRecordPage() {
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
-  const [data, setData] = useState<Blotter[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
-  const [printData, setPrintDataState] = useState<Blotter[] | null>(null);
-  console.log(printData)
-  const fetchBlotters = () => {
-    invoke<Blotter[]>("fetch_all_blotters_command")
-      .then((fetched) => {
-        const parsed = fetched.map((blotter) => ({
-          ...blotter,
-          incident_date: new Date(blotter.incident_date),
-          hearing_date: new Date(blotter.hearing_date),
-        }));
-        setData(parsed);
-      })
-      .catch((err) => console.error("Failed to fetch blotters:", err));
-  };
+  const [selectedBlotter, setSelectedBlotter] = useState<number[]>([]);
+  const { data: blotterResponse } = useBlotter();
+  const { mutateAsync: deleteBlotter } = useDeleteBlotter();
 
-  useEffect(() => {
-    fetchBlotters();
-  }, []);
+  const blotter = useMemo(() => {
+    return blotterResponse?.blotters ?? [];
+  }, [blotterResponse]);
 
-  // Pass the fetch function to AddBlotterModal
-  <AddBlotterModal onSave={fetchBlotters} />;
+  const total = blotter.length;
+  const finished = blotter.filter((d) => d.Status === "Closed").length;
+  const active = blotter.filter((d) => d.Status === "Active").length;
+  const ongoing = blotter.filter((d) => d.Status === "On Going").length;
+  const closed = blotter.filter((d) => d.Status === "Closed").length;
+  const transferred = blotter.filter(
+    (d) => d.Status === "Transferred to Police"
+  ).length;
 
   const handleSortChange = (sortValue: string) => {
     searchParams.set("sort", sortValue);
     setSearchParams(searchParams);
   };
 
-  const handleSearch = (searchTerm: string) => {
-    setSearchQuery(searchTerm);
+  const handleSearch = (term: string) => {
+    setSearchQuery(term);
   };
 
   const filteredData = useMemo(() => {
-    const sortedData = sort(data, searchParams.get("sort") ?? "All Blotters");
-
+    const sorted = sort(
+      blotter,
+      searchParams.get("sort") ?? "All Blotter Records"
+    );
     if (searchQuery.trim()) {
-      return searchBlotter(searchQuery, sortedData);
+      return searchBlotter(searchQuery, sorted);
     }
-
-    return sortedData;
-  }, [searchParams, data, searchQuery]);
-
-  const total = data.length;
-  const finished = data.filter((d) => d.status === "Closed" || d.status === "Transferred to Police").length;
-  const active = data.filter((d) => d.status === "Active").length;
-  const ongoing = data.filter((d) => d.status === "On Going").length;
-  const closed = data.filter((d) => d.status === "Closed").length;
-  const transferred = data.filter(
-    (d) => d.status === "Transferred to Police"
-  ).length;
-
-  const handleDeleteSelected = async () => {
-    const selectedIds = Object.keys(rowSelection)
-      .map((key) => filteredData[parseInt(key)])
-      .filter((row) => !!row)
-      .map((row) => row.id);
-
-    if (selectedIds.length === 0) {
-      toast.error("No blotters selected.");
-      return;
-    }
-
-    try {
-      for (const id of selectedIds) {
-        if (id !== undefined) {
-          await invoke("delete_blotter_command", { id });
-        }
-      }
-      toast.success("Selected blotters deleted.");
-      fetchBlotters(); // Refresh the table
-      setRowSelection({}); // Reset selection
-    } catch (err) {
-      toast.error("Failed to delete selected blotters");
-      console.error("Delete error:", err);
-    }
-  };
-
-  function setPrintData(data: Blotter[]) {
-    setPrintDataState(data);
-  }
+    return sorted;
+  }, [searchParams, blotter, searchQuery]);
+  const [viewBlotterId, setViewBlotterId] = useState<number | null>(null);
 
   return (
     <>
@@ -218,24 +147,35 @@ export default function Blotters() {
         <SummaryCardBlotter
           title="Total Blotters"
           value={total}
-          icon={<Users size={50}
-          />}
+          icon={<Users size={50} />}
           onClick={async () => {
-            setPrintData(data)
-            const blob = await pdf(<BlotterPDF filter="All Blotters" blotters={data} />).toBlob()
-            const buffer = await blob.arrayBuffer()
-            const contents = new Uint8Array(buffer)
+            const [
+              { pdf },
+              { writeFile, BaseDirectory },
+              { toast },
+              { BlotterPDF },
+            ] = await Promise.all([
+              import("@react-pdf/renderer"),
+              import("@tauri-apps/plugin-fs"),
+              import("sonner"),
+              import("@/components/pdf/blotterpdf"),
+            ]);
+            const blob = await pdf(
+              <BlotterPDF filter="All Blotters" blotters={blotter} />
+            ).toBlob();
+            const buffer = await blob.arrayBuffer();
+            const contents = new Uint8Array(buffer);
             try {
-              await writeFile('BlotterRecords.pdf', contents, {
-                baseDir: BaseDirectory.Document
-              })
+              await writeFile("BlotterRecords.pdf", contents, {
+                baseDir: BaseDirectory.Document,
+              });
               toast.success("Blotter Record successfully downloaded", {
-                description: "Blotter record is saved in Documents folder"
-              })
+                description: "Blotter record is saved in Documents folder",
+              });
             } catch (e) {
               toast.error("Error", {
-                description: "Failed to save the Blotter record"
-              })
+                description: "Failed to save the Blotter record",
+              });
             }
           }}
         />
@@ -245,21 +185,34 @@ export default function Blotters() {
           value={finished}
           icon={<BookOpenCheck size={50} />}
           onClick={async () => {
-            setPrintData(data)
-            const blob = await pdf(<BlotterPDF filter="Finished Blotters" blotters={data.filter((d) => d.status === "Finished")} />).toBlob()
-            const buffer = await blob.arrayBuffer()
-            const contents = new Uint8Array(buffer)
+            const [
+              { pdf },
+              { writeFile, BaseDirectory },
+              { toast },
+              { BlotterPDF },
+            ] = await Promise.all([
+              import("@react-pdf/renderer"),
+              import("@tauri-apps/plugin-fs"),
+              import("sonner"),
+              import("@/components/pdf/blotterpdf"),
+            ]);
+            const filtered = blotter.filter((d) => d.Status === "Finished");
+            const blob = await pdf(
+              <BlotterPDF filter="Finished Blotters" blotters={filtered} />
+            ).toBlob();
+            const buffer = await blob.arrayBuffer();
+            const contents = new Uint8Array(buffer);
             try {
-              await writeFile('BlotterRecords.pdf', contents, {
-                baseDir: BaseDirectory.Document
-              })
+              await writeFile("FinishedBlotters.pdf", contents, {
+                baseDir: BaseDirectory.Document,
+              });
               toast.success("Blotter Record successfully downloaded", {
-                description: "Blotter record is saved in Documents folder"
-              })
+                description: "Blotter record is saved in Documents folder",
+              });
             } catch (e) {
               toast.error("Error", {
-                description: "Failed to save the Blotter record"
-              })
+                description: "Failed to save the Blotter record",
+              });
             }
           }}
         />
@@ -268,23 +221,35 @@ export default function Blotters() {
           value={active}
           icon={<Eye size={50} />}
           onClick={async () => {
-            setPrintData(data)
-            const blob = await pdf(<BlotterPDF filter="Active Blotters" blotters={data.filter((d) => d.status === "Active")} />).toBlob()
-            const buffer = await blob.arrayBuffer()
-            const contents = new Uint8Array(buffer)
+            const [
+              { pdf },
+              { writeFile, BaseDirectory },
+              { toast },
+              { BlotterPDF },
+            ] = await Promise.all([
+              import("@react-pdf/renderer"),
+              import("@tauri-apps/plugin-fs"),
+              import("sonner"),
+              import("@/components/pdf/blotterpdf"),
+            ]);
+            const filtered = blotter.filter((d) => d.Status === "Active");
+            const blob = await pdf(
+              <BlotterPDF filter="Active Blotters" blotters={filtered} />
+            ).toBlob();
+            const buffer = await blob.arrayBuffer();
+            const contents = new Uint8Array(buffer);
             try {
-              await writeFile('BlotterRecords.pdf', contents, {
-                baseDir: BaseDirectory.Document
-              })
+              await writeFile("ActiveBlotters.pdf", contents, {
+                baseDir: BaseDirectory.Document,
+              });
               toast.success("Blotter Record successfully downloaded", {
-                description: "Blotter record is saved in Documents folder"
-              })
+                description: "Blotter record is saved in Documents folder",
+              });
             } catch (e) {
               toast.error("Error", {
-                description: "Failed to save the Blotter record"
-              })
+                description: "Failed to save the Blotter record",
+              });
             }
-
           }}
         />
         <SummaryCardBlotter
@@ -292,21 +257,34 @@ export default function Blotters() {
           value={ongoing}
           icon={<AlarmClock size={50} />}
           onClick={async () => {
-            setPrintData(data)
-            const blob = await pdf(<BlotterPDF filter="On Going Blotters" blotters={data.filter((d) => d.status === "On Going")} />).toBlob()
-            const buffer = await blob.arrayBuffer()
-            const contents = new Uint8Array(buffer)
+            const [
+              { pdf },
+              { writeFile, BaseDirectory },
+              { toast },
+              { BlotterPDF },
+            ] = await Promise.all([
+              import("@react-pdf/renderer"),
+              import("@tauri-apps/plugin-fs"),
+              import("sonner"),
+              import("@/components/pdf/blotterpdf"),
+            ]);
+            const filtered = blotter.filter((d) => d.Status === "On Going");
+            const blob = await pdf(
+              <BlotterPDF filter="On Going Blotters" blotters={filtered} />
+            ).toBlob();
+            const buffer = await blob.arrayBuffer();
+            const contents = new Uint8Array(buffer);
             try {
-              await writeFile('BlotterRecords.pdf', contents, {
-                baseDir: BaseDirectory.Document
-              })
+              await writeFile("OngoingBlotters.pdf", contents, {
+                baseDir: BaseDirectory.Document,
+              });
               toast.success("Blotter Record successfully downloaded", {
-                description: "Blotter record is saved in Documents folder"
-              })
+                description: "Blotter record is saved in Documents folder",
+              });
             } catch (e) {
               toast.error("Error", {
-                description: "Failed to save the Blotter record"
-              })
+                description: "Failed to save the Blotter record",
+              });
             }
           }}
         />
@@ -315,21 +293,34 @@ export default function Blotters() {
           value={closed}
           icon={<Gavel size={50} />}
           onClick={async () => {
-            setPrintData(data)
-            const blob = await pdf(<BlotterPDF filter="Closed Blotters" blotters={data.filter((d) => d.status === "Closed")} />).toBlob()
-            const buffer = await blob.arrayBuffer()
-            const contents = new Uint8Array(buffer)
+            const [
+              { pdf },
+              { writeFile, BaseDirectory },
+              { toast },
+              { BlotterPDF },
+            ] = await Promise.all([
+              import("@react-pdf/renderer"),
+              import("@tauri-apps/plugin-fs"),
+              import("sonner"),
+              import("@/components/pdf/blotterpdf"),
+            ]);
+            const filtered = blotter.filter((d) => d.Status === "Closed");
+            const blob = await pdf(
+              <BlotterPDF filter="Closed Blotters" blotters={filtered} />
+            ).toBlob();
+            const buffer = await blob.arrayBuffer();
+            const contents = new Uint8Array(buffer);
             try {
-              await writeFile('BlotterRecords.pdf', contents, {
-                baseDir: BaseDirectory.Document
-              })
+              await writeFile("ClosedBlotters.pdf", contents, {
+                baseDir: BaseDirectory.Document,
+              });
               toast.success("Blotter Record successfully downloaded", {
-                description: "Blotter record is saved in Documents folder"
-              })
+                description: "Blotter record is saved in Documents folder",
+              });
             } catch (e) {
               toast.error("Error", {
-                description: "Failed to save the Blotter record"
-              })
+                description: "Failed to save the Blotter record",
+              });
             }
           }}
         />
@@ -338,21 +329,39 @@ export default function Blotters() {
           value={transferred}
           icon={<DollarSign size={50} />}
           onClick={async () => {
-            setPrintData(data)
-            const blob = await pdf(<BlotterPDF filter="Blotters that are transferred to police" blotters={data.filter((d) => d.status === "Transferred to Police")} />).toBlob()
-            const buffer = await blob.arrayBuffer()
-            const contents = new Uint8Array(buffer)
+            const [
+              { pdf },
+              { writeFile, BaseDirectory },
+              { toast },
+              { BlotterPDF },
+            ] = await Promise.all([
+              import("@react-pdf/renderer"),
+              import("@tauri-apps/plugin-fs"),
+              import("sonner"),
+              import("@/components/pdf/blotterpdf"),
+            ]);
+            const filtered = blotter.filter(
+              (d) => d.Status === "Transferred to Police"
+            );
+            const blob = await pdf(
+              <BlotterPDF
+                filter="Blotters that are transferred to police"
+                blotters={filtered}
+              />
+            ).toBlob();
+            const buffer = await blob.arrayBuffer();
+            const contents = new Uint8Array(buffer);
             try {
-              await writeFile('BlotterRecords.pdf', contents, {
-                baseDir: BaseDirectory.Document
-              })
+              await writeFile("TransferredBlotters.pdf", contents, {
+                baseDir: BaseDirectory.Document,
+              });
               toast.success("Blotter Record successfully downloaded", {
-                description: "Blotter record is saved in Documents folder"
-              })
+                description: "Blotter record is saved in Documents folder",
+              });
             } catch (e) {
               toast.error("Error", {
-                description: "Failed to save the Blotter record"
-              })
+                description: "Failed to save the Blotter record",
+              });
             }
           }}
         />
@@ -373,48 +382,113 @@ export default function Blotters() {
         <Button
           variant="destructive"
           size="lg"
-          disabled={Object.keys(rowSelection).length === 0}
-          onClick={handleDeleteSelected}
+          disabled={selectedBlotter.length === 0}
+          onClick={() => {
+            if (selectedBlotter.length > 0) {
+              toast.promise(deleteBlotter(selectedBlotter), {
+                loading: "Deleting selected blotter. Please wait",
+                success: () => {
+                  setSelectedBlotter([]);
+                  setRowSelection({});
+                  return {
+                    message: "Selected blotter deleted successfully",
+                  };
+                },
+                error: () => {
+                  return {
+                    message: "Failed to delete selected blotters",
+                  };
+                },
+              });
+            }
+          }}
         >
           <Trash />
           Delete Selected
         </Button>
 
-        <AddBlotterModal onSave={fetchBlotters} />
+        <AddBlotterModal />
       </div>
 
+      {/* Data Table */}
       <DataTable<Blotter>
         classname="py-5"
         height="43.3rem"
         data={filteredData}
         columns={[
+          {
+            id: "select",
+            header: ({ table }) => (
+              <Checkbox
+                checked={
+                  table.getIsAllPageRowsSelected()
+                    ? true
+                    : table.getIsSomePageRowsSelected()
+                    ? "indeterminate"
+                    : false
+                }
+                onCheckedChange={(value) => {
+                  table.toggleAllPageRowsSelected(!!value);
+                  if (value) {
+                    const allVisibleRows = table
+                      .getRowModel()
+                      .rows.map((row) => row.original.ID);
+                    setSelectedBlotter(allVisibleRows);
+                  } else {
+                    setSelectedBlotter([]);
+                  }
+                }}
+                aria-label="Select all"
+                className="flex items-center justify-center"
+              />
+            ),
+            cell: ({ row }) => (
+              <Checkbox
+                checked={selectedBlotter.includes(row.original.ID)}
+                onCheckedChange={(value) => {
+                  if (value) {
+                    setSelectedBlotter((prev) => [...prev, row.original.ID]);
+                  } else {
+                    setSelectedBlotter((prev) =>
+                      prev.filter((id) => id !== row.original.ID)
+                    );
+                  }
+                }}
+                aria-label="Select row"
+                className="flex items-center justify-center"
+              />
+            ),
+          },
           ...columns,
           {
             id: "view",
             header: "",
-            cell: ({ row }) => {
-              const status = row.original.status;
-              return (
-                <div className="flex gap-3">
-                  <ViewBlotterModal {...row.original} onSave={fetchBlotters} />
-                  {status !== "Active" && (
-                    <DeleteBlotterModal
-                      {...row.original}
-                      onDelete={fetchBlotters}
-                    />
-                  )}
-                </div>
-              );
-            },
+            cell: ({ row }) => (
+              <div className="flex gap-3">
+                <Button onClick={() => setViewBlotterId(row.original.ID)}>
+                  <Eye /> View More
+                </Button>
+              </div>
+            ),
           },
         ]}
         rowSelection={rowSelection}
-        onRowSelectionChange={setRowSelection}
+        onRowSelectionChange={(selected) => {
+          setRowSelection(selected);
+          const selectedIds = Object.keys(selected)
+            .filter((key) => selected[key])
+            .map((key) => Number(key));
+          setSelectedBlotter(selectedIds);
+        }}
       />
+      {viewBlotterId !== null && (
+        <ViewBlotterModal
+          blotter={blotter.find((b) => b.ID === viewBlotterId)}
+          open={true}
+          onClose={() => setViewBlotterId(null)}
+        />
+      )}
     </>
   );
 }
 
-/**
- *
- * **/

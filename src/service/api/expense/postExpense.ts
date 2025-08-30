@@ -7,7 +7,6 @@ export interface ExpensePostResponse {
 }
 
 export default async function postExpense(expense: Expense): Promise<ExpensePostResponse> {
-console.log(expense.Category)
   try {
     const res = await fetch(`${api}/expenses`, {
       method: "POST",

@@ -93,22 +93,22 @@ export type Certificate = {
   issued_date?: string;
 };
 
-export type Blotter = {
-  id?: number;
-  type_: string;
-  reported_by: string;
-  involved: string;
-  incident_date: Date; 
-  location: string;
-  zone: string;
-  status: string;
-  narrative: string;
-  action: string;
-  witnesses: string;
-  evidence: string;
-  resolution: string;
-  hearing_date: Date; 
-};
+// export type Blotter = {
+//   id?: number;
+//   type_: string;
+//   reported_by: string;
+//   involved: string;
+//   incident_date: Date; 
+//   location: string;
+//   zone: string;
+//   status: string;
+//   narrative: string;
+//   action: string;
+//   witnesses: string;
+//   evidence: string;
+//   resolution: string;
+//   hearing_date: Date; 
+// };
 
 // export type Settings = {
 //   id?: number;

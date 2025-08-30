@@ -1,4 +1,4 @@
-import { Blotter } from "@/types/types";
+import { Blotter } from "@/types/apitypes";
 
 export default function sort(data: Blotter[], term: string): Blotter[] {
   switch (term) {
@@ -22,27 +22,27 @@ export default function sort(data: Blotter[], term: string): Blotter[] {
 }
 
 function sortAlphabetical(data: Blotter[]): Blotter[] {
-  return [...data].sort((a, b) => a.type_.localeCompare(b.type_, undefined, { sensitivity: "base" }))
+  return [...data].sort((a, b) => a.Type.localeCompare(b.Type, undefined, { sensitivity: "base" }))
 }
 
 function sortByID(data: Blotter[]): Blotter[] {
-  return [...data].sort((a, b) => a.id - b.id)
+  return [...data].sort((a, b) => (a.ID! - b.ID!))
 }
 function sortByDate(data: Blotter[]): Blotter[] {
-  return [...data].sort((a, b) => a.incident_date.getTime() - b.incident_date.getTime())
+  return [...data].sort((a, b) => a.IncidentDate.getTime() - b.IncidentDate.getTime())
 }
 
 function filterActive(data: Blotter[]): Blotter[] {
-  return [...data].filter((blotter) => blotter.status === "Active")
+  return [...data].filter((blotter) => blotter.Status === "Active")
 }
 
 function filterOnGoing(data: Blotter[]): Blotter[] {
-  return [...data].filter((blotter) => blotter.status === "On Going")
+  return [...data].filter((blotter) => blotter.Status === "On Going")
 }
 
 function filterClosed(data: Blotter[]): Blotter[] {
-  return [...data].filter((blotter) => blotter.status === "Closed")
+  return [...data].filter((blotter) => blotter.Status === "Closed")
 }
 function filterTransferred(data: Blotter[]): Blotter[] {
-  return [...data].filter((blotter) => blotter.status === "Transferred to Police")
+  return [...data].filter((blotter) => blotter.Status === "Transferred to Police")
 }

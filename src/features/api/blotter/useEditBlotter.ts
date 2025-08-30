@@ -8,6 +8,6 @@ export function useEditBlotter() {
   })
   return {
     ...mutation,
-    isPendin: mutation.isPending
+    isPending: mutation.isPending
   }
 }
