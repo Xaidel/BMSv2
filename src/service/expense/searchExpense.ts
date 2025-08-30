@@ -1,4 +1,4 @@
-import { Expense } from "@/types/types";
+import { Expense } from "@/types/apitypes";
 import sanitize from "../sanitize";
 
 export default function searchExpense(term: string, data: Expense[]): Expense[] {
@@ -6,9 +6,10 @@ export default function searchExpense(term: string, data: Expense[]): Expense[] 
   const pattern = new RegExp(sanitizedQuery, "i");
 
   return data.filter(expense =>
-    pattern.test(expense.type_) ||
-    pattern.test(expense.or_number.toString()) ||
-    pattern.test(expense.paid_to) ||
-    pattern.test(expense.paid_by)
+    pattern.test(expense.Type) ||
+    pattern.test(expense.OR.toString()) ||
+    pattern.test(expense.PaidBy) ||
+    pattern.test(expense.PaidTo) ||
+    pattern.test(expense.Category)
   );
 }

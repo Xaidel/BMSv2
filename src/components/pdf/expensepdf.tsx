@@ -1,6 +1,6 @@
 
 
-import { Expense } from "@/types/types";
+import { Expense } from "@/types/apitypes";
 import { Document, Page, Text, View } from "@react-pdf/renderer";
 import { styles } from "./Stylesheet";
 import { format } from "date-fns";
@@ -41,17 +41,17 @@ export const ExpensePDF = ({ filter, expenses }: Props) => {
                     styles.tableRow,
                     { backgroundColor: index % 2 === 0 ? "#f9f9f9" : "white" }
                   ]}
-                  key={expense.id}
+                  key={expense.ID}
                 >
-                  <View style={styles.tableCell}><Text>{expense.id}</Text></View>
-                  <View style={styles.tableCell}><Text>{expense.type_}</Text></View>
-                  <View style={styles.tableCell}><Text>{expense.category}</Text></View>
-                  <View style={styles.tableCell}><Text>{expense.or_number}</Text></View>
-                  <View style={styles.tableCell}><Text>{expense.amount.toFixed(2)}</Text></View>
-                  <View style={styles.tableCell}><Text>{expense.paid_to}</Text></View>
-                  <View style={styles.tableCell}><Text>{expense.paid_by}</Text></View>
+                  <View style={styles.tableCell}><Text>{expense.ID}</Text></View>
+                  <View style={styles.tableCell}><Text>{expense.Type}</Text></View>
+                  <View style={styles.tableCell}><Text>{expense.Category}</Text></View>
+                  <View style={styles.tableCell}><Text>{expense.OR}</Text></View>
+                  <View style={styles.tableCell}><Text>{expense.Amount.toFixed(2)}</Text></View>
+                  <View style={styles.tableCell}><Text>{expense.PaidTo}</Text></View>
+                  <View style={styles.tableCell}><Text>{expense.PaidBy}</Text></View>
                   <View style={styles.tableCell}>
-                    <Text>{format(expense.date, "MMMM do, yyyy")}</Text>
+                    <Text>{format(expense.Date, "MMMM do, yyyy")}</Text>
                   </View>
                 </View>
               ))}

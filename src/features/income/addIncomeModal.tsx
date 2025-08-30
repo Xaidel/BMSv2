@@ -74,7 +74,6 @@ export default function AddIncomeModal() {
   });
 
   async function onSubmit(values: z.infer<typeof incomeSchema>) {
-    console.log(values.Category);
     toast.promise(addMutation.mutateAsync(values as unknown as Income), {
       loading: "Adding Income please wait...",
       success: (data) => {

@@ -1,17 +1,17 @@
 import { api } from "@/service/api"
-export type PatchIncome = Partial<{
+export type PatchExpense = Partial<{
   ID: number
   Category: string
   Type: string
   Amount: number
   OR: string
-  ReceivedFrom: string
-  ReceivedBy: string
-  DateReceived: Date
+  PaidBy: string
+  PaidTo: string
+  Date: string
 }>
-export default async function editIncome(ID: number, updated: PatchIncome) {
+export default async function editExpense(ID: number, updated: PatchExpense) {
   try {
-    const res = await fetch(`${api}/incomes/${ID}`, {
+    const res = await fetch(`${api}/expenses/${ID}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updated)
@@ -21,7 +21,7 @@ export default async function editIncome(ID: number, updated: PatchIncome) {
       const errorData = await res.json() as { error: string }
       throw errorData
     }
-    return res.json() as PatchIncome
+    return res.json() as PatchExpense
   } catch (error) {
     throw error
   }

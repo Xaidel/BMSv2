@@ -4,17 +4,6 @@ export type User = {
   ID: number
 }
 
-export type Event = {
-  Name: string
-  Type: string
-  Venue: string
-  Audience: string
-  Notes: string
-  Status: "Upcoming" | "Ongoing" | "Cancelled" | "Finished"
-  Date: Date
-  ID: number
-}
-
 export type Resident = {
   Firstname: string
   Middlename: string
@@ -44,7 +33,7 @@ export type Resident = {
 }
 
 export type Income = {
-  ID?: number
+  ID: number
   Category: string
   Type: string
   Amount: number
@@ -52,6 +41,28 @@ export type Income = {
   ReceivedFrom: string
   ReceivedBy: string
   DateReceived: Date
+}
+
+export type Expense = {
+  ID: number
+  Category: string
+  Type: string
+  Amount: number
+  OR: string
+  PaidTo: string
+  PaidBy: string
+  Date: Date
+};
+
+export type Event = {
+  Name: string
+  Type: string
+  Venue: string
+  Audience: string
+  Notes: string
+  Status: "Upcoming" | "Ongoing" | "Cancelled" | "Finished"
+  Date: Date
+  ID: number
 }
 
 export type Certificate = {
@@ -97,13 +108,13 @@ export type Official = {
 
 export type Settings = {
   ID?: number;
-  Barangay: string;
-  Municipality: string;
-  Province: string;
-  PhoneNumber: string;
-  Email: string;
-  Logo?: string;
-  LogoMunicipality?: string;
+  Barangay?: string;
+  Municipality?: string;
+  Province?: string;
+  PhoneNumber?: string;
+  Email?: string;
+  ImageB?: string;
+  ImageM?: string;
 };
 
 export type Logbook = {

@@ -1,12 +1,12 @@
 import { api } from "@/service/api"
 export type PatchSettings = Partial<{
-  Name: string
-  Type: string
-  Date: string
-  Venue: string
-  Audience: string
-  Notes: string
-  Status: "Upcoming" | "Ongoing" | "Finished" | "Cancelled"
+  Barangay: string
+  Municipality: string
+  Province: string
+  ContactNumber: string
+  Email: string
+  ImageB: string | null
+  ImageM: string | null
 }>
 export default async function editSettings(ID: number, updated: PatchSettings) {
   try {

@@ -51,9 +51,8 @@ export const residentSchema = z.object({
   Lastname: z.string().min(1),
   Suffix: z.string().nullable().optional(),
   CivilStatus: z.string().min(1),
-  Gender: z.union([
-    z.enum(["Male", "Female"]),
-    z.literal("")
+  Gender: z.union([z.enum(["Male", "Female"]), 
+        z.literal("")
   ]),
   Nationality: z.string().min(1),
   Occupation: z.string().min(1),
@@ -139,17 +138,17 @@ export const incomeSchema = z.object({
 });
 
 export const expenseSchema = z.object({
-  type_: z.string().min(2, {
+  Type: z.string().min(2, {
     message: "Type name is too short",
   }).max(50, {
     message: "Type name is too long, put other details on the 'details' form",
   }),
 
-  category: z.string().min(1, {
+  Category: z.string().min(1, {
     message: "Category is required",
   }),
 
-  amount: z.number({
+  Amount: z.number({
     invalid_type_error: "Amount must be a number",
   }).min(0.01, {
     message: "Amount must be greater than zero",
@@ -157,27 +156,23 @@ export const expenseSchema = z.object({
     message: "Amount exceeds maximum allowed value",
   }),
 
-  or_number: z.number({
-    invalid_type_error: "OR# must be a number",
-  }).min(1, {
-    message: "OR# is required",
-  }),
+  OR: z.string()
+    .min(1, { message: "OR# is required" }),
 
-  paid_to: z.string().min(2, {
+  PaidTo: z.string().min(2, {
     message: "Paid From name is too short",
   }).max(50, {
     message: "Paid From name is too long",
   }),
 
-  paid_by: z.string().min(2, {
+  PaidBy: z.string().min(2, {
     message: "Paid By name is too short",
   }).max(50, {
     message: "Paid By name is too long",
   }),
-
-  date: z.date({
-    required_error: "Please specify the issued date",
-    invalid_type_error: "Invalid date format",
+  
+  Date: z.date({
+    required_error: "Please specify the expense date"
   }),
 });
 
@@ -205,8 +200,8 @@ export const settingsSchema = z.object({
   Province: z.string().min(1),
   PhoneNumber: z.string().min(1),
   Email: z.string().email(),
-  Logo: z.string(),
-  LogoMunicipality: z.string(),
+  ImageB: z.string(),
+  ImageM: z.string(),
 });
 
 

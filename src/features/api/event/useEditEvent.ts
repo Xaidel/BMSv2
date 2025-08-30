@@ -3,8 +3,8 @@ import { useMutation } from "@tanstack/react-query";
 
 export function useEditEvent() {
   const mutation = useMutation({
-    mutationFn: ({ event_id, updated }: { event_id: number, updated: PatchEvent }) =>
-      editEvent(event_id, updated)
+    mutationFn: ({ ID, updated }: { ID: number, updated: PatchEvent }) =>
+      editEvent(ID, updated)
   })
   return {
     ...mutation,

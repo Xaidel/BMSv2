@@ -32,18 +32,34 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
-
 import { toast } from "sonner";
 import { useEditOfficial } from "../api/official/useEditOfficial";
-
-import editOfficial from "@/service/api/official/editOfficial";
 import { useDeleteOfficial } from "../api/official/useDeleteOfficial";
+import z from "zod";
+import { officialSchema } from "@/types/formSchema";
+import { Official } from "@/types/apitypes";
 
-export default function ViewOfficialModal({ person, onClose }) {
-  const [imagePreview, setImagePreview] = useState(person?.image || "");
+// Role, section dropdown options (match AddOfficialModal)
+const sectionOptions = [
+  { value: "Barangay Officials", label: "Barangay Officials" },
+  { value: "SK Officials", label: "SK Officials" },
+  { value: "Tanod Officials", label: "Tanod Officials" },
+];
+export default function ViewOfficialModal({
+  official,
+  person,
+  open,
+  onClose,
+}: {
+  official: Official;
+  person: Official;
+  open: boolean;
+  onClose: () => void;
+}) {
+  const [imagePreview, setImagePreview] = useState(person?.Image || "");
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
   const queryClient = useQueryClient();
@@ -53,7 +69,7 @@ export default function ViewOfficialModal({ person, onClose }) {
       Name: person?.Name || "",
       Role: person?.Role || "",
       Section: person?.Section || "",
-      Age: person?.Age ? String(person.Age) : "",
+      Age: person?.Age ?? 0,
       Contact: person?.Contact || "",
       TermStart: person?.TermStart ? new Date(person.TermStart) : null,
       TermEnd: person?.TermEnd ? new Date(person.TermEnd) : null,
@@ -77,80 +93,54 @@ export default function ViewOfficialModal({ person, onClose }) {
   const editMutation = useEditOfficial();
   const deleteMutation = useDeleteOfficial();
 
-  const onSubmit = async (values) => {
-    const updatedFields: Partial<typeof values> = {};
+  async function onSubmit(values: z.infer<typeof officialSchema>) {
+    type OfficialPatch = Partial<
+      Omit<z.infer<typeof officialSchema>, "TermStart" | "TermEnd"> & {
+        TermStart: string;
+        TermEnd: string;
+      }
+    >;
 
-    if (values.Name !== person.Name) updatedFields.Name = values.Name;
-    if (values.Role !== person.Role) updatedFields.Role = values.Role;
-    if (values.Section !== person.Section)
-      updatedFields.Section = values.Section;
-    if (values.Age !== (person.Age ? String(person.Age) : ""))
-      updatedFields.Age = values.Age ? parseInt(values.Age) : person.Age;
-    if (values.Contact !== person.Contact)
-      updatedFields.Contact = values.Contact;
-    if (values.Zone !== person.Zone) updatedFields.Zone = values.Zone;
-    if (values.Image !== person.Image) updatedFields.Image = values.Image;
+    const updated: OfficialPatch = {};
+    Object.keys(values).forEach((key) => {
+      const formValue = values[key as keyof typeof values];
+      let officialValue = official[key as keyof Official];
 
-    if (
-      (values.TermStart &&
-        (!person.TermStart ||
-          new Date(values.TermStart).toISOString() !== person.TermStart)) ||
-      (!values.TermStart && person.TermStart)
-    )
-      updatedFields.TermStart = values.TermStart
-        ? new Date(values.TermStart)
-        : person.TermStart;
-
-    if (
-      (values.TermEnd &&
-        (!person.TermEnd ||
-          new Date(values.TermEnd).toISOString() !== person.TermEnd)) ||
-      (!values.TermEnd && person.TermEnd)
-    )
-      updatedFields.TermEnd = values.TermEnd
-        ? new Date(values.TermEnd)
-        : person.TermEnd;
-
-    if (Object.keys(updatedFields).length === 0) {
-      toast.info("No changes detected");
-      return;
-    }
-
-    const payload = { ...updatedFields };
-
-    toast.promise(editOfficial(person.ID, payload), {
-      loading: "Updating official...",
-      success: "Official updated successfully",
-      error: "Failed to update official",
+      // Remove special handling for "Date" (not used in officials)
+      if (formValue !== officialValue) {
+        if (
+          (key === "TermStart" || key === "TermEnd") &&
+          formValue instanceof Date
+        ) {
+          (updated as Record<string, unknown>)[key] = formValue.toISOString();
+        } else {
+          (updated as Record<string, unknown>)[key] = formValue;
+        }
+      }
     });
-
-
-  };
-
-  const handleReset = () => {
-    form.reset({
-      Name: "",
-      Role: "",
-      Section: "",
-      Age: "",
-      Contact: "",
-      TermStart: null,
-      TermEnd: null,
-      Zone: "",
-      Image: "",
+    toast.promise(editMutation.mutateAsync({ ID: official.ID, updated }), {
+      loading: "Editing new official please wait...",
+      success: (official) => {
+        queryClient.invalidateQueries({ queryKey: ["officials"] });
+        onClose();
+        return {
+          message: "Official edited successfully",
+          description: `${official.Name} was edited`,
+        };
+      },
+      error: (error: { error: string }) => {
+        return {
+          message: "Editing official failed",
+          description: `${error.error}`,
+        };
+      },
     });
-    setImagePreview("");
-  };
-
-  // Role, section dropdown options (match AddOfficialModal)
-  const sectionOptions = [
-    { value: "Barangay Officials", label: "Barangay Officials" },
-    { value: "SK Officials", label: "SK Officials" },
-    { value: "Tanod Officials", label: "Tanod Officials" },
-  ];
+  }
 
   return (
-    <Dialog open={!!person} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogTrigger asChild>
+      </DialogTrigger>
       <DialogContent className="text-black max-w-md">
         <DialogHeader>
           <DialogTitle className="text-black">Official Info</DialogTitle>
@@ -159,10 +149,7 @@ export default function ViewOfficialModal({ person, onClose }) {
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="text-center text-black space-y-4"
-          >
+          <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="flex flex-col items-center space-y-2">
               <img
                 src={imagePreview}
@@ -288,7 +275,7 @@ export default function ViewOfficialModal({ person, onClose }) {
                     <FormControl>
                       <Input
                         {...field}
-                        placeholder="Age"
+                        placeholder="Enter Age"
                         type="number"
                         className="text-black"
                       />
@@ -423,14 +410,6 @@ export default function ViewOfficialModal({ person, onClose }) {
               </div>
             </div>
             <div className="flex justify-end pt-4 space-x-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleReset}
-                className="px-4 py-2"
-              >
-                Reset
-              </Button>
               <Dialog
                 open={openDeleteDialog}
                 onOpenChange={setOpenDeleteDialog}

@@ -163,7 +163,9 @@ export default function OfficialsPage() {
       ))}
       {selectedOfficial && (
         <ViewOfficialModal
+          official={selectedOfficial}
           person={selectedOfficial}
+          open={true}
           onClose={() => setSelectedOfficial(null)}
         />
       )}

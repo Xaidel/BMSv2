@@ -14,18 +14,18 @@ import { toast } from "sonner";
 import { invoke } from "@tauri-apps/api/core";
 
 type DeleteExpenseModalProps = {
-  id: number;
-  type_: string;
-  category: string;
+  ID: number;
+  Type: string;
+  Category: string;
   onDelete: () => void;
 };
 
-export default function DeleteExpenseModal({ id, type_, onDelete }: DeleteExpenseModalProps) {
+export default function DeleteExpenseModal({ ID, Type, onDelete }: DeleteExpenseModalProps) {
   const [open, setOpen] = useState(false);
 
   const handleDelete = async () => {
     try {
-      await invoke("delete_expense_command", { id });
+      await invoke("delete_expense_command", { ID });
       toast.success("Expense deleted");
       setOpen(false);
       onDelete?.();
@@ -47,7 +47,7 @@ export default function DeleteExpenseModal({ id, type_, onDelete }: DeleteExpens
         <DialogHeader>
           <DialogTitle>Delete Expense?</DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete "{type_}"?
+            Are you sure you want to delete "{Type}"?
           </DialogDescription>
         </DialogHeader>
         <div className="flex justify-end gap-3 mt-4">

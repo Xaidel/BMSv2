@@ -1,4 +1,4 @@
-import { Expense } from "@/types/types";
+import { Expense } from "@/types/apitypes";
 
 export function sort(data: Expense[], term: string): Expense[] {
   switch (term) {
@@ -16,10 +16,10 @@ export function sort(data: Expense[], term: string): Expense[] {
 }
 
 function sortNumerical(data: Expense[]): Expense[] {
-  return [...data].sort((a, b) => b.amount - a.amount)
+  return [...data].sort((a, b) => b.Amount - a.Amount)
 }
 function sortDateDesc(data: Expense[]): Expense[] {
-  return [...data].sort((a, b) => b.date.getTime() - a.date.getTime())
+  return [...data].sort((a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime())
 }
 function filterThisWeek(data: Expense[]): Expense[] {
   const now = new Date();
@@ -30,13 +30,17 @@ function filterThisWeek(data: Expense[]): Expense[] {
   const currentWeekEnd = new Date(currentWeekStart);
   currentWeekEnd.setDate(currentWeekStart.getDate() + 7);
 
-  const weeklyData = data.filter((income) => {
-    const incomeDate = new Date(income.date);
-    return incomeDate >= currentWeekStart && incomeDate < currentWeekEnd;
+  const weeklyData = data.filter((expense) => {
+    const expenseDate = new Date(expense.Date);
+    return expenseDate >= currentWeekStart && expenseDate < currentWeekEnd;
   });
   return weeklyData
 }
 function filterThisMonth(data: Expense[]): Expense[] {
-  return data.filter((income) => income.date.getMonth() === new Date().getMonth())
+  const now = new Date();
+  return data.filter((expense) => {
+    const expenseDate = new Date(expense.Date);
+    return expenseDate.getMonth() === now.getMonth() &&
+           expenseDate.getFullYear() === now.getFullYear();
+  });
 }
-
