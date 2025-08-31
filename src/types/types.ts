@@ -46,17 +46,17 @@ export type Resident = {
   photo?: any;
 };
 
-export type Household = {
-  id?: number;
-  household_number: string;
-  type_: string;
-  members: ResProps[];
-  head: string;
-  zone: string;
-  date: Date;
-  status: "Moved Out" | "Active" | string;
-  selectedResidents?: string[]; // optional list of selected members
-};
+// export type Household = {
+//   id?: number;
+//   household_number: string;
+//   type_: string;
+//   members: ResProps[];
+//   head: string;
+//   zone: string;
+//   date: Date;
+//   status: "Moved Out" | "Active" | string;
+//   selectedResidents?: string[]; // optional list of selected members
+// };
 
 // export type Income = {
 //   [x: string]: any;

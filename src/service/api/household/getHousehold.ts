@@ -1,29 +1,33 @@
-import { api } from "@/service/api"
+import { api } from "@/service/api";
+
 export interface ResProps {
-  id: number;
-  income: number
-  firstname: string;
-  lastname: string;
-  role: string;
+  ID: number;
+  Income: number;
+  Firstname: string;
+  Lastname: string;
+  Role: string;
 }
 
-export interface HouseProps {
-  id: number;
-  household_number: string;
-  date_of_residency: string; // ISO string
-  status: string;
-  type: string;
-  zone: string;
-  residents: ResProps[];
+export interface Household {
+  ID?: number;
+  HouseholdNumber: string;
+  Type: string;
+  Member: ResProps[];
+  Head: string;
+  Zone: string;
+  Date: string; // ISO string
+  Status: "Moved Out" | "Active" | string;
+  SelectedResident?: string[];
 }
 
 export type HouseholdResponse = {
-  households: HouseProps[]
-}
+  households: Household[];
+};
 
 export type HouseholdByIDResponse = {
-  household: HouseProps
-}
+  household: Household;
+};
+
 export default async function getHousehold() {
   try {
     const res = await fetch(`${api}/households`, {
@@ -33,12 +37,12 @@ export default async function getHousehold() {
       }
     });
     if (!res.ok) {
-      const error = await res.json() as { error: string }
-      throw error
+      const error = await res.json() as { error: string };
+      throw error;
     }
-    return res.json() as Promise<HouseholdResponse>
+    return res.json() as Promise<HouseholdResponse>;
   } catch (error) {
-    throw error
+    throw error;
   }
 }
 
@@ -49,13 +53,13 @@ export async function getOneHousehold(id: number) {
       headers: {
         Accept: "application/json"
       }
-    })
+    });
     if (!res.ok) {
-      const errorData = await res.json() as { error: string }
-      throw errorData
+      const errorData = await res.json() as { error: string };
+      throw errorData;
     }
-    return res.json() as Promise<HouseholdByIDResponse>
+    return res.json() as Promise<HouseholdByIDResponse>;
   } catch (error) {
-    throw error
+    throw error;
   }
 }

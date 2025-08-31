@@ -78,30 +78,20 @@ export const residentSchema = z.object({
 });
 
 export const householdSchema = z.object({
-  household_number: z.number().min(1),
-  type_: z.string().min(2, {
-    message: "Household type is too short"
-  }).max(50, {
-    message: "Household type is too long."
-  }),
-  members: z.number().min(1),
-  head: z.string().min(2, {
-    message: "Household head name is too short"
-  }).max(50, {
-    message: "Household head name is too long"
-  }),
-  zone: z.string().min(2, {
-    message: "Zone is too short"
-  }).max(50, {
-    message: "Zone is too long"
-  }),
-  date: z.date({
-    required_error: "Please specify the registration date"
-  }),
-  status: z.string().max(1000, {
-    message: "Status is too long"
-  }),
-  selectedResidents: z.array(z.string()).optional()
+  HouseholdNumber: z.string().min(1, { message: "Household number is required" }),
+  Type: z.string().min(2, { message: "Household type is too short" }).max(50, { message: "Household type is too long." }),
+  Member: z.array(z.object({
+    ID: z.number().optional(),
+    Firstname: z.string(),
+    Middlename: z.string().optional().nullable(),
+    Lastname: z.string(),
+    Suffix: z.string().optional().nullable()
+  })).min(1, { message: "At least one member is required" }),
+  Head: z.string().min(2, { message: "Household head name is too short" }).max(50, { message: "Household head name is too long" }),
+  Zone: z.string().min(1, { message: "Zone is required" }),
+  Date: z.date({ required_error: "Please specify the registration date" }),
+  Status: z.enum(["Moved Out", "Active"]),
+  SelectedResident: z.array(z.string()).optional()
 })
 
 export const incomeSchema = z.object({

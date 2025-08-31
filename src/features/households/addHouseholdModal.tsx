@@ -1,5 +1,4 @@
 import type React from "react"
-
 import { useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -7,7 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { X, Plus, Search, Crown, Heart, Baby, User, Users, CalendarIcon, Shield, CircleQuestionMark } from "lucide-react"
+import { X, Plus, Search, Crown, Heart, Baby, User, Users, CalendarIcon, Shield, CircleQuestionMark, Type } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
@@ -24,7 +23,6 @@ import { cn, getAge } from "@/lib/utils"
 import { toast } from "sonner"
 import { useResident } from "../api/resident/useResident"
 import { useAddHousehold } from "../api/household/useAddHousehold"
-import { HouseholdProps } from "@/service/api/household/postHousehold"
 import { useQueryClient } from "@tanstack/react-query"
 
 
@@ -119,6 +117,14 @@ const roleDefinitions: Record<string, string> = {
   Uncle: "Brother of a parent or husband of an aunt",
   Others: "Other family members or relationships not listed above",
 }
+interface HouseholdProps {
+  HouseholdNumber: string;
+  Type: string;
+  Members: { ID: number; Role: string }[];
+  Zone: string;
+  DateOfResidency: string;
+  Status: string;
+}
 
 export const getRoleIcon = (role: string) => {
   const iconMap: Record<string, any> = {
@@ -171,11 +177,11 @@ export const getRoleIcon = (role: string) => {
 }
 
 interface SelectedMember {
-  id: string
-  name: string
-  role: string
-  income: number
-  age: number
+  ID: string
+  Name: string
+  Role: string
+  Income: number
+  Age: number
 }
 
 export default function AddHouseholdModal() {
@@ -201,16 +207,16 @@ export default function AddHouseholdModal() {
         : ""
 
       return {
-        id: r.ID.toString(),
-        name: `${r.Firstname}${middleInitial} ${r.Lastname}`.trim(),
-        role: "",
-        income: r.AvgIncome,
-        age: getAge(r.Birthday.toString())
+        ID: r.ID.toString(),
+        Name: `${r.Firstname}${middleInitial} ${r.Lastname}`.trim(),
+        Role: "",
+        Income: r.AvgIncome,
+        Age: getAge(r.Birthday.toString())
       }
     })
   }, [residents])
   const filteredResidents = res.filter((resident) =>
-    resident.name.toLowerCase().includes(searchQuery.toLowerCase()),
+    resident.Name.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
   const filteredRoles = householdRoles.filter((role) => role.toLowerCase().includes(roleSearchQuery.toLowerCase()))
@@ -220,25 +226,25 @@ export default function AddHouseholdModal() {
       setSelectedMembers([
         ...selectedMembers,
         {
-          id: resident.id,
-          name: resident.name,
-          role: "Others",
-          income: 0,
-          age: 0
+          ID: resident.ID,
+          Name: resident.Name,
+          Role: "Others",
+          Income: 0,
+          Age: 0
         },
       ])
     } else {
-      setSelectedMembers(selectedMembers.filter((member) => member.id !== resident.id))
+      setSelectedMembers(selectedMembers.filter((member) => member.ID !== resident.ID))
     }
   }
 
   const updateMemberRole = (memberId: string, role: string) => {
-    setSelectedMembers(selectedMembers.map((member) => (member.id === memberId ? { ...member, role } : member)))
+    setSelectedMembers(selectedMembers.map((member) => (member.ID === memberId ? { ...member, role } : member)))
     setRoleSearchQuery("")
   }
 
   const hasHeadOfHousehold = () => {
-    return selectedMembers.some((member) => member.role === "Head")
+    return selectedMembers.some((member) => member.Role === "Head")
   }
   const queryClient = useQueryClient()
   const handleSubmit = (e: React.FormEvent) => {
@@ -255,17 +261,15 @@ export default function AddHouseholdModal() {
     }
 
     const formData: HouseholdProps = {
-      householdNumber,
-      householdType,
-      members: selectedMembers.map(m => ({
-        id: Number(m.id),
-        role: m.role,
+      HouseholdNumber: householdNumber,
+      Type: householdType,
+      Members: selectedMembers.map((m) => ({
+        ID: Number(m.ID),
+        Role: m.Role,
       })),
-      zone,
-      dateOfResidency: dateOfResidency instanceof Date
-        ? dateOfResidency.toISOString()
-        : "",
-      status,
+      Zone: zone,
+      DateOfResidency: dateOfResidency instanceof Date ? dateOfResidency.toISOString() : "",
+      Status: status,
     }
     toast.promise(
       addMutation.mutateAsync(formData), {
@@ -387,18 +391,18 @@ export default function AddHouseholdModal() {
                           </div>
                         ) : (
                           filteredResidents.map((resident) => {
-                            const isSelected = selectedMembers.some((member) => member.id === resident.id)
+                            const isSelected = selectedMembers.some((member) => member.ID === resident.ID)
                             return (
-                              <div key={resident.id} className="flex items-center space-x-3">
+                              <div key={resident.ID} className="flex items-center space-x-3">
                                 <Checkbox
-                                  id={resident.id}
+                                  id={resident.ID}
                                   checked={isSelected}
                                   onCheckedChange={(checked) => toggleMember(resident, checked as boolean)}
                                 />
-                                <Label htmlFor={resident.id} className="flex-1 cursor-pointer">
+                                <Label htmlFor={resident.ID} className="flex-1 cursor-pointer">
                                   <div>
-                                    <div className="font-medium">{resident.name}</div>
-                                    <div className="text-sm text-gray-500">Age: {resident.age}</div>
+                                    <div className="font-medium">{resident.Name}</div>
+                                    <div className="text-sm text-gray-500">Age: {resident.Age}</div>
                                   </div>
                                 </Label>
                               </div>
@@ -414,13 +418,13 @@ export default function AddHouseholdModal() {
                       <Label className="text-sm font-medium">Selected Members:</Label>
                       <div className="flex flex-wrap gap-2 p-3 border rounded-md bg-gray-50 min-h-[50px]">
                         {selectedMembers.map((member) => {
-                          const IconComponent = getRoleIcon(member.role)
+                          const IconComponent = getRoleIcon(member.Role)
                           return (
                             <div
-                              key={member.id}
+                              key={member.ID}
                               className="flex items-center gap-1.5 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs border border-blue-200"
                             >
-                              <span className="font-medium">{member.name}</span>
+                              <span className="font-medium">{member.Name}</span>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <button
@@ -449,16 +453,16 @@ export default function AddHouseholdModal() {
                                         No roles found matching "{roleSearchQuery}"
                                       </div>
                                     ) : (
-                                      filteredRoles.map((role) => {
-                                        const RoleIcon = getRoleIcon(role)
-                                        const isSelected = member.role === role
+                                      filteredRoles.map((Role) => {
+                                        const RoleIcon = getRoleIcon(Role)
+                                        const isSelected = member.Role === Role
                                         const isHeadDisabled =
-                                          role === "Head" && hasHeadOfHousehold() && member.role !== "Head"
+                                          Role === "Head" && hasHeadOfHousehold() && member.Role !== "Head"
 
                                         return (
                                           <DropdownMenuItem
-                                            key={role}
-                                            onClick={() => !isHeadDisabled && updateMemberRole(member.id, role)}
+                                            key={Role}
+                                            onClick={() => !isHeadDisabled && updateMemberRole(member.ID, Role)}
                                             className={`flex items-start gap-3 p-3 cursor-pointer ${isSelected ? "bg-blue-50 text-blue-700" : ""
                                               } ${isHeadDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
                                             disabled={isHeadDisabled}
@@ -466,13 +470,13 @@ export default function AddHouseholdModal() {
                                             <RoleIcon className="h-4 w-4 mt-0.5 flex-shrink-0" />
                                             <div className="flex-1">
                                               <div className="font-medium text-sm flex items-center gap-2">
-                                                {role}
+                                                {Role}
                                                 {isHeadDisabled && (
                                                   <span className="text-xs text-gray-400">(Already assigned)</span>
                                                 )}
                                               </div>
                                               <div className="text-xs text-gray-600 mt-1 leading-relaxed">
-                                                {roleDefinitions[role] || "Family member or household resident"}
+                                                {roleDefinitions[Role] || "Family member or household resident"}
                                               </div>
                                             </div>
                                           </DropdownMenuItem>
@@ -483,7 +487,7 @@ export default function AddHouseholdModal() {
                                 </DropdownMenuContent>
                               </DropdownMenu>
                               <button
-                                onClick={() => setSelectedMembers(selectedMembers.filter((m) => m.id !== member.id))}
+                                onClick={() => setSelectedMembers(selectedMembers.filter((m) => m.ID !== member.ID))}
                                 className="ml-1 hover:bg-blue-200 rounded-full p-0.5 transition-colors"
                                 type="button"
                               >
@@ -567,7 +571,7 @@ export default function AddHouseholdModal() {
             </form>
           </div>
 
-          <div className="sticky bottom-0  px-6 py-4">
+          <div className="px-6 py-4">
             <Button
               type="submit"
               className="w-full h-12 text-base bg-blue-600 hover:bg-blue-700"

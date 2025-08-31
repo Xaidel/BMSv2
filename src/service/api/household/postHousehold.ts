@@ -1,16 +1,21 @@
 import { api } from "@/service/api"
 
-export type HouseholdProps = {
-  dateOfResidency: string; // ISO date string householdNumber: string;
-  householdType: "owner" | "renter" | string;
-  members: {
-    id: number;
-    role: string;
-  }[];
-  status: "active" | "inactive" | string;
-  zone: string;
+export type Member = {
+  ID: number;
+  Role: string;
 };
-export default async function postHousehold(props: HouseholdProps) {
+
+export type Household = {
+  HouseNumber: string;
+  Date: Date;
+  Type: "owner" | "renter" | string;
+  Member: Member[];
+  Head: string;
+  Status: "active" | "inactive" | string;
+  Zone: string;
+};
+
+export default async function postHousehold(props: Household) {
   try {
     const res = await fetch(`${api}/households`, {
       method: "POST",
@@ -23,7 +28,7 @@ export default async function postHousehold(props: HouseholdProps) {
       const errorData = await res.json() as { error: string }
       throw errorData
     }
-    return res.json() as Promise<HouseholdProps>
+    return res.json() as Promise<Household>
   } catch (error) {
     throw error
   }

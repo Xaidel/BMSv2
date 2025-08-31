@@ -1,3 +1,5 @@
+import { ResProps } from "@/service/api/household/getHousehold"
+
 export type User = {
   Username: string
   Role: string
@@ -128,4 +130,16 @@ export type Logbook = {
   Remarks?: string;
   Status?: string;
   TotalHours?: number;
+};
+
+export type Household = {
+  ID?: number;
+  HouseholdNumber: string;
+  Type: string;
+  Member: ResProps[];
+  Head: string;
+  Zone: string;
+  Date: Date;
+  Status: "Moved Out" | "Active" | string;
+  SelectedResident?: string[]; // optional list of selected members
 };
