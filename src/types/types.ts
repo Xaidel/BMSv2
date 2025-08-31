@@ -82,16 +82,16 @@ export type Household = {
 //   date: Date;
 // };
 
-export type Certificate = {
-  id?: number;
-  name: string;
-  type_: string;
-  age?: number;
-  civil_status?: string;
-  ownership_text?: string;
-  amount?: string;
-  issued_date?: string;
-};
+// export type Certificate = {
+//   id?: number;
+//   name: string;
+//   type_: string;
+//   age?: number;
+//   civil_status?: string;
+//   ownership_text?: string;
+//   amount?: string;
+//   issued_date?: string;
+// };
 
 // export type Blotter = {
 //   id?: number;
