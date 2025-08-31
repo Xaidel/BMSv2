@@ -30,10 +30,17 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { invoke } from "@tauri-apps/api/core";
 import { blotterSchema } from "@/types/formSchema";
+import { Blotter } from "@/types/apitypes";
+import { useAddBlotter } from "../api/blotter/useAddBlotter";
+import { useQueryClient } from "@tanstack/react-query";
+import { ErrorResponse } from "@/service/api/auth/login";
 
-export default function AddBlotterModal({ onSave }: { onSave?: () => void }) {
+export default function AddBlotterModal() {
   const [openCalendar, setOpenCalendar] = useState(false);
   const [openModal, setOpenModal] = useState(false);
+  const addMutation = useAddBlotter();
+  const queryClient = useQueryClient();
+
   const [step, setStep] = useState(1);
 
   const form = useForm<z.infer<typeof blotterSchema>>({
@@ -57,27 +64,25 @@ export default function AddBlotterModal({ onSave }: { onSave?: () => void }) {
   });
 
   async function onSubmit(values: z.infer<typeof blotterSchema>) {
-    try {
-      await invoke("insert_blotter_command", {
-        blotter: {
-          ...values,
-          IncidentDate: values.IncidentDate.toISOString(),
-          HearingDate: values.HearingDate.toISOString(),
+      toast.promise(addMutation.mutateAsync(values as unknown as Blotter), {
+        loading: "Adding Expense please wait...",
+        success: (data) => {
+          const e = data.blotter;
+          setOpenModal(false);
+          queryClient.invalidateQueries({ queryKey: ["blotters"] });
+          return {
+            message: "Blotter added successfully",
+            description: `${e.Type} was added`,
+          };
+        },
+        error: (error: ErrorResponse) => {
+          return {
+            message: "Adding blotter failed",
+            description: `${error.error}`,
+          };
         },
       });
-
-      toast.success("Blotter added successfully", {
-        description: `${values.ReportedBy} vs ${values.Involved}`,
-      });
-
-      setOpenModal(false);
-      form.reset();
-      onSave?.(); // trigger refresh
-    } catch (error) {
-      console.error("Insert blotter failed:", error);
-      toast.error("Failed to add blotter.");
     }
-  }
 
   return (
     <Dialog open={openModal} onOpenChange={setOpenModal}>

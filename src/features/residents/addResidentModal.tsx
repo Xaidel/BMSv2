@@ -134,8 +134,8 @@ export default function AddResidentModal() {
         Occupation: values.Occupation,
         AvgIncome: values.AvgIncome,
         MobileNumber: values.MobileNumber,
-        IsSolo: false,
-        IsSenior: false,
+        IsSolo: values.IsSolo,
+        IsSenior: values.IsSenior,
       }),
       {
         loading: "Adding Resident please wait...",

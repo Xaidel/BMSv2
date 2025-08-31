@@ -6,9 +6,9 @@ export interface BlotterResponse {
   blotters: Blotter[]
 }
 
-export default async function getBlotter(ID?: number): Promise<BlotterResponse> {
+export default async function getBlotter(id?: number): Promise<BlotterResponse> {
   try {
-    const url = ID ? `${api}/blotters/${ID}` : `${api}/blotters`
+    const url = id ? `${api}/blotters/${id}` : `${api}/blotters`
     const res = await fetch(url, {
       method: "GET",
       headers: {

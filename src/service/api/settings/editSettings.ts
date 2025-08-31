@@ -3,7 +3,7 @@ export type PatchSettings = Partial<{
   Barangay: string
   Municipality: string
   Province: string
-  ContactNumber: string
+  PhoneNumber: string
   Email: string
   ImageB: string | null
   ImageM: string | null

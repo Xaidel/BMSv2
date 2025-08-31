@@ -1,14 +1,18 @@
-import postBlotter from "@/service/api/blotter/postBlotter";
-import { Blotter } from "@/types/apitypes";
-import { useMutation } from "@tanstack/react-query";
 
-export function useAddEvent() {
-  const mutation = useMutation({
-    mutationFn: (blotter: Blotter) => postBlotter(blotter)
+import getBlotter, { BlotterResponse } from "@/service/api/blotter/getBlotter";
+import { useQuery } from "@tanstack/react-query";
+
+
+export function useBlotter(id?: number) {
+  const query = useQuery({
+    queryKey: ['blotters'],
+    queryFn: (): Promise<BlotterResponse> => getBlotter(id),
+    refetchInterval: 5000,
+    structuralSharing: true,
   })
-
   return {
-    ...mutation,
-    isPending: mutation.isPending
+    ...query,
+    isLoading: query.isFetching,
+    error: query.isError
   }
 }

@@ -1,12 +1,19 @@
 import { api } from "@/service/api"
 export type PatchBlotter = Partial<{
-  Name: string
+  ID: number
   Type: string
-  Date: string
-  Venue: string
-  Audience: string
-  Notes: string
-  Status: "Upcoming" | "Ongoing" | "Finished" | "Cancelled"
+  ReportedBy: string
+  Involved: string
+  IncidentDate: string
+  Location: string
+  Zone: string
+  Status: string
+  Narrative: string
+  Action: string
+  Witnesses: string
+  Evidence: string
+  Resolution: string
+  HearingDate: string
 }>
 export default async function editBlotter(ID: number, updated: PatchBlotter) {
   try {

@@ -82,33 +82,33 @@ export type Household = {
 //   date: Date;
 // };
 
-export type Certificate = {
-  id?: number;
-  name: string;
-  type_: string;
-  age?: number;
-  civil_status?: string;
-  ownership_text?: string;
-  amount?: string;
-  issued_date?: string;
-};
+// export type Certificate = {
+//   id?: number;
+//   name: string;
+//   type_: string;
+//   age?: number;
+//   civil_status?: string;
+//   ownership_text?: string;
+//   amount?: string;
+//   issued_date?: string;
+// };
 
-export type Blotter = {
-  id?: number;
-  type_: string;
-  reported_by: string;
-  involved: string;
-  incident_date: Date; 
-  location: string;
-  zone: string;
-  status: string;
-  narrative: string;
-  action: string;
-  witnesses: string;
-  evidence: string;
-  resolution: string;
-  hearing_date: Date; 
-};
+// export type Blotter = {
+//   id?: number;
+//   type_: string;
+//   reported_by: string;
+//   involved: string;
+//   incident_date: Date; 
+//   location: string;
+//   zone: string;
+//   status: string;
+//   narrative: string;
+//   action: string;
+//   witnesses: string;
+//   evidence: string;
+//   resolution: string;
+//   hearing_date: Date; 
+// };
 
 // export type Settings = {
 //   id?: number;

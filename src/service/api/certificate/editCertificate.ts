@@ -1,12 +1,13 @@
 import { api } from "@/service/api"
 export type PatchCertificate = Partial<{
   Name: string
+  ID: number
   Type: string
-  Date: string
-  Venue: string
-  Audience: string
-  Notes: string
-  Status: "Upcoming" | "Ongoing" | "Finished" | "Cancelled"
+  Age: number
+  CivilStatus: string
+  Ownership: string
+  Amount: string
+  IssuedDate: string
 }>
 export default async function editCertificate(certificate_id: number, updated: PatchCertificate) {
   try {

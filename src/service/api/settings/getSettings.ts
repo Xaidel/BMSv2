@@ -6,7 +6,7 @@ export interface SettingsResponse {
   settings: Settings[]
 }
 
-export default async function getEvent(id?: number): Promise<SettingsResponse> {
+export default async function getSettings(id?: number): Promise<SettingsResponse> {
   try {
     const url = id ? `${api}/settings/${id}` : `${api}/settings`
     const res = await fetch(url, {

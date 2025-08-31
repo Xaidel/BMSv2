@@ -8,6 +8,6 @@ export function useEditSettings() {
   });
   return {
     ...mutation,
-    isPendin: mutation.isPending
+    isPending: mutation.isPending
   }
 }

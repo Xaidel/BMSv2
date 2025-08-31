@@ -77,7 +77,7 @@ export type Certificate = {
 };
 
 export type Blotter = {
-  ID?: number;
+  ID: number;
   Type: string;
   ReportedBy: string;
   Involved: string;

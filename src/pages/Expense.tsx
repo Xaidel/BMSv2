@@ -33,7 +33,6 @@ import { useExpense } from "@/features/api/expense/useExpense";
 import { useDeleteExpense } from "@/features/api/expense/useDeleteExpense";
 import { Expense } from "@/types/apitypes";
 
-
 const filters = [
   "All Expense",
   "Numerical",
@@ -444,7 +443,7 @@ export default function ExpenseNewPage() {
             cell: ({ row }) => (
               <div className="flex gap-3">
                 <Button onClick={() => setViewExpenseId(row.original.ID)}>
-                  <Eye /> View Income
+                  <Eye /> View Expense
                 </Button>
               </div>
             ),
