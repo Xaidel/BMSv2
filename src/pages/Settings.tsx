@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { settingsSchema } from "@/types/formSchema";
@@ -9,26 +9,61 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ErrorResponse } from "@/service/api/auth/login";
 import { useAddSettings } from "@/features/api/settings/useAddSettings";
 import { useEditSettings } from "@/features/api/settings/useEditSettings";
-export default function Settings({ onSave }: { onSave: () => void })  {
+import { useSettings } from "@/features/api/settings/useSettings";
+export default function Settings({ onSave }: { onSave: () => void }) {
   const [ImageB, setImageB] = useState(ImageBPlaceholder);
   const [ImageM, setImageM] = useState(ImageBPlaceholder);
-  const [openModal, setOpenModal] = useState(false);
-  const [imagePreview, setImagePreview] = useState("");
-
+  const { data: setting } = useSettings()
+  const settingData = useMemo(() => {
+    if (!setting) return
+    return setting?.setting
+  }, [setting])
   const form = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
       ID: undefined,
-      Barangay: "",
-      Municipality: "",
-      Province: "",
-      PhoneNumber: "",
-      Email: "",
-      ImageB: "",
-      ImageM: "",
+      Barangay: settingData?.Barangay,
+      Municipality: settingData?.Municipality,
+      Province: settingData?.Province,
+      PhoneNumber: settingData?.PhoneNumber,
+      Email: settingData?.Email,
+      ImageB: settingData?.ImageB,
+      ImageM: settingData?.ImageM,
     },
   });
 
+  useEffect(() => {
+    if (settingData) {
+      form.reset({
+        ID: settingData.ID,
+        Barangay: settingData.Barangay ?? "",
+        Municipality: settingData.Municipality ?? "",
+        Province: settingData.Province ?? "",
+        PhoneNumber: settingData.PhoneNumber ?? "",
+        Email: settingData.Email ?? "",
+        ImageB: settingData.ImageB ?? "",
+        ImageM: settingData.ImageM ?? "",
+      });
+
+      if (settingData.ImageB) {
+        const isDataUrlB = settingData.ImageB.startsWith("data:");
+        setImageB(
+          isDataUrlB
+            ? settingData.ImageB
+            : `data:image/png;base64,${settingData.ImageB}`
+        );
+      }
+
+      if (settingData.ImageM) {
+        const isDataUrlM = settingData.ImageM.startsWith("data:");
+        setImageM(
+          isDataUrlM
+            ? settingData.ImageM
+            : `data:image/png;base64,${settingData.ImageM}`
+        );
+      }
+    }
+  }, [settingData, form]);
   useEffect(() => {
     async function loadSettings() {
       try {
@@ -98,6 +133,7 @@ export default function Settings({ onSave }: { onSave: () => void })  {
   const addMutation = useAddSettings();
   const editMutation = useEditSettings();
   const queryClient = useQueryClient();
+
   async function onSubmit(values: z.infer<typeof settingsSchema>) {
     const isUpdate = Boolean(values.ID);
     const promise = isUpdate

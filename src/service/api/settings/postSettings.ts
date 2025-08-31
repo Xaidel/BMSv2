@@ -7,6 +7,7 @@ export interface SettingsPostResponse {
 }
 
 export default async function postSettings(settings: Settings): Promise<SettingsPostResponse> {
+  console.log(settings)
   try {
     const res = await fetch(`${api}/settings`, {
       method: "POST",

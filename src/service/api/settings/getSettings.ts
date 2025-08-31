@@ -3,7 +3,7 @@ import { ErrorResponse } from "../auth/login";
 import { Settings } from "@/types/apitypes";
 
 export interface SettingsResponse {
-  settings: Settings[]
+  setting: Settings
 }
 
 export default async function getSettings(id?: number): Promise<SettingsResponse> {
