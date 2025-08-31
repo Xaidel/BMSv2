@@ -32,13 +32,13 @@ export default function Map() {
             ...feature.properties,
             ...(mapping
               ? {
-                  type: mapping.Type,
-                  mapping_name: mapping.HouseholdID
-                    ? `Household Number: ${mapping.Household?.HouseholdNumber}`
-                    : mapping.MappingName,
-                  household_id: mapping.HouseholdID,
-                  mapping_id: mapping.ID,
-                }
+                type: mapping.Type,
+                mapping_name: mapping.HouseholdID
+                  ? `Household Number: ${mapping.Household?.HouseholdNumber}`
+                  : mapping.MappingName,
+                household_id: mapping.HouseholdID,
+                mapping_id: mapping.ID,
+              }
               : {}),
           },
         };
@@ -141,7 +141,7 @@ export default function Map() {
         className="w-full h-full rounded-2xl"
         zoomAnimation={false}
         fadeAnimation={false}
-        minZoom={15} 
+        minZoom={15}
         maxZoom={20}
       >
         <GeoJSON data={Border.features as any} style={borderStyle} />
@@ -182,6 +182,8 @@ export default function Map() {
         dialogOpen={dialogOpen}
         onOpenChange={setDialogOpen}
       />
+      <h1 className="mt-2 text-end">Land Area
+        : <span className="font-bold">294.754571456 Hectares</span></h1>
     </div>
   );
 }
