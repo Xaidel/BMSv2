@@ -93,7 +93,6 @@ export default function ViewResidentModal({
       IsSenior: resident.IsSenior,
     },
   });
-
   const editMutation = useEditResident();
   const queryClient = useQueryClient();
   async function onSubmit(values: z.infer<typeof residentSchema>) {
@@ -206,7 +205,7 @@ export default function ViewResidentModal({
                                     if (file) {
                                       field.onChange(file);
                                       const reader = new FileReader();
-                                      reader.onload = () => {};
+                                      reader.onload = () => { };
                                       reader.readAsDataURL(file);
                                     }
                                   }}
