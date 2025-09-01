@@ -1,6 +1,4 @@
 import { api } from "@/service/api"
-import { HouseholdResponse } from "../household/getHousehold"
-import { HouseholdProps } from "../household/postHousehold"
 
 export type MappingResponse = {
   mappings: Mapping[]

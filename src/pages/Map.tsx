@@ -6,11 +6,11 @@ import Building from "@/assets/geojson/Building.json";
 import { GeoJSON, MapContainer, TileLayer } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { Feature } from "geojson";
-import AddMappingModal from "@/features/map/AddMappingModal";
 import useMapping from "@/features/api/map/useMapping";
 import { Mapping } from "@/service/api/map/getMapping";
+import { AddMappingModal } from "@/features/map/AddMappingModal";
 
 const center: LatLngExpression = [13.579126, 123.063078];
 
@@ -24,7 +24,7 @@ export default function Map() {
     return {
       ...Building,
       features: Building.features.map((feature: any) => {
-        const fid = Number(feature.properties?.id); // normalize to number
+        const fid = Number(feature.properties?.id);
         const mapping = mappings.mappings.find((m: Mapping) => m.FID === fid);
         return {
           ...feature,
@@ -115,7 +115,7 @@ export default function Map() {
 
     layer.on("mouseout", () => {
       layer.closePopup();
-      if (infra.properties?.type === "establishment") {
+      if (infra.properties?.type?.includes("Commercial") || infra.properties?.type?.includes("commercial")) {
         layer.setStyle({
           color: "blue",
           fillColor: "blue",
@@ -169,8 +169,11 @@ export default function Map() {
             ) {
               return updatedStyle;
             }
-            if (feature.properties?.type === "establishment") {
+            if (feature.properties?.type?.includes("Commercial") || feature.properties?.type?.includes("commercial")) {
               return { color: "blue", fillColor: "blue" };
+            }
+            if (feature.properties?.type?.includes("Institutional") || feature.properties?.type?.includes("institutional")) {
+              return { color: "purple", fillColor: "purple" };
             }
             return infraStyle;
           }}
@@ -180,7 +183,10 @@ export default function Map() {
       <AddMappingModal
         feature={selectedFeature}
         dialogOpen={dialogOpen}
-        onOpenChange={setDialogOpen}
+        onOpenChange={() => {
+          setDialogOpen(false)
+          setSelectedFeature(null)
+        }}
       />
       <h1 className="mt-2 text-end">Land Area
         : <span className="font-bold">294.754571456 Hectares</span></h1>

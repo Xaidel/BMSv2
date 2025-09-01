@@ -6,7 +6,19 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { X, Plus, Search, Crown, Heart, Baby, User, Users, CalendarIcon, Shield, CircleQuestionMark, Type } from "lucide-react"
+import {
+  X,
+  Plus,
+  Search,
+  Crown,
+  Heart,
+  Baby,
+  User,
+  Users,
+  CalendarIcon,
+  Shield,
+  FileQuestion as CircleQuestionMark,
+} from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
@@ -24,7 +36,6 @@ import { toast } from "sonner"
 import { useResident } from "../api/resident/useResident"
 import { useAddHousehold } from "../api/household/useAddHousehold"
 import { useQueryClient } from "@tanstack/react-query"
-
 
 const householdRoles = [
   "Head",
@@ -118,12 +129,12 @@ const roleDefinitions: Record<string, string> = {
   Others: "Other family members or relationships not listed above",
 }
 interface HouseholdProps {
-  HouseholdNumber: string;
-  Type: string;
-  Members: { ID: number; Role: string }[];
-  Zone: string;
-  DateOfResidency: string;
-  Status: string;
+  HouseholdNumber: string
+  Type: string
+  Members: { ID: number; Role: string }[]
+  Zone: string
+  DateOfResidency: string
+  Status: string
 }
 
 export const getRoleIcon = (role: string) => {
@@ -202,22 +213,18 @@ export default function AddHouseholdModal() {
     if (!residents?.residents) return []
 
     return residents.residents.map((r) => {
-      const middleInitial = r.Middlename
-        ? ` ${r.Middlename.charAt(0).toUpperCase()}.`
-        : ""
+      const middleInitial = r.Middlename ? ` ${r.Middlename.charAt(0).toUpperCase()}.` : ""
 
       return {
         ID: r.ID.toString(),
         Name: `${r.Firstname}${middleInitial} ${r.Lastname}`.trim(),
         Role: "",
         Income: r.AvgIncome,
-        Age: getAge(r.Birthday.toString())
+        Age: getAge(r.Birthday.toString()),
       }
     })
   }, [residents])
-  const filteredResidents = res.filter((resident) =>
-    resident.Name.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  const filteredResidents = res.filter((resident) => resident.Name.toLowerCase().includes(searchQuery.toLowerCase()))
 
   const filteredRoles = householdRoles.filter((role) => role.toLowerCase().includes(roleSearchQuery.toLowerCase()))
 
@@ -230,7 +237,7 @@ export default function AddHouseholdModal() {
           Name: resident.Name,
           Role: "Others",
           Income: 0,
-          Age: 0
+          Age: 0,
         },
       ])
     } else {
@@ -239,7 +246,7 @@ export default function AddHouseholdModal() {
   }
 
   const updateMemberRole = (memberId: string, role: string) => {
-    setSelectedMembers(selectedMembers.map((member) => (member.ID === memberId ? { ...member, role } : member)))
+    setSelectedMembers(selectedMembers.map((member) => (member.ID === memberId ? { ...member, Role: role } : member)))
     setRoleSearchQuery("")
   }
 
@@ -259,7 +266,6 @@ export default function AddHouseholdModal() {
       toast.error("Please add at least one family member")
       return
     }
-
     const formData: HouseholdProps = {
       HouseholdNumber: householdNumber,
       Type: householdType,
@@ -271,25 +277,23 @@ export default function AddHouseholdModal() {
       DateOfResidency: dateOfResidency instanceof Date ? dateOfResidency.toISOString() : "",
       Status: status,
     }
-    toast.promise(
-      addMutation.mutateAsync(formData), {
+    toast.promise(addMutation.mutateAsync(formData), {
       loading: "Inserting household",
       success: (data) => {
-        queryClient.invalidateQueries({ queryKey: ['household'] })
+        queryClient.invalidateQueries({ queryKey: ["household"] })
         setOpenModal(false)
         return {
           message: "Household added successfully",
-          description: "New Household registered"
+          description: "New Household registered",
         }
       },
       error: (error: { error: string }) => {
         return {
           message: "Error Adding Household",
-          description: `${error.error}`
+          description: `${error.error}`,
         }
-      }
-    }
-    )
+      },
+    })
   }
 
   return (

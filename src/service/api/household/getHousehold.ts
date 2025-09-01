@@ -9,14 +9,21 @@ export interface ResProps {
 }
 
 export interface Household {
-  ID?: number;
-  HouseholdNumber: string;
-  Type: string;
-  Member: ResProps[];
-  Head: string;
-  Zone: string;
-  Date: string; // ISO string
-  Status: "Moved Out" | "Active" | string;
+  id?: number;
+  household_number: string;
+  type: string;
+  member: ResProps[];
+  residents?: {
+    firstname: string
+    lastname: string
+    id: number
+    role: string
+    income: number
+  }[]
+  head: string;
+  zone: string;
+  date_of_residency: string; // ISO string
+  status: "Moved Out" | "Active" | string;
   SelectedResident?: string[];
 }
 
