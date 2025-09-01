@@ -59,7 +59,6 @@ type props = {
 
 export function AddMappingModal({ dialogOpen, onOpenChange, feature }: props) {
   const [selectedTypes, setSelectedTypes] = useState<BuildingType[]>([])
-  console.log(feature)
   const { data: household } = useHousehold()
   const householdData = useMemo(() => {
     if (!household) return []
@@ -97,7 +96,7 @@ export function AddMappingModal({ dialogOpen, onOpenChange, feature }: props) {
     let householdID: number | null = null
 
     if (buildingData.residential) {
-      mappingNames.push(`Household #${buildingData.residential.householdNumber}'s Residence`)
+      mappingNames.push(`Household #${buildingData.residential.householdNumber}`)
       types.push("Household")
       householdID = Number.parseInt(buildingData.residential.householdNumber)
     } else {

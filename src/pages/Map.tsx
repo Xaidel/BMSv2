@@ -33,9 +33,7 @@ export default function Map() {
             ...(mapping
               ? {
                 type: mapping.Type,
-                mapping_name: mapping.HouseholdID
-                  ? `Household Number: ${mapping.Household?.HouseholdNumber}`
-                  : mapping.MappingName,
+                mapping_name: mapping.MappingName,
                 household_id: mapping.HouseholdID,
                 mapping_id: mapping.ID,
               }
@@ -119,6 +117,11 @@ export default function Map() {
         layer.setStyle({
           color: "blue",
           fillColor: "blue",
+        });
+      } else if (infra.properties?.type?.includes("Institutional") || infra.properties?.type?.includes("institutional")) {
+        layer.setStyle({
+          color: "purple",
+          fillColor: "purple",
         });
       } else {
         layer.setStyle(
