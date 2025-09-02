@@ -62,7 +62,7 @@ export function AddMappingModal({ dialogOpen, onOpenChange, feature }: props) {
   const { data: household } = useHousehold()
   const householdData = useMemo(() => {
     if (!household) return []
-    return household.households.map(h => {
+    return household.households?.map(h => {
       const head = h.residents?.find(r => r.role === "Head")
       return {
         householdNumber: h.household_number,
@@ -274,8 +274,8 @@ export function AddMappingModal({ dialogOpen, onOpenChange, feature }: props) {
                                   className="h-8"
                                 />
                               </div>
-                              {householdData.length > 0 ? (
-                                householdData.map((num) => (
+                              {householdData?.length > 0 ? (
+                                householdData?.map((num) => (
                                   <SelectItem key={num.householdNumber} value={num.householdNumber}>
                                     <div className="p-2 text-xs text-left">
                                       <p>Household #{num.householdNumber}</p>
