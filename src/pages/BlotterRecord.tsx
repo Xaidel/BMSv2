@@ -4,15 +4,14 @@ import DataTable from "@/components/ui/datatable";
 import Filter from "@/components/ui/filter";
 import Searchbar from "@/components/ui/searchbar";
 import AddBlotterModal from "@/features/blotter/addBlotterModal";
-import DeleteBlotterModal from "@/features/blotter/deleteBlotterModal";
 import ViewBlotterModal from "@/features/blotter/viewBlotterModal";
 import {
-  DollarSign,
   Eye,
   Users,
-  AlarmClock,
   Gavel,
   BookOpenCheck,
+  Siren,
+  Loader,
 } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
@@ -255,7 +254,7 @@ export default function BlotterRecordPage() {
         <SummaryCardBlotter
           title="On Going"
           value={ongoing}
-          icon={<AlarmClock size={50} />}
+          icon={<Loader size={50} />}
           onClick={async () => {
             const [
               { pdf },
@@ -327,7 +326,7 @@ export default function BlotterRecordPage() {
         <SummaryCardBlotter
           title="Transferred to Police"
           value={transferred}
-          icon={<DollarSign size={50} />}
+          icon={<Siren size={50} />}
           onClick={async () => {
             const [
               { pdf },

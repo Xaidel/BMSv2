@@ -20,8 +20,10 @@ import {
   XCircle,
 } from "lucide-react";
 import searchCertificate from "@/service/certificate/searchCertificate";
-import SummaryCard from "@/components/summary-card/certificate";
 import { invoke } from "@tauri-apps/api/core";
+import getCertificate from "@/service/api/certificate/getCertificate";
+import getResident from "@/service/api/resident/getResident";
+import SummaryCardCertificate from "@/components/summary-card/certificate";
 
 const filters = [
   "All Certificates",
@@ -38,6 +40,7 @@ type Certificate = {
   name: string;
   type_: string;
   issued_date: Date;
+  purpose?: string;
 };
 
 const columns: ColumnDef<Certificate>[] = [
@@ -76,6 +79,10 @@ const columns: ColumnDef<Certificate>[] = [
     accessorKey: "type_",
   },
   {
+    header: "Purpose",
+    accessorKey: "purpose",
+  },
+  {
     header: "Issued On",
     accessorKey: "issued_date",
     cell: ({ row }) => <div>{format(row.original.issued_date, "MMMM do, yyyy")}</div>,
@@ -106,23 +113,34 @@ export default function Certificate() {
   const [searchQuery, setSearchQuery] = useState("");
   const [data, setData] = useState<Certificate[]>([]);
 
-  const fetchCertificates = () => {
-    invoke<any[]>("fetch_all_certificates_command")
-      .then((fetched) => {
-        const parsed = fetched.map((cert) => {
-          const issuedDate = new Date(cert.issued_date ?? "");
-          return {
-            id: cert.id,
-            amount: cert.amount,
-            resident_name: cert.resident_name,
-            name: cert.resident_name,
-            type_: cert.type_,
-            issued_date: isNaN(issuedDate.getTime()) ? new Date() : issuedDate,
-          };
-        });
-        setData(parsed);
-      })
-      .catch((err) => console.error("Failed to fetch certificates:", err));
+  const fetchCertificates = async () => {
+    try {
+      const [{ certificates }, { residents }] = await Promise.all([
+        getCertificate(),
+        getResident(),
+      ]);
+
+      const residentMap = new Map<number, string>(
+        residents.map((r: any) => [r.ID, `${r.Lastname}, ${r.Firstname}`])
+      );
+
+      const parsed = certificates.map((cert: any) => {
+        const issuedDate = new Date(cert.issued_date ?? cert.IssuedDate ?? "");
+        const fullName = residentMap.get(cert.resident_id ?? cert.ResidentID) ?? "Unknown";
+        return {
+          id: cert.id ?? cert.ID ?? 0,
+          amount: (cert.amount ?? cert.Amount)?.toString() ?? "",
+          resident_name: fullName,
+          name: fullName,
+          type_: cert.type ?? cert.Type ?? cert.type_ ?? cert.typeName ?? "",
+          issued_date: isNaN(issuedDate.getTime()) ? new Date() : issuedDate,
+          purpose: cert.purpose ?? cert.Purpose ?? "",
+        };
+      });
+      setData(parsed);
+    } catch (err) {
+      console.error("Failed to fetch certificates:", err);
+    }
   };
 
   useEffect(() => {
@@ -140,6 +158,15 @@ export default function Certificate() {
     expiry.setFullYear(expiry.getFullYear() + 1);
     return new Date() > expiry;
   }).length;
+  const issuedTodayCertificates = data.filter((cert) => {
+    const issuedDate = new Date(cert.issued_date);
+    const today = new Date();
+    return (
+      issuedDate.getDate() === today.getDate() &&
+      issuedDate.getMonth() === today.getMonth() &&
+      issuedDate.getFullYear() === today.getFullYear()
+    );
+  });
 
   const filteredData = useMemo(() => {
     const sortValue = searchParams.get("sort") ?? "All Certificates";
@@ -179,7 +206,7 @@ export default function Certificate() {
   return (
     <>
       <div className="flex flex-wrap gap-5 justify-around mb-5 mt-1">
-        <SummaryCard
+        <SummaryCardCertificate
           title="Total Certificates"
           value={totalCertificates}
           icon={<FileText size={50} />}
@@ -203,7 +230,31 @@ export default function Certificate() {
             }
           }}
         />
-        <SummaryCard
+        <SummaryCardCertificate
+          title="Issued Certificates Today"
+          value={issuedTodayCertificates.length}
+          icon={<CheckCircle size={50} />}
+          onClick={async () => {
+            const blob = await pdf(
+              <CertificatePDF filter="Issued Certificates Today" certificates={issuedTodayCertificates.map(cert => ({ ...cert, issued_date: cert.issued_date.toISOString() }))} />
+            ).toBlob();
+            const buffer = await blob.arrayBuffer();
+            const contents = new Uint8Array(buffer);
+            try {
+              await writeFile("IssuedTodayCertificates.pdf", contents, {
+                baseDir: BaseDirectory.Document,
+              });
+              toast.success("Issued Today Certificate Record successfully downloaded", {
+                description: "Saved in Documents folder",
+              });
+            } catch (e) {
+              toast.error("Error", {
+                description: "Failed to save today's certificate record",
+              });
+            }
+          }}
+        />
+        <SummaryCardCertificate
           title="Active Certificates"
           value={activeCertificates}
           icon={<CheckCircle size={50} />}
@@ -232,7 +283,7 @@ export default function Certificate() {
             }
           }}
         />
-        <SummaryCard
+        <SummaryCardCertificate
           title="Expired Certificates"
           value={expiredCertificates}
           icon={<XCircle size={50} />}

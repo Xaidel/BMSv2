@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { View, Text, Image } from "@react-pdf/renderer";
 import getSettings from "@/service/api/settings/getSettings";
+import logoBarangay from "@/assets/logo_barangay.png";
+import logoMunicipality from "@/assets/logo_municipality.png";
 
 type Settings = {
   Barangay: string;
@@ -9,10 +11,6 @@ type Settings = {
 };
 
 export default function CertificateHeader() {
-  const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
-  const [logoMunicipalityDataUrl, setLogoMunicipalityDataUrl] = useState<
-    string | null
-  >(null);
   const [settings, setSettings] = useState<Settings | null>(null);
 
   useEffect(() => {
@@ -24,8 +22,6 @@ export default function CertificateHeader() {
           Municipality: data.setting.Municipality || "",
           Province: data.setting.Province || "",
         });
-        if (data.setting.ImageB) setLogoDataUrl(data.setting.ImageB);
-        if (data.setting.ImageM) setLogoMunicipalityDataUrl(data.setting.ImageM);
       } catch (error) {
         console.error(error);
       }
@@ -35,44 +31,38 @@ export default function CertificateHeader() {
 
   return (
     <View style={{ position: "relative" }}>
-      {logoDataUrl && (
-        <Image
-          src={logoDataUrl}
-          style={{
-            position: "absolute",
-            top: 10,
-            left: 30,
-            width: 90,
-            height: 90,
-          }}
-        />
-      )}
-      {logoMunicipalityDataUrl && (
-        <Image
-          src={logoMunicipalityDataUrl}
-          style={{
-            position: "absolute",
-            top: 10,
-            right: 30,
-            width: 90,
-            height: 90,
-          }}
-        />
-      )}
-      {logoDataUrl && (
-        <Image
-          src={logoDataUrl}
-          style={{
-            position: "absolute",
-            top: "150%",
-            left: "23%",
-            transform: "translate(-50%, -50%)",
-            width: 400,
-            height: 400,
-            opacity: 0.1,
-          }}
-        />
-      )}
+      <Image
+        src={logoBarangay}
+        style={{
+          position: "absolute",
+          top: 10,
+          left: 30,
+          width: 90,
+          height: 90,
+        }}
+      />
+      <Image
+        src={logoMunicipality}
+        style={{
+          position: "absolute",
+          top: 10,
+          right: 30,
+          width: 90,
+          height: 90,
+        }}
+      />
+      <Image
+        src={logoBarangay}
+        style={{
+          position: "absolute",
+          top: "150%",
+          left: "23%",
+          transform: "translate(-50%, -50%)",
+          width: 400,
+          height: 400,
+          opacity: 0.1,
+        }}
+      />
 
       <View style={{ marginBottom: 10, marginTop: 10 }}>
         <Text style={{ textAlign: "center", fontSize: 16 }}>

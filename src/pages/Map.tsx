@@ -146,6 +146,7 @@ export default function Map() {
         fadeAnimation={false}
         minZoom={15}
         maxZoom={20}
+        zoomSnap={0.3}
       >
         <GeoJSON data={Border.features as any} style={borderStyle} />
         <GeoJSON
