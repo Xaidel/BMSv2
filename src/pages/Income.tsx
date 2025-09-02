@@ -444,7 +444,7 @@ export default function IncomeNewPage() {
             cell: ({ row }) => (
               <div className="flex gap-3">
                 <Button onClick={() => setViewIncomeId(row.original.ID)}>
-                  <Eye /> View Event
+                  <Eye /> View Income
                 </Button>
               </div>
             ),

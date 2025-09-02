@@ -122,7 +122,7 @@ export default function AddResidentModal() {
         Status: values.Status,
         Birthplace: values.Birthplace,
         EducationalAttainment: values.EducationalAttainment,
-        Birthday: values.Birthday,
+        Birthday: new Date(values.Birthday.toISOString().split("T")[0]),
         IsVoter: values.IsVoter,
         IsPWD: values.IsPWD,
         Image: null,
