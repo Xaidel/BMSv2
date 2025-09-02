@@ -1,4 +1,4 @@
-import { Household } from "./types";
+import { Household } from "./apitypes";
 import Photo from "@/assets/donaldT.jpg"
 import Tambo from "@/assets/Tambo.png"
 
@@ -51,70 +51,70 @@ const roleCategories = {
 
 
 export function buildFamilyTree(household: Household) {
-  const { members } = household;
+  const { member: members } = household;
 
-  const getFullName = (r: any) => `${r.firstname} ${r.lastname}`;
+  const getFullName = (r: any) => `${r.Firstname} ${r.Lastname}`;
 
-  const head = members.find(r => r.role === "Head");
-  const spouse = members.find(r => roleCategories.spouse.includes(r.role));
+  const head = members.find(r => r.Role === "Head");
+  const spouse = members.find(r => roleCategories.spouse.includes(r.Role));
 
   return members.map(r => {
     let parents: string[] = [];
 
     // Head → root
-    if (r.role === "Head") {
+    if (r.Role === "Head") {
       parents = [];
     }
 
     // Spouse → linked to Head
-    else if (roleCategories.spouse.includes(r.role)) {
-      if (head) parents.push(head.id.toString());
+    else if (roleCategories.spouse.includes(r.Role)) {
+      if (head) parents.push(head.ID.toString());
     }
 
     // Children → Head (and Spouse if present)
-    else if (roleCategories.children.includes(r.role)) {
-      if (head) parents.push(head.id.toString());
-      if (spouse) parents.push(spouse.id.toString());
+    else if (roleCategories.children.includes(r.Role)) {
+      if (head) parents.push(head.ID.toString());
+      if (spouse) parents.push(spouse.ID.toString());
     }
 
     // Parents of Head
-    else if (roleCategories.parents.includes(r.role)) {
+    else if (roleCategories.parents.includes(r.Role)) {
       if (head) {
         parents = []; // top generation in the household
       }
     }
 
     // Grandparents of Head
-    else if (roleCategories.grandparents.includes(r.role)) {
-      const parent = members.find(m => roleCategories.parents.includes(m.role));
-      if (parent) parents.push(parent.id.toString());
+    else if (roleCategories.grandparents.includes(r.Role)) {
+      const parent = members.find(m => roleCategories.parents.includes(m.Role));
+      if (parent) parents.push(parent.ID.toString());
     }
 
     // Siblings of Head
-    else if (roleCategories.siblings.includes(r.role)) {
+    else if (roleCategories.siblings.includes(r.Role)) {
       // siblings share parents with head
-      const headParents = members.filter(m => roleCategories.parents.includes(m.role));
-      parents = headParents.map(m => m.id.toString());
+      const headParents = members.filter(m => roleCategories.parents.includes(m.Role));
+      parents = headParents.map(m => m.ID.toString());
     }
 
     // In-laws → tied to spouse or related sibling
-    else if (r.role.toLowerCase().includes("in law")) {
+    else if (r.Role.toLowerCase().includes("in law")) {
       if (spouse) {
-        parents.push(spouse.id.toString());
+        parents.push(spouse.ID.toString());
       } else if (head) {
-        parents.push(head.id.toString());
+        parents.push(head.ID.toString());
       }
     }
 
     // Extended/others → fallback to Head
     else {
-      if (head) parents.push(head.id.toString());
+      if (head) parents.push(head.ID.toString());
     }
 
     return {
-      id: r.id.toString(),
+      id: r.ID.toString(),
       name: getFullName(r),
-      role: r.role,
+      role: r.Role,
       parents,
     };
   });

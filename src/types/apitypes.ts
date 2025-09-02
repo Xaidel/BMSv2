@@ -135,13 +135,13 @@ export type Logbook = {
 };
 
 export type Household = {
-  ID?: number;
-  HouseholdNumber: string;
-  Type: string;
-  Member: ResProps[];
-  Head: string;
-  Zone: string;
-  Date: Date;
-  Status: "Moved Out" | "Active" | string;
-  SelectedResident?: string[]; // optional list of selected members
+  id?: number;
+  household_number: string;
+  type: string;
+  member: ResProps[];
+  head: string;
+  zone: string;
+  date: Date;
+  status: "Moved Out" | "Active" | string;
+  selected_resident?: string[]; // optional list of selected members
 };
