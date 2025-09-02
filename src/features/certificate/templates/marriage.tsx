@@ -6,13 +6,15 @@ import { cn } from "@/lib/utils";
 import { PDFViewer } from "@react-pdf/renderer";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { useEffect } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import { ArrowLeftCircleIcon, Check, ChevronsUpDown } from "lucide-react";
 import { toast } from "sonner";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
-import { Official } from "@/types/types";
+import { useOfficial } from "@/features/api/official/useOfficial";
+import getSettings from "@/service/api/settings/getSettings";
+import getResident from "@/service/api/resident/getResident";
+import { useAddCertificate } from "@/features/api/certificate/useAddCertificate";
 import CertificateHeader from "../certificateHeader";
 import CertificateFooter from "../certificateFooter";
 import { Buffer } from "buffer";
@@ -21,14 +23,14 @@ if (!window.Buffer) {
   window.Buffer = Buffer;
 }
 type Resident = {
-  id?: number;
-  first_name: string;
-  middle_name?: string;
-  last_name: string;
-  suffix?: string;
-  date_of_birth?: string;
-  civil_status?: string;
-  zone?: string;
+  ID?: number;
+  Firstname: string;
+  Middlename?: string;
+  Lastname: string;
+  Suffix?: string;
+  Birthday?: Date;
+  CivilStatus?: string;
+  Zone?: number;
 };
 
 export default function Marriage() {
@@ -43,11 +45,10 @@ export default function Marriage() {
   const [civilStatusMale, setCivilStatusMale] = useState("");
   const [ageFemale, setAgeFemale] = useState("");
   const [civilStatusFemale, setCivilStatusFemale] = useState("");
-  const [captainName, setCaptainName] = useState<string | null>(null);
   const allResidents = useMemo(() => {
     return residents.map((res) => ({
-      value: `${res.first_name} ${res.last_name}`.toLowerCase(),
-      label: `${res.first_name} ${res.last_name}`,
+      value: `${res.Firstname} ${res.Lastname}`.toLowerCase(),
+      label: `${res.Firstname} ${res.Lastname}`,
       data: res,
     }));
   }, [residents]);
@@ -67,58 +68,49 @@ export default function Marriage() {
   const [, setLogoMunicipalityDataUrl] = useState<string | null>(null);
   const [settings, setSettings] = useState<{ barangay: string; municipality: string; province: string } | null>(null);
 
-  useEffect(() => {
-    invoke("fetch_logo_command")
-      .then((res) => {
-        if (typeof res === "string") setLogoDataUrl(res);
-      })
-      .catch(console.error);
+  const { data: officials } = useOfficial();
+  const { mutateAsync: addCertificate } = useAddCertificate();
 
-    invoke("fetch_settings_command")
+  useEffect(() => {
+    getSettings()
       .then((res) => {
-        if (typeof res === "object" && res !== null) {
-          const s = res as any;
+        if (res.setting) {
           setSettings({
-            barangay: s.barangay || "",
-            municipality: s.municipality || "",
-            province: s.province || "",
+            barangay: res.setting.Barangay || "",
+            municipality: res.setting.Municipality || "",
+            province: res.setting.Province || "",
           });
-          if (s.logo) {
-            setLogoDataUrl(s.logo);
-          }
-          if (s.logo_municipality) {
-            setLogoMunicipalityDataUrl(s.logo_municipality);
-          }
         }
       })
       .catch(console.error);
 
-    invoke("fetch_all_residents_command")
+    getResident()
       .then((res) => {
-        if (Array.isArray(res)) setResidents(res as Resident[]);
-      })
-      .catch(console.error);
-
-    invoke<Official[]>("fetch_all_officials_command")
-      .then((data) => {
-        const captain = data.find(
-          (person) =>
-            person.section.toLowerCase() === "barangay officials" &&
-            person.role.toLowerCase() === "barangay captain"
-        );
-        if (captain) {
-          setCaptainName(captain.name);
+        if (Array.isArray(res.residents)) {
+          setResidents(res.residents);
         }
       })
       .catch(console.error);
   }, []);
 
+  const getOfficialName = (role: string, section: string) => {
+    if (!officials) return null;
+    const list = Array.isArray(officials) ? officials : officials.officials;
+    const found = list.find(
+      (o) =>
+        (o.Section?.toLowerCase() || "").includes(section.toLowerCase()) &&
+        (o.Role?.toLowerCase() || "").includes(role.toLowerCase())
+    );
+    return found?.Name ?? null;
+  };
+  const captainName = getOfficialName("barangay captain", "barangay officials");
+
   // Calculate age and civil status for selected residents
   useEffect(() => {
     const male = allResidents.find((r) => r.value === value)?.data;
     if (male) {
-      if (male.date_of_birth) {
-        const dob = new Date(male.date_of_birth);
+      if (male.Birthday) {
+        const dob = new Date(male.Birthday);
         const today = new Date();
         let calculatedAge = today.getFullYear() - dob.getFullYear();
         const m = today.getMonth() - dob.getMonth();
@@ -127,12 +119,12 @@ export default function Marriage() {
         }
         setAgeMale(calculatedAge.toString());
       }
-      setCivilStatusMale(male.civil_status || "");
+      setCivilStatusMale(male.CivilStatus || "");
     }
     const female = allResidents.find((r) => r.value === value2)?.data;
     if (female) {
-      if (female.date_of_birth) {
-        const dob = new Date(female.date_of_birth);
+      if (female.Birthday) {
+        const dob = new Date(female.Birthday);
         const today = new Date();
         let calculatedAge = today.getFullYear() - dob.getFullYear();
         const m = today.getMonth() - dob.getMonth();
@@ -141,12 +133,12 @@ export default function Marriage() {
         }
         setAgeFemale(calculatedAge.toString());
       }
-      setCivilStatusFemale(female.civil_status || "");
+      setCivilStatusFemale(female.CivilStatus || "");
     }
   }, [allResidents, value, value2]);
   const styles = StyleSheet.create({
     page: { padding: 30 },
-    section: { marginBottom: 10 },
+    Section: { marginBottom: 10 },
     heading: { fontSize: 18, marginBottom: 10 },
     bodyText: { fontSize: 14 },
   });
@@ -207,8 +199,8 @@ export default function Marriage() {
                                   onSelect={(currentValue) => {
                                     const selected = allResidents.find((r) => r.value === currentValue)?.data;
                                     if (selected) {
-                                      if (selected.date_of_birth) {
-                                        const dob = new Date(selected.date_of_birth);
+                                      if (selected.Birthday) {
+                                        const dob = new Date(selected.Birthday);
                                         const today = new Date();
                                         let calculatedAge = today.getFullYear() - dob.getFullYear();
                                         const m = today.getMonth() - dob.getMonth();
@@ -219,7 +211,7 @@ export default function Marriage() {
                                       } else {
                                         setAgeMale("");
                                       }
-                                      setCivilStatusMale(selected.civil_status || "");
+                                      setCivilStatusMale(selected.CivilStatus || "");
                                     }
                                     setValue(currentValue === value ? "" : currentValue);
                                     setOpenMale(false);
@@ -311,8 +303,8 @@ export default function Marriage() {
                                 onSelect={(currentValue) => {
                                   const selected = allResidents.find((r) => r.value === currentValue)?.data;
                                   if (selected) {
-                                    if (selected.date_of_birth) {
-                                      const dob = new Date(selected.date_of_birth);
+                                    if (selected.Birthday) {
+                                      const dob = new Date(selected.Birthday);
                                       const today = new Date();
                                       let calculatedAge = today.getFullYear() - dob.getFullYear();
                                       const m = today.getMonth() - dob.getMonth();
@@ -323,7 +315,7 @@ export default function Marriage() {
                                     } else {
                                       setAgeFemale("");
                                     }
-                                    setCivilStatusFemale(selected.civil_status || "");
+                                    setCivilStatusFemale(selected.CivilStatus || "");
                                   }
                                   setValue2(currentValue === value2 ? "" : currentValue);
                                   setOpenFemale(false);
@@ -390,27 +382,24 @@ export default function Marriage() {
             <Button
               onClick={async () => {
                 if (!selectedResident || !selectedResident2) {
-                  alert("Please select both residents.");
+                  alert("Please select both male and female residents first.");
                   return;
                 }
-
                 try {
-                  const nowIso = new Date().toISOString();
-                  await invoke("save_certificate_command", {
-                    cert: {
-                      id: 0,
-                      resident_name: `${selectedResident.first_name} ${selectedResident.last_name} & ${selectedResident2.first_name} ${selectedResident2.last_name}`,
-                      type_: "Marriage Certificate",
-                      issued_date: nowIso,
-                      age: parseInt(ageMale),
-                      civil_status: `${civilStatusMale}/${civilStatusFemale}`,
-                      ownership_text: "",
-                      amount: amount || "",
-                    }
-                  });
-
+                  const cert: any = {
+                    resident_id: selectedResident.ID,
+                    resident_name: `${selectedResident.Firstname} ${selectedResident.Lastname} & ${selectedResident2?.Firstname ?? ""} ${selectedResident2?.Lastname ?? ""}`,
+                    type_: "Marriage Certificate",
+                    amount: amount ? parseFloat(amount) : 0,
+                    issued_date: new Date().toISOString().split("T")[0],
+                    ownership_text: "",
+                    civil_status: `${civilStatusMale}/${civilStatusFemale}`,
+                    age: ageMale ? parseInt(ageMale, 10) : undefined,
+                    purpose: "Marriage Certificate",
+                  };
+                  await addCertificate(cert);
                   toast.success("Certificate saved successfully!", {
-                    description: `Marriage certificate saved for ${selectedResident.first_name} and ${selectedResident2.first_name}`
+                    description: `${selectedResident.Firstname} ${selectedResident.Lastname}'s certificate was saved.`,
                   });
                 } catch (error) {
                   console.error("Save certificate failed:", error);
@@ -433,10 +422,10 @@ export default function Marriage() {
                       <>
                         <Text style={[styles.bodyText, { textAlign: "justify", marginBottom: 8 }]}>
                           <Text style={{ fontWeight: "bold" }}>This is to certify that </Text>
-                          <Text style={{ fontWeight: "bold" }}>{`MR. ${selectedResident.first_name} ${selectedResident.middle_name ?? ""} ${selectedResident.last_name}`.toUpperCase()}</Text>, {ageMale || "___"} years old, {civilStatusMale || "___"}, a resident of zone {selectedResident.zone}, at {settings ? settings.barangay : "________________"}
+                          <Text style={{ fontWeight: "bold" }}>{`MR. ${selectedResident.Firstname} ${selectedResident.Middlename ?? ""} ${selectedResident.Lastname}`.toUpperCase()}</Text>, {ageMale || "___"} years old, {civilStatusMale || "___"}, a resident of zone {selectedResident.Zone}, at {settings ? settings.barangay : "________________"}
                         ,{settings ? settings.municipality : "________________"}
                         ,{settings ? settings.province : "________________"} wishes to contract marriage with
-                          <Text style={{ fontWeight: "bold" }}> MS. {`${selectedResident2.first_name} ${selectedResident2.middle_name ?? ""} ${selectedResident2.last_name}`.toUpperCase()}</Text>, {ageFemale || "___"} years old, {civilStatusFemale || "___"}, no legal impediment to contract marriage.
+                          <Text style={{ fontWeight: "bold" }}> MS. {`${selectedResident2.Firstname} ${selectedResident2.Middlename ?? ""} ${selectedResident2.Lastname}`.toUpperCase()}</Text>, {ageFemale || "___"} years old, {civilStatusFemale || "___"}, no legal impediment to contract marriage.
                         </Text>
                       </>
                     ) : (

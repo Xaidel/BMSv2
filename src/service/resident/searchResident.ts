@@ -17,6 +17,6 @@ export default function searchResident(term: string, data: Resident[]) {
     ];
 
     const fullName = `${resident.Firstname} ${resident.Middlename ?? ""} ${resident.Lastname}`.trim();
-    return searchableFields.some(field => field && pattern.test(field)) || pattern.test(fullName);
+    return searchableFields.some(field => field !== undefined && pattern.test(String(field))) || pattern.test(String(fullName));
   });
 }

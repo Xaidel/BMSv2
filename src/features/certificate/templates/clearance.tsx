@@ -24,7 +24,10 @@ import { cn } from "@/lib/utils";
 import { PDFViewer } from "@react-pdf/renderer";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { useEffect } from "react";
-import { invoke } from "@tauri-apps/api/core";
+import { useOfficial } from "@/features/api/official/useOfficial";
+import getSettings from "@/service/api/settings/getSettings";
+import getResident from "@/service/api/resident/getResident";
+import { useAddCertificate } from "@/features/api/certificate/useAddCertificate";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
@@ -35,7 +38,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Official } from "@/types/types";
+import { Official } from "@/types/apitypes";
 import { ArrowLeftCircleIcon, Check, ChevronsUpDown } from "lucide-react";
 import CertificateHeader from "../certificateHeader";
 import CertificateFooter from "../certificateFooter";
@@ -45,14 +48,14 @@ if (!window.Buffer) {
 }
 
 type Resident = {
-  id?: number;
-  first_name: string;
-  middle_name?: string;
-  last_name: string;
-  suffix?: string;
-  date_of_birth?: string;
-  civil_status?: string;
-  zone?: string;
+  ID?: number;
+  Firstname: string;
+  Middlename?: string;
+  Lastname: string;
+  Suffix?: string;
+  Birthday?: Date;
+  CivilStatus?: string;
+  Zone?: number;
 };
 
 export default function Clearance() {
@@ -88,8 +91,8 @@ export default function Clearance() {
   ];
   const allResidents = useMemo(() => {
     return residents.map((res) => ({
-      value: `${res.first_name} ${res.last_name}`.toLowerCase(),
-      label: `${res.first_name} ${res.last_name}`,
+      value: `${res.Firstname} ${res.Lastname}`.toLowerCase(),
+      label: `${res.Firstname} ${res.Lastname}`,
       data: res,
     }));
   }, [residents]);
@@ -109,70 +112,60 @@ export default function Clearance() {
     municipality: string;
     province: string;
   } | null>(null);
-  const [captainName, setCaptainName] = useState<string | null>(null);
+
+  // Official/certificate hooks
+  const { data: officials } = useOfficial();
+  const { mutateAsync: addCertificate } = useAddCertificate();
+  const getOfficialName = (role: string, section: string) => {
+    if (!officials) return null;
+    const list = Array.isArray(officials) ? officials : officials.officials;
+    const found = list.find(
+      (o) =>
+        (o.Section?.toLowerCase() || "").includes(section.toLowerCase()) &&
+        (o.Role?.toLowerCase() || "").includes(role.toLowerCase())
+    );
+    return found?.Name ?? null;
+  };
+  const captainName = getOfficialName("barangay captain", "barangay officials");
 
   useEffect(() => {
-    invoke("fetch_logo_command")
+    getSettings()
       .then((res) => {
-        if (typeof res === "string") setLogoDataUrl(res);
-      })
-      .catch(console.error);
-
-    invoke("fetch_settings_command")
-      .then((res) => {
-        if (typeof res === "object" && res !== null) {
-          const s = res as any;
+        if (res.setting) {
           setSettings({
-            barangay: s.barangay || "",
-            municipality: s.municipality || "",
-            province: s.province || "",
+            barangay: res.setting.Barangay || "",
+            municipality: res.setting.Municipality || "",
+            province: res.setting.Province || "",
           });
-          if (s.logo) {
-            setLogoDataUrl(s.logo);
-          }
-          if (s.logo_municipality) {
-            setLogoMunicipalityDataUrl(s.logo_municipality);
-          }
+          if (res.setting.ImageB) setLogoDataUrl(res.setting.ImageB);
+          if (res.setting.ImageM) setLogoMunicipalityDataUrl(res.setting.ImageM);
         }
       })
       .catch(console.error);
 
-    // Fetch barangay captain's name
-    invoke<Official[]>("fetch_all_officials_command")
-      .then((data) => {
-        const captain = data.find(
-          (person) =>
-            person.section.toLowerCase() === "barangay officials" &&
-            person.role.toLowerCase() === "barangay captain"
-        );
-        if (captain) {
-          setCaptainName(captain.name);
-        }
-      })
-      .catch(console.error);
-
-    invoke("fetch_all_residents_command")
+    getResident()
       .then((res) => {
-        if (Array.isArray(res)) setResidents(res as Resident[]);
-        // extended logic for age/civil status
-        const allRes = (res as Resident[]).map((res) => ({
-          value: `${res.first_name} ${res.last_name}`.toLowerCase(),
-          label: `${res.first_name} ${res.last_name}`,
-          data: res,
-        }));
-        const selected = allRes.find((r) => r.value === value)?.data;
-        if (selected) {
-          if (selected.date_of_birth) {
-            const dob = new Date(selected.date_of_birth);
-            const today = new Date();
-            let calculatedAge = today.getFullYear() - dob.getFullYear();
-            const m = today.getMonth() - dob.getMonth();
-            if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
-              calculatedAge--;
+        if (Array.isArray(res.residents)) {
+          setResidents(res.residents);
+          const allRes = res.residents.map((res) => ({
+            value: `${res.Firstname} ${res.Lastname}`.toLowerCase(),
+            label: `${res.Firstname} ${res.Lastname}`,
+            data: res,
+          }));
+          const selected = allRes.find((r) => r.value === value)?.data;
+          if (selected) {
+            if (selected.Birthday) {
+              const dob = new Date(selected.Birthday);
+              const today = new Date();
+              let calculatedAge = today.getFullYear() - dob.getFullYear();
+              const m = today.getMonth() - dob.getMonth();
+              if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                calculatedAge--;
+              }
+              setAge(calculatedAge.toString());
             }
-            setAge(calculatedAge.toString());
+            setCivilStatus(selected.CivilStatus || "");
           }
-          setCivilStatus(selected.civil_status || "");
         }
       })
       .catch(console.error);
@@ -243,15 +236,11 @@ export default function Clearance() {
                                     (r) => r.value === currentValue
                                   )?.data;
                                   if (selected) {
-                                    if (selected.date_of_birth) {
-                                      const dob = new Date(
-                                        selected.date_of_birth
-                                      );
+                                    if (selected.Birthday) {
+                                      const dob = new Date(selected.Birthday);
                                       const today = new Date();
-                                      let calculatedAge =
-                                        today.getFullYear() - dob.getFullYear();
-                                      const m =
-                                        today.getMonth() - dob.getMonth();
+                                      let calculatedAge = today.getFullYear() - dob.getFullYear();
+                                      const m = today.getMonth() - dob.getMonth();
                                       if (
                                         m < 0 ||
                                         (m === 0 &&
@@ -263,7 +252,7 @@ export default function Clearance() {
                                     } else {
                                       setAge("");
                                     }
-                                    setCivilStatus(selected.civil_status || "");
+                                    setCivilStatus(selected.CivilStatus || "");
                                     setValue(
                                       currentValue === value ? "" : currentValue
                                     );
@@ -404,26 +393,21 @@ export default function Clearance() {
                   alert("Please select a resident first.");
                   return;
                 }
-
                 try {
-                  const nowIso = new Date().toISOString();
-                  await invoke("save_certificate_command", {
-                    cert: {
-                      resident_name: `${selectedResident.first_name} ${selectedResident.last_name}`,
-                      id: 0,
-                      type_: "Barangay Clearance",
-                      issued_date: nowIso,
-                      age: age ? parseInt(age) : undefined,
-                      civil_status: civilStatus || "",
-                      ownership_text: "",
-                      amount: amount || "",
-                      purpose:
-                        purpose === "custom" ? customPurpose || "" : purpose,
-                    },
-                  });
-
+                  const cert: any = {
+                    resident_id: selectedResident.ID,
+                    resident_name: `${selectedResident.Firstname} ${selectedResident.Lastname}`,
+                    type_: "Barangay Clearance",
+                    amount: amount ? parseFloat(amount) : 0,
+                    issued_date: new Date().toISOString().split("T")[0],
+                    ownership_text: "",
+                    civil_status: civilStatus || "",
+                    purpose: purpose === "custom" ? customPurpose || "" : purpose,
+                    age: age ? parseInt(age) : undefined,
+                  };
+                  await addCertificate(cert);
                   toast.success("Certificate saved successfully!", {
-                    description: `${selectedResident.first_name} ${selectedResident.last_name}'s certificate was saved.`,
+                    description: `${selectedResident.Firstname} ${selectedResident.Lastname}'s certificate was saved.`,
                   });
                 } catch (error) {
                   console.error("Save certificate failed:", error);
@@ -459,12 +443,12 @@ export default function Clearance() {
                         >
                           This is to certify that{" "}
                           <Text style={{ fontWeight: "bold" }}>
-                            {`${selectedResident.first_name} ${selectedResident.last_name}`.toUpperCase()}
+                            {`${selectedResident.Firstname} ${selectedResident.Lastname}`.toUpperCase()}
                           </Text>
                           {`, ${age || "___"} years old, ${
                             civilStatus || "___"
                           }, and a resident of zone ${
-                            selectedResident.zone
+                            selectedResident.Zone
                           }, Barangay ${
                             settings?.barangay || "________________"
                           }, ${settings?.municipality || "________________"}, ${

@@ -32,6 +32,13 @@ import { useOfficial } from "@/features/api/official/useOfficial";
 import getSettings from "@/service/api/settings/getSettings";
 import getResident from "@/service/api/resident/getResident";
 import { useAddCertificate } from "@/features/api/certificate/useAddCertificate";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 if (!window.Buffer) {
   window.Buffer = Buffer;
@@ -61,6 +68,14 @@ export default function BusinessPermit() {
   const [amount, setAmount] = useState("150.00");
   const [age, setAge] = useState("");
   const [civilStatus, setCivilStatus] = useState("");
+  const [purpose, setPurpose] = useState("");
+  const [customPurpose, setCustomPurpose] = useState("");
+  const purposeOptions = [
+    "Business Permit",
+    "Renewal",
+    "Loan Requirement",
+    "Others",
+  ];
 
   const [settings, setSettings] = useState<{ Barangay: string; Municipality: string; Province: string; } | null>(null);
   const [, setLogoDataUrl] = useState<string | null>(null);
@@ -123,9 +138,9 @@ export default function BusinessPermit() {
   }, []);
 
   const styles = StyleSheet.create({
-    page: { padding: 30 },
-    section: { marginBottom: 10 },
-    heading: { fontSize: 18, marginBottom: 10 },
+    page: { padding: 20 },
+    section: { marginBottom: 5 },
+    heading: { fontSize: 18, marginBottom: 5 },
     bodyText: { fontSize: 14 },
   });
 
@@ -202,28 +217,90 @@ export default function BusinessPermit() {
               </Command>
             </PopoverContent>
           </Popover>
-          <div className="my-4" />
+          <div className="my-2" />
           <div className="grid gap-4">
-            <div>
-              <label>Business Name</label>
-              <input value={businessName} onChange={(e) => setBusinessName(e.target.value)} className="w-full border rounded px-3 py-2 text-sm" />
+            <div className="mt-1">
+              <label htmlFor="businessName" className="block text-sm font-medium text-gray-700 mb-0.5">Business Name</label>
+              <input
+                id="businessName"
+                type="text"
+                value={businessName}
+                onChange={(e) => setBusinessName(e.target.value)}
+                className="w-full border rounded px-3 py-2 text-sm"
+                placeholder="Enter Business Name"
+              />
             </div>
-            <div>
-              <label>Type of Business</label>
-              <input value={businessType} onChange={(e) => setBusinessType(e.target.value)} className="w-full border rounded px-3 py-2 text-sm" />
+            <div className="mt-1">
+              <label htmlFor="businessType" className="block text-sm font-medium text-gray-700 mb-0.5">Type of Business</label>
+              <input
+                id="businessType"
+                type="text"
+                value={businessType}
+                onChange={(e) => setBusinessType(e.target.value)}
+                className="w-full border rounded px-3 py-2 text-sm"
+                placeholder="Enter Type of Business"
+              />
             </div>
-            <div>
-              <label>Business Location</label>
-              <input value={businessLocation} onChange={(e) => setBusinessLocation(e.target.value)} className="w-full border rounded px-3 py-2 text-sm" />
+            <div className="mt-1">
+              <label htmlFor="businessLocation" className="block text-sm font-medium text-gray-700 mb-0.5">Business Location</label>
+              <input
+                id="businessLocation"
+                type="text"
+                value={businessLocation}
+                onChange={(e) => setBusinessLocation(e.target.value)}
+                className="w-full border rounded px-3 py-2 text-sm"
+                placeholder="Enter Business Location"
+              />
             </div>
-            <div>
-              <label>Owner</label>
-              <input value={businessOwner} onChange={(e) => setBusinessOwner(e.target.value)} className="w-full border rounded px-3 py-2 text-sm" />
+            <div className="mt-1">
+              <label htmlFor="businessOwner" className="block text-sm font-medium text-gray-700 mb-0.5">Owner</label>
+              <input
+                id="businessOwner"
+                type="text"
+                value={businessOwner}
+                onChange={(e) => setBusinessOwner(e.target.value)}
+                className="w-full border rounded px-3 py-2 text-sm"
+                placeholder="Enter Owner Name"
+              />
             </div>
-            <div>
-              <label>Amount</label>
-              <input value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full border rounded px-3 py-2 text-sm" />
+            <div className="mt-1">
+              <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-0.5">Amount (PHP)</label>
+              <input
+                id="amount"
+                type="text"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="w-full border rounded px-3 py-2 text-sm"
+                placeholder="e.g., 150.00"
+              />
             </div>
+          </div>
+          <div className="mt-1">
+            <label htmlFor="purpose" className="block text-sm font-medium text-gray-700 mb-0.5">
+              Purpose of Certificate
+            </label>
+            <Select value={purpose} onValueChange={setPurpose}>
+              <SelectTrigger className="w-full border rounded px-3 py-2 text-sm">
+                <SelectValue placeholder="-- Select Purpose --" />
+              </SelectTrigger>
+              <SelectContent>
+                {purposeOptions.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+                <SelectItem value="custom">Other (please specify)</SelectItem>
+              </SelectContent>
+            </Select>
+            {purpose === "custom" && (
+              <input
+                type="text"
+                value={customPurpose}
+                onChange={(e) => setCustomPurpose(e.target.value)}
+                className="w-full border rounded px-3 py-2 text-sm mt-2"
+                placeholder="Please specify the purpose"
+              />
+            )}
           </div>
         </CardContent>
         <CardFooter className="flex justify-between items-center gap-2">
@@ -242,7 +319,7 @@ export default function BusinessPermit() {
                   issued_date: new Date().toISOString().split("T")[0],
                   ownership_text: businessOwner || "",
                   civil_status: civilStatus || "",
-                  purpose: "",
+                  purpose: purpose === "custom" ? customPurpose || "" : purpose,
                   age: age ? parseInt(age) : undefined,
                 };
                 await addCertificate(cert);
@@ -306,6 +383,20 @@ export default function BusinessPermit() {
                 </Text>
                 <Text style={[styles.bodyText, { textAlign: "justify", marginBottom: 8 }]}>
                   This Barangay permit on business indorsed to this Municipality for registration purposes only.
+                </Text>
+                <Text
+                  style={[
+                    styles.bodyText,
+                    { marginTop: 10, marginBottom: 8 },
+                  ]}
+                >
+                  {purpose || customPurpose
+                    ? `Purpose: ${
+                        purpose === "custom"
+                          ? customPurpose || "________________"
+                          : purpose
+                      }`
+                    : ""}
                 </Text>
                 <Text style={[styles.bodyText, { marginTop: 10, marginBottom: 8 }]}>
                   Given this{" "}

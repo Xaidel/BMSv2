@@ -1,6 +1,8 @@
 export default function Greet() {
-  const storedUsername = localStorage.getItem("username") ?? "User";
-  const username = storedUsername.charAt(0).toUpperCase() + storedUsername.slice(1);
+  const storedUser = sessionStorage.getItem("user");
+  const parsedUser = storedUser ? JSON.parse(storedUser) : null;
+  const usernameRaw = parsedUser?.user?.Username ?? "User";
+  const username = usernameRaw.charAt(0).toUpperCase() + usernameRaw.slice(1);
 
   return (
     <>

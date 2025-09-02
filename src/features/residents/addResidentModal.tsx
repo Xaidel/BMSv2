@@ -392,16 +392,20 @@ export default function AddResidentModal() {
                       name="MobileNumber"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Mobile Number</FormLabel>
+                          <FormLabel>
+                            Mobile Number ({field.value?.length || 0}/11)
+                          </FormLabel>
                           <FormControl>
-                            <Input
-                              id="mobileNumber"
-                              type="text"
-                              placeholder="Enter mobile number"
-                              required
-                              {...field}
-                              className="text-black"
-                            />
+                            <>
+                              <Input
+                                id="mobileNumber"
+                                type="text"
+                                placeholder="Enter mobile number"
+                                required
+                                {...field}
+                                className="text-black"
+                              />
+                            </>
                           </FormControl>
                         </FormItem>
                       )}
