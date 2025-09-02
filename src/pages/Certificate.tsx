@@ -22,6 +22,8 @@ import {
 import searchCertificate from "@/service/certificate/searchCertificate";
 import SummaryCard from "@/components/summary-card/certificate";
 import { invoke } from "@tauri-apps/api/core";
+import getCertificate from "@/service/api/certificate/getCertificate";
+import getResident from "@/service/api/resident/getResident";
 
 const filters = [
   "All Certificates",
@@ -38,6 +40,7 @@ type Certificate = {
   name: string;
   type_: string;
   issued_date: Date;
+  purpose?: string;
 };
 
 const columns: ColumnDef<Certificate>[] = [
@@ -76,6 +79,10 @@ const columns: ColumnDef<Certificate>[] = [
     accessorKey: "type_",
   },
   {
+    header: "Purpose",
+    accessorKey: "purpose",
+  },
+  {
     header: "Issued On",
     accessorKey: "issued_date",
     cell: ({ row }) => <div>{format(row.original.issued_date, "MMMM do, yyyy")}</div>,
@@ -106,23 +113,34 @@ export default function Certificate() {
   const [searchQuery, setSearchQuery] = useState("");
   const [data, setData] = useState<Certificate[]>([]);
 
-  const fetchCertificates = () => {
-    invoke<any[]>("fetch_all_certificates_command")
-      .then((fetched) => {
-        const parsed = fetched.map((cert) => {
-          const issuedDate = new Date(cert.issued_date ?? "");
-          return {
-            id: cert.id,
-            amount: cert.amount,
-            resident_name: cert.resident_name,
-            name: cert.resident_name,
-            type_: cert.type_,
-            issued_date: isNaN(issuedDate.getTime()) ? new Date() : issuedDate,
-          };
-        });
-        setData(parsed);
-      })
-      .catch((err) => console.error("Failed to fetch certificates:", err));
+  const fetchCertificates = async () => {
+    try {
+      const [{ certificates }, { residents }] = await Promise.all([
+        getCertificate(),
+        getResident(),
+      ]);
+
+      const residentMap = new Map<number, string>(
+        residents.map((r: any) => [r.ID, `${r.Firstname} ${r.Lastname}`])
+      );
+
+      const parsed = certificates.map((cert: any) => {
+        const issuedDate = new Date(cert.issued_date ?? cert.IssuedDate ?? "");
+        const fullName = residentMap.get(cert.resident_id ?? cert.ResidentID) ?? "Unknown";
+        return {
+          id: cert.id ?? cert.ID ?? 0,
+          amount: (cert.amount ?? cert.Amount)?.toString() ?? "",
+          resident_name: fullName,
+          name: fullName,
+          type_: cert.type ?? cert.Type ?? cert.type_ ?? cert.typeName ?? "",
+          issued_date: isNaN(issuedDate.getTime()) ? new Date() : issuedDate,
+          purpose: cert.purpose ?? cert.Purpose ?? "",
+        };
+      });
+      setData(parsed);
+    } catch (err) {
+      console.error("Failed to fetch certificates:", err);
+    }
   };
 
   useEffect(() => {
