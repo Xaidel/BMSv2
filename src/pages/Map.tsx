@@ -125,7 +125,7 @@ export default function Map() {
         });
       } else {
         layer.setStyle(
-          /Household Number:\s*\d+/.test(display) ? updatedStyle : infraStyle
+          /Household #\s*\d+/.test(display) ? updatedStyle : infraStyle
         );
       }
     });
@@ -168,7 +168,7 @@ export default function Map() {
           data={building as any}
           style={(feature: any) => {
             if (
-              /Household Number:\s*\d+/.test(feature.properties?.mapping_name)
+              /Household #\s*\d+/.test(feature.properties?.mapping_name)
             ) {
               return updatedStyle;
             }
