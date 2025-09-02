@@ -99,25 +99,16 @@ export function AddMappingModal({ dialogOpen, onOpenChange, feature }: props) {
       mappingNames.push(`Household #${buildingData.residential.householdNumber}`)
       types.push("Household")
       householdID = Number.parseInt(buildingData.residential.householdNumber)
-    } else {
-      mappingNames.push("")
-      types.push("")
     }
 
     if (buildingData.commercial) {
       mappingNames.push(buildingData.commercial.businessName)
       types.push("Commercial")
-    } else {
-      mappingNames.push("")
-      types.push("")
     }
 
     if (buildingData.institutional) {
       mappingNames.push(buildingData.institutional.institutionName)
       types.push(`Institutional(${buildingData.institutional.institutionType})`)
-    } else {
-      mappingNames.push("")
-      types.push("")
     }
 
     const formattedData = {
