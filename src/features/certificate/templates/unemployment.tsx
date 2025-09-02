@@ -22,20 +22,23 @@ import { cn } from "@/lib/utils";
 import { PDFViewer } from "@react-pdf/renderer";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { useEffect } from "react";
-import { invoke } from "@tauri-apps/api/core";
+import { useOfficial } from "@/features/api/official/useOfficial";
+import getSettings from "@/service/api/settings/getSettings";
+import getResident from "@/service/api/resident/getResident";
+import { useAddCertificate } from "@/features/api/certificate/useAddCertificate";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ArrowLeftCircleIcon, Check, ChevronsUpDown } from "lucide-react";
 import { toast } from "sonner";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
 
-type Official = {
-  id: number;
-  name: string;
-  role: string;
-  image: string;
-  section: string;
-};
 
 import { Buffer } from "buffer";
 import CertificateHeader from "../certificateHeader";
@@ -45,15 +48,14 @@ if (!window.Buffer) {
   window.Buffer = Buffer;
 }
 type Resident = {
-  id?: number;
-  first_name: string;
-  middle_name?: string;
-  last_name: string;
-  suffix?: string;
-  age?: number;
-  civil_status?: string;
-  date_of_birth?: string;
-  // Add more fields if needed
+  ID?: number;
+  Firstname: string;
+  Middlename?: string;
+  Lastname: string;
+  Suffix?: string;
+  Birthday?: Date;
+  CivilStatus?: string;
+  IssuedDate?: string;
 };
 
 export default function Unemployment() {
@@ -61,94 +63,105 @@ export default function Unemployment() {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
   const [residents, setResidents] = useState<Resident[]>([]);
-  const [captainName, setCaptainName] = useState<string | null>(null);
-  const allResidents = useMemo(() => {
-    return residents.map((res) => ({
-      value: `${res.first_name} ${res.last_name}`.toLowerCase(),
-      label: `${res.first_name} ${res.last_name}`,
-      data: res,
-    }));
-  }, [residents]);
   const [search, setSearch] = useState("");
-  const filteredResidents = useMemo(() => {
-    return allResidents.filter((res) =>
-      res.label.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [allResidents, search]);
-  const selectedResident = useMemo(() => {
-    return allResidents.find((res) => res.value === value)?.data;
-  }, [allResidents, value]);
-  const [amount, setAmount] = useState("10.00");
-  const [, setLogoDataUrl] = useState<string | null>(null);
-  const [, setLogoMunicipalityDataUrl] = useState<
-    string | null
-  >(null);
   const [settings, setSettings] = useState<{
-    barangay: string;
-    municipality: string;
-    province: string;
+    Barangay: string;
+    Municipality: string;
+    Province: string;
   } | null>(null);
+  const [, setLogoDataUrl] = useState<string | null>(null);
+  const [, setLogoMunicipalityDataUrl] = useState<string | null>(null);
   const [age, setAge] = useState("");
   const [civilStatus, setCivilStatus] = useState("");
+  const [purpose, setPurpose] = useState("");
+  const [customPurpose, setCustomPurpose] = useState("");
+  const [amount, setAmount] = useState("10.00");
 
+  // Fetch officials and get captain name
+  const { data: officials } = useOfficial();
+  function getOfficialName(role: string, section: string) {
+    if (!officials) return "";
+    const list = Array.isArray(officials) ? officials : officials.officials;
+    const found = list?.find(
+      (o) =>
+        (o.Section?.toLowerCase?.() || o.Section?.toLowerCase?.() || "").includes(section.toLowerCase()) &&
+        (o.Role?.toLowerCase?.() || o.Role?.toLowerCase?.() || "").includes(role.toLowerCase())
+    );
+    return found?.Name || found?.name || "";
+  }
+  const captainName = getOfficialName("Barangay Captain", "Barangay Officials");
+
+  // Fetch settings
   useEffect(() => {
-    invoke("fetch_logo_command")
+    getSettings()
       .then((res) => {
-        if (typeof res === "string") setLogoDataUrl(res);
-      })
-      .catch(console.error);
-
-    invoke("fetch_settings_command")
-      .then((res) => {
-        if (typeof res === "object" && res !== null) {
-          const s = res as any;
+        if (res.setting) {
           setSettings({
-            barangay: s.barangay || "",
-            municipality: s.municipality || "",
-            province: s.province || "",
+            Barangay: res.setting.Barangay || "",
+            Municipality: res.setting.Municipality || "",
+            Province: res.setting.Province || "",
           });
-          if (s.logo) {
-            setLogoDataUrl(s.logo);
+          if (res.setting.ImageB) {
+            setLogoDataUrl(res.setting.ImageB);
           }
-          if (s.logo_municipality) {
-            setLogoMunicipalityDataUrl(s.logo_municipality);
+          if (res.setting.ImageM) {
+            setLogoMunicipalityDataUrl(res.setting.ImageM);
           }
         }
       })
       .catch(console.error);
 
-    invoke<Official[]>("fetch_all_officials_command")
-      .then((data) => {
-        const captain = data.find(
-          (person) =>
-            person.section.toLowerCase() === "barangay officials" &&
-            person.role.toLowerCase() === "barangay captain"
-        );
-        if (captain) {
-          setCaptainName(captain.name);
-        }
-      })
-      .catch(console.error);
-
-    invoke("fetch_all_residents_command")
+    getResident()
       .then((res) => {
-        // Ensure age and civil_status are present in each resident object, fallback to undefined if missing
-        if (Array.isArray(res)) {
-          setResidents(
-            (res as any[]).map((resident) => ({
-              ...resident,
-              age: resident.age,
-              civil_status: resident.civil_status,
-            }))
-          );
+        if (Array.isArray(res.residents)) {
+          setResidents(res.residents);
+          const allRes = res.residents.map((res) => ({
+            value: `${res.Firstname} ${res.Lastname}`.toLowerCase(),
+            label: `${res.Firstname} ${res.Lastname}`,
+            data: res,
+          }));
+          const selected = allRes.find((r) => r.value === value)?.data;
+          if (selected) {
+            if (selected.Birthday) {
+              const dob = new Date(selected.Birthday);
+              const today = new Date();
+              let calculatedAge = today.getFullYear() - dob.getFullYear();
+              const m = today.getMonth() - dob.getMonth();
+              if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                calculatedAge--;
+              }
+              setAge(calculatedAge.toString());
+            }
+            setCivilStatus(selected.CivilStatus || "");
+          }
         }
       })
       .catch(console.error);
   }, []);
 
+  // Prepare resident options for select
+  const allResidents = useMemo(() => {
+    return residents.map((res) => ({
+      value: `${res.Firstname} ${res.Lastname}`.toLowerCase(),
+      label: `${res.Firstname} ${res.Lastname}`,
+      data: res,
+    }));
+  }, [residents]);
+
+  const filteredResidents = useMemo(() => {
+    return allResidents.filter((res) =>
+      res.label.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [allResidents, search]);
+
+  const selectedResident = useMemo(() => {
+    return allResidents.find((res) => res.value === value)?.data;
+  }, [allResidents, value]);
+
+  // Compute age and civil status from resident
   useEffect(() => {
-    if (selectedResident?.date_of_birth) {
-      const dob = new Date(selectedResident.date_of_birth);
+    if (selectedResident?.Birthday) {
+      const dob = new Date(selectedResident.Birthday);
       const today = new Date();
       let calculatedAge = today.getFullYear() - dob.getFullYear();
       const m = today.getMonth() - dob.getMonth();
@@ -159,8 +172,11 @@ export default function Unemployment() {
     } else {
       setAge("");
     }
-    setCivilStatus(selectedResident?.civil_status || "");
+    setCivilStatus(selectedResident?.CivilStatus || "");
   }, [selectedResident]);
+
+  // Add certificate mutation
+  const { mutateAsync: addCertificate } = useAddCertificate();
 
   const styles = StyleSheet.create({
     page: { padding: 30 },
@@ -264,13 +280,48 @@ export default function Unemployment() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Civil Status
                 </label>
-                <input
-                  type="text"
-                  className="w-full border rounded px-3 py-2 text-black"
-                  placeholder="Auto-filled civil status"
-                  value={civilStatus}
-                  onChange={(e) => setCivilStatus(e.target.value)}
-                />
+                <Select value={civilStatus} onValueChange={setCivilStatus}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select Civil Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Single">Single</SelectItem>
+                    <SelectItem value="Married">Married</SelectItem>
+                    <SelectItem value="Widowed">Widowed</SelectItem>
+                    <SelectItem value="Separated">Separated</SelectItem>
+                    <SelectItem value="Divorced">Divorced</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {/* Purpose of Certificate */}
+              <div className="mt-4">
+                <label
+                  htmlFor="purpose"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Purpose of Certificate
+                </label>
+                <Select value={purpose} onValueChange={setPurpose}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select Purpose" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Scholarship">Scholarship</SelectItem>
+                    <SelectItem value="Employment">Employment</SelectItem>
+                    <SelectItem value="Financial Assistance">Financial Assistance</SelectItem>
+                    <SelectItem value="Identification">Identification</SelectItem>
+                    <SelectItem value="custom">Other (please specify)</SelectItem>
+                  </SelectContent>
+                </Select>
+                {purpose === "custom" && (
+                  <input
+                    type="text"
+                    value={customPurpose}
+                    onChange={(e) => setCustomPurpose(e.target.value)}
+                    className="w-full border rounded px-3 py-2 text-sm mt-2"
+                    placeholder="Please specify the purpose"
+                  />
+                )}
               </div>
               <div className="mt-4">
                 <label
@@ -297,24 +348,21 @@ export default function Unemployment() {
                   alert("Please select a resident first.");
                   return;
                 }
-
                 try {
-                  const nowIso = new Date().toISOString();
-                  await invoke("save_certificate_command", {
-                    cert: {
-                      resident_name: `${selectedResident.first_name} ${selectedResident.last_name}`,
-                      id: 0,
-                      type_: "Unemployment Certificate",
-                      issued_date: nowIso,
-                      age: age ? parseInt(age) : undefined,
-                      civil_status: civilStatus || "",
-                      ownership_text: "",
-                      amount: amount || "",
-                    },
-                  });
-
+                  const cert: any = {
+                    resident_id: selectedResident.ID,
+                    resident_name: `${selectedResident.Firstname} ${selectedResident.Lastname}`,
+                    type_: "Unemployment Certificate",
+                    amount: amount ? parseFloat(amount) : 0,
+                    issued_date: new Date().toISOString().split("T")[0],
+                    ownership_text: "",
+                    civil_status: civilStatus || "",
+                    purpose: purpose === "custom" ? customPurpose || "" : purpose,
+                    age: age ? parseInt(age) : undefined,
+                  };
+                  await addCertificate(cert);
                   toast.success("Certificate saved successfully!", {
-                    description: `${selectedResident.first_name} ${selectedResident.last_name}'s certificate was saved.`,
+                    description: `${selectedResident.Firstname} ${selectedResident.Lastname}'s certificate was saved.`,
                   });
                 } catch (error) {
                   console.error("Save certificate failed:", error);
@@ -352,16 +400,16 @@ export default function Unemployment() {
                           This is to certify that{" "}
                         </Text>
                         <Text style={{ fontWeight: "bold" }}>
-                          {`${selectedResident.first_name} ${selectedResident.last_name}`.toUpperCase()}
+                          {`${selectedResident.Firstname} ${selectedResident.Lastname}`.toUpperCase()}
                         </Text>
                         <Text>
                           , {age}, {civilStatus.toLowerCase() || "civil status"}
                           , is a resident of Barangay{" "}
-                          {settings ? settings.barangay : "________________"},{" "}
+                          {settings ? settings.Barangay : "________________"},{" "}
                           {settings
-                            ? settings.municipality
+                            ? settings.Municipality
                             : "________________"}
-                          , {settings ? settings.province : "________________"}.
+                          , {settings ? settings.Province : "________________"}.
                         </Text>
                       </Text>
                       <Text
@@ -385,6 +433,21 @@ export default function Unemployment() {
                         interested party for record and reference purposes.
                       </Text>
                       <Text style={[styles.bodyText, { marginTop: 8 }]}></Text>
+                      {/* Purpose PDF block */}
+                      <Text
+                        style={[
+                          styles.bodyText,
+                          { marginTop: 10, marginBottom: 8 },
+                        ]}
+                      >
+                        {purpose || customPurpose
+                          ? `Purpose: ${
+                              purpose === "custom"
+                                ? customPurpose || "________________"
+                                : purpose
+                            }`
+                          : ""}
+                      </Text>
                       <Text
                         style={[
                           styles.bodyText,
@@ -397,9 +460,9 @@ export default function Unemployment() {
                           month: "long",
                           year: "numeric",
                         })}
-                        , at {settings ? settings.barangay : "________________"}
-                        ,{settings ? settings.municipality : "________________"}
-                        ,{settings ? settings.province : "________________"}
+                        , at {settings ? settings.Barangay : "________________"}
+                        ,{settings ? settings.Municipality : "________________"}
+                        ,{settings ? settings.Province : "________________"}
                       </Text>
                     </>
                   ) : (

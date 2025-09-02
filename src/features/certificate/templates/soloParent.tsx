@@ -23,10 +23,8 @@ import {
 import { cn } from "@/lib/utils";
 import { PDFViewer } from "@react-pdf/renderer";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
-import { useEffect } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import { ArrowLeftCircleIcon, Check, ChevronsUpDown } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
 import {
@@ -36,14 +34,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Official } from "@/types/types";
+
 import CertificateHeader from "../certificateHeader";
 import CertificateFooter from "../certificateFooter";
+
+/** 🔁 Mirror Fourps data layer */
+import { useOfficial } from "@/features/api/official/useOfficial";
+import getSettings from "@/service/api/settings/getSettings";
+import getResident from "@/service/api/resident/getResident";
+import { useAddCertificate } from "@/features/api/certificate/useAddCertificate";
 
 if (!window.Buffer) {
   window.Buffer = Buffer;
 }
 
+/** Keep local shape used by this component’s UI and PDF content */
 type Resident = {
   id?: number;
   first_name: string;
@@ -55,13 +60,44 @@ type Resident = {
 };
 
 export default function soloParent() {
+  const { data: officials } = useOfficial();
   const navigate = useNavigate();
+
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
   const [residents, setResidents] = useState<Resident[]>([]);
   const [age, setAge] = useState("");
   const [civilStatus, setCivilStatus] = useState("");
-  const [captainName, setCaptainName] = useState<string | null>(null);
+  const [amount, setAmount] = useState("10.00");
+  const [soloParentText, setSoloParentText] = useState("");
+  const [purpose, setPurpose] = useState("");
+  const [customPurpose, setCustomPurpose] = useState("");
+
+  // logos are loaded like in Fourps, even if not used directly
+  const [, setLogoDataUrl] = useState<string | null>(null);
+  const [, setLogoMunicipalityDataUrl] = useState<string | null>(null);
+
+  // Keep lowercase keys because the body references settings.barangay / municipality / province
+  const [settings, setSettings] = useState<{
+    barangay: string;
+    municipality: string;
+    province: string;
+  } | null>(null);
+
+  /** Derive captain’s name like Fourps */
+  const getOfficialName = (role: string, section: string) => {
+    if (!officials) return null;
+    const list = Array.isArray(officials) ? officials : officials.officials;
+    const found = list?.find(
+      (o: any) =>
+        (o.Section?.toLowerCase() || "").includes(section.toLowerCase()) &&
+        (o.Role?.toLowerCase() || "").includes(role.toLowerCase())
+    );
+    return found?.Name ?? null;
+  };
+  const captainName = getOfficialName("barangay captain", "barangay officials");
+
+  /** Same resident picker logic as Fourps */
   const allResidents = useMemo(() => {
     return residents.map((res) => ({
       value: `${res.first_name} ${res.last_name}`.toLowerCase(),
@@ -69,105 +105,86 @@ export default function soloParent() {
       data: res,
     }));
   }, [residents]);
+
   const [search, setSearch] = useState("");
   const filteredResidents = useMemo(() => {
     return allResidents.filter((res) =>
       res.label.toLowerCase().includes(search.toLowerCase())
     );
   }, [allResidents, search]);
+
   const selectedResident = useMemo(() => {
     return allResidents.find((res) => res.value === value)?.data;
   }, [allResidents, value]);
-  const [amount, setAmount] = useState("10.00");
-  const [soloParentText, setSoloParentText] = useState("");
-  const [, setLogoDataUrl] = useState<string | null>(null);
-  const [, setLogoMunicipalityDataUrl] = useState<string | null>(null);
-  const [settings, setSettings] = useState<{
-    barangay: string;
-    municipality: string;
-    province: string;
-  } | null>(null);
 
-  const civilStatusOptions = [
-    "Single",
-    "Lived-in",
-    "Cohabitation",
-    "Married",
-    "Widowed",
-    "Separated",
-  ];
+  /** Use the same certificate mutation hook as Fourps */
+  const { mutateAsync: addCertificate } = useAddCertificate();
 
+  /** Mirror Fourps effect: settings + logos + residents */
   useEffect(() => {
-    invoke("fetch_logo_command")
+    // Settings
+    getSettings()
       .then((res) => {
-        if (typeof res === "string") setLogoDataUrl(res);
-      })
-      .catch(console.error);
-
-    invoke("fetch_settings_command")
-      .then((res) => {
-        if (typeof res === "object" && res !== null) {
-          const s = res as any;
+        if (res?.setting) {
+          // Map to lowercase keys used by the existing body
           setSettings({
-            barangay: s.barangay || "",
-            municipality: s.municipality || "",
-            province: s.province || "",
+            barangay: res.setting.Barangay || "",
+            municipality: res.setting.Municipality || "",
+            province: res.setting.Province || "",
           });
-          if (s.logo_municipality) {
-            setLogoMunicipalityDataUrl(s.logo_municipality);
-          }
+          if (res.setting.ImageB) setLogoDataUrl(res.setting.ImageB);
+          if (res.setting.ImageM) setLogoMunicipalityDataUrl(res.setting.ImageM);
         }
       })
       .catch(console.error);
 
-    invoke("fetch_all_residents_command")
+    // Residents (map API shape -> local snake_case shape used in this component)
+    getResident()
       .then((res) => {
-        if (Array.isArray(res)) {
-          setResidents(res as Resident[]);
-          // After setting residents, update selected resident's age and civil status if already selected
-          const allRes = (res as Resident[]).map((res) => ({
-            value: `${res.first_name} ${res.last_name}`.toLowerCase(),
-            label: `${res.first_name} ${res.last_name}`,
-            data: res,
+        if (Array.isArray(res?.residents)) {
+          const normalized: Resident[] = res.residents.map((r: any) => ({
+            id: r.ID,
+            first_name: r.Firstname,
+            middle_name: r.Middlename,
+            last_name: r.Lastname,
+            suffix: r.Suffix,
+            date_of_birth: r.Birthday ? String(r.Birthday) : undefined,
+            civil_status: r.CivilStatus,
           }));
-          const selected = allRes.find((r) => r.value === value)?.data;
-          if (selected) {
-            if (selected.date_of_birth) {
-              const dob = new Date(selected.date_of_birth);
+          setResidents(normalized);
+
+          // If a value was already chosen, sync age + civil status from the new list
+          const allRes = normalized.map((r) => ({
+            value: `${r.first_name} ${r.last_name}`.toLowerCase(),
+            label: `${r.first_name} ${r.last_name}`,
+            data: r,
+          }));
+          const sel = allRes.find((r) => r.value === value)?.data;
+          if (sel) {
+            if (sel.date_of_birth) {
+              const dob = new Date(sel.date_of_birth);
               const today = new Date();
               let calculatedAge = today.getFullYear() - dob.getFullYear();
               const m = today.getMonth() - dob.getMonth();
               if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
                 calculatedAge--;
               }
-              setAge(calculatedAge.toString());
+              setAge(String(calculatedAge));
             }
-            setCivilStatus(selected.civil_status || "");
+            setCivilStatus(sel.civil_status || "");
           }
         }
       })
       .catch(console.error);
+  }, []); // mirror Fourps’ one-time load
 
-    // Fetch captain's name
-    invoke<Official[]>("fetch_all_officials_command")
-      .then((data) => {
-        const captain = data.find(
-          (person) =>
-            person.section.toLowerCase() === "barangay officials" &&
-            person.role.toLowerCase() === "barangay captain"
-        );
-        if (captain) {
-          setCaptainName(captain.name);
-        }
-      })
-      .catch(console.error);
-  }, []);
   const styles = StyleSheet.create({
     page: { padding: 30 },
     section: { marginBottom: 10 },
     heading: { fontSize: 18, marginBottom: 10 },
     bodyText: { fontSize: 14 },
   });
+
   return (
     <>
       <div className="flex gap-1 ">
@@ -318,13 +335,48 @@ export default function soloParent() {
                     <SelectValue placeholder="-- Select Civil Status --" />
                   </SelectTrigger>
                   <SelectContent>
-                    {civilStatusOptions.map((option) => (
-                      <SelectItem key={option} value={option}>
-                        {option}
-                      </SelectItem>
-                    ))}
+                    {["Single", "Lived-in", "Cohabitation", "Married", "Widowed", "Separated"].map(
+                      (option) => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
+                      )
+                    )}
                   </SelectContent>
                 </Select>
+              </div>
+              {/* Purpose block */}
+              <div className="mt-4">
+                <label
+                  htmlFor="purpose"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Purpose of Certificate
+                </label>
+                <Select value={purpose} onValueChange={setPurpose}>
+                  <SelectTrigger className="w-full border rounded px-3 py-2 text-sm">
+                    <SelectValue placeholder="-- Select Purpose --" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {["Scholarship", "Employment", "Financial Assistance", "Identification"].map(
+                      (option) => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
+                      )
+                    )}
+                    <SelectItem value="custom">Other (please specify)</SelectItem>
+                  </SelectContent>
+                </Select>
+                {purpose === "custom" && (
+                  <input
+                    type="text"
+                    value={customPurpose}
+                    onChange={(e) => setCustomPurpose(e.target.value)}
+                    className="w-full border rounded px-3 py-2 text-sm mt-2"
+                    placeholder="Please specify the purpose"
+                  />
+                )}
               </div>
               <div className="mt-4">
                 <label
@@ -351,21 +403,20 @@ export default function soloParent() {
                   alert("Please select a resident first.");
                   return;
                 }
-
                 try {
-                  const nowIso = new Date().toISOString();
-                  await invoke("save_certificate_command", {
-                    cert: {
-                      resident_name: `${selectedResident.first_name} ${selectedResident.last_name}`,
-                      id: 0,
-                      type_: "Solo Parent Certificate",
-                      issued_date: nowIso,
-                      age: age ? parseInt(age) : undefined,
-                      civil_status: civilStatus || "",
-                      soloParent_text: soloParentText,
-                      amount: amount || "",
-                    },
-                  });
+                  const cert: any = {
+                    resident_id: selectedResident.id,
+                    resident_name: `${selectedResident.first_name} ${selectedResident.last_name}`,
+                    type_: "Solo Parent Certificate",
+                    amount: amount ? parseFloat(amount) : 0,
+                    issued_date: new Date().toISOString().split("T")[0],
+                    ownership_text: "",
+                    civil_status: civilStatus || "",
+                    soloParent_text: soloParentText,
+                    purpose: purpose === "custom" ? customPurpose || "" : purpose,
+                    age: age ? parseInt(age) : undefined,
+                  };
+                  await addCertificate(cert);
 
                   toast.success("Certificate saved successfully!", {
                     description: `${selectedResident.first_name} ${selectedResident.last_name}'s certificate was saved.`,
@@ -416,6 +467,21 @@ export default function soloParent() {
                           , is hereby certified as a <Text style={{ fontWeight: "bold" }}>Solo Parent</Text> with {soloParentText || "___"} children in Barangay {settings ? settings.barangay : "________________"}.
                         </Text>
                       </Text>
+                      {/* Purpose in PDF */}
+                      <Text
+                        style={[
+                          styles.bodyText,
+                          { marginTop: 10, marginBottom: 8 },
+                        ]}
+                      >
+                        {purpose || customPurpose
+                          ? `Purpose: ${
+                              purpose === "custom"
+                                ? customPurpose || "________________"
+                                : purpose
+                            }`
+                          : ""}
+                      </Text>
                       <Text
                         style={[
                           styles.bodyText,
@@ -452,7 +518,7 @@ export default function soloParent() {
                   )}
                   <CertificateFooter
                     styles={styles}
-                    captainName={captainName}
+                    captainName={captainName ?? ""}
                     amount={amount}
                   />
                 </View>

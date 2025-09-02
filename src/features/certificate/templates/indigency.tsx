@@ -1,8 +1,5 @@
 import { Buffer } from "buffer";
 
-if (!window.Buffer) {
-  window.Buffer = Buffer;
-}
 
 import { Button } from "@/components/ui/button";
 import {
@@ -29,7 +26,11 @@ import { PDFViewer } from "@react-pdf/renderer";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { useEffect } from "react";
 import { Image } from "@react-pdf/renderer";
-import { invoke } from "@tauri-apps/api/core";
+import CertificateHeader from "../certificateHeader";
+import { useOfficial } from "@/features/api/official/useOfficial";
+import getSettings from "@/service/api/settings/getSettings";
+import getResident from "@/service/api/resident/getResident";
+import { useAddCertificate } from "@/features/api/certificate/useAddCertificate";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -44,22 +45,19 @@ import {
 import { ArrowLeftCircleIcon, ChevronsUpDown, Check } from "lucide-react";
 import CertificateFooter from "../certificateFooter";
 
-type Resident = {
-  id?: number;
-  first_name: string;
-  middle_name?: string;
-  last_name: string;
-  suffix?: string;
-  date_of_birth?: string;
-  civil_status?: string;
-  // Add more fields if needed
-  issued_date?: string;
-};
+if (!window.Buffer) {
+  window.Buffer = Buffer;
+}
 
-type Official = {
-  name: string;
-  section: string;
-  role: string;
+type Resident = {
+  ID?: number;
+  Firstname: string;
+  Middlename?: string;
+  Lastname: string;
+  Suffix?: string;
+  Birthday?: Date;
+  CivilStatus?: string;
+  IssuedDate?: string;
 };
 
 export default function Indigency() {
@@ -73,7 +71,12 @@ export default function Indigency() {
   const [amount, setAmount] = useState("10.00");
   const [age, setAge] = useState("");
   const [civilStatus, setCivilStatus] = useState("");
-  const [logoMunicipalityDataUrl, setLogoMunicipalityDataUrl] = useState<string | null>(null);
+  // const [logoMunicipalityDataUrl, setLogoMunicipalityDataUrl] = useState<string | null>(null);
+   const [settings, setSettings] = useState<{
+    Barangay: string;
+    Municipality: string;
+    Province: string;
+  } | null>(null);
   const civilStatusOptions = [
     "Single",
     "Lived-in",
@@ -90,8 +93,8 @@ export default function Indigency() {
   ];
   const allResidents = useMemo(() => {
     return residents.map((res) => ({
-      value: `${res.first_name} ${res.last_name}`.toLowerCase(),
-      label: `${res.first_name} ${res.last_name}`,
+      value: `${res.Firstname} ${res.Lastname}`.toLowerCase(),
+      label: `${res.Firstname} ${res.Lastname}`,
       data: res,
     }));
   }, [residents]);
@@ -104,56 +107,66 @@ export default function Indigency() {
   const selectedResident = useMemo(() => {
     return allResidents.find((res) => res.value === value)?.data;
   }, [allResidents, value]);
-  const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
-  const [settings, setSettings] = useState<{
-    barangay: string;
-    municipality: string;
-    province: string;
-  } | null>(null);
-  const [captainName, setCaptainName] = useState<string | null>(null);
+  // const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
+
+  // Go backend hooks/services
+  const { data: officials } = useOfficial();
+  const { mutateAsync: addCertificate } = useAddCertificate();
+
+  // Barangay captain retrieval
+  const getOfficialName = (role: string, section: string) => {
+    if (!officials) return null;
+    const list = Array.isArray(officials) ? officials : officials.officials;
+    const found = list.find(
+      (o) =>
+        (o.Section?.toLowerCase() || "").includes(section.toLowerCase()) &&
+        (o.Role?.toLowerCase() || "").includes(role.toLowerCase())
+    );
+    return found?.Name ?? null;
+  };
+  const captainName = getOfficialName("barangay captain", "barangay officials");
 
   useEffect(() => {
-    invoke("fetch_logo_command")
-      .then((res) => {
-        if (typeof res === "string") setLogoDataUrl(res);
-      })
-      .catch(console.error);
-
-    invoke("fetch_settings_command")
-      .then((res) => {
-        if (typeof res === "object" && res !== null) {
-          const s = res as any;
-          setSettings({
-            barangay: s.barangay || "",
-            municipality: s.municipality || "",
-            province: s.province || "",
-          });
-          if (s.logo_municipality) {
-            setLogoMunicipalityDataUrl(s.logo_municipality);
+      getSettings()
+        .then((res) => {
+          if (res.setting) {
+            setSettings({
+              Barangay: res.setting.Barangay || "",
+              Municipality: res.setting.Municipality || "",
+              Province: res.setting.Province || "",
+            });
+            // logoDataUrl and logoMunicipalityDataUrl handled by CertificateHeader
           }
-        }
-      })
-      .catch(console.error);
-
-    invoke("fetch_all_residents_command")
-      .then((res) => {
-        if (Array.isArray(res)) setResidents(res as Resident[]);
-      })
-      .catch(console.error);
-
-    invoke<Official[]>("fetch_all_officials_command")
-      .then((data) => {
-        const captain = data.find(
-          (person) =>
-            person.section.toLowerCase() === "barangay officials" &&
-            person.role.toLowerCase() === "barangay captain"
-        );
-        if (captain) {
-          setCaptainName(captain.name);
-        }
-      })
-      .catch(console.error);
-  }, []);
+        })
+        .catch(console.error);
+  
+      getResident()
+        .then((res) => {
+          if (Array.isArray(res.residents)) {
+            setResidents(res.residents);
+            const allRes = res.residents.map((res) => ({
+              value: `${res.Firstname} ${res.Lastname}`.toLowerCase(),
+              label: `${res.Firstname} ${res.Lastname}`,
+              data: res,
+            }));
+            const selected = allRes.find((r) => r.value === value)?.data;
+            if (selected) {
+              if (selected.Birthday) {
+                const dob = new Date(selected.Birthday);
+                const today = new Date();
+                let calculatedAge = today.getFullYear() - dob.getFullYear();
+                const m = today.getMonth() - dob.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                  calculatedAge--;
+                }
+                setAge(calculatedAge.toString());
+              }
+              setCivilStatus(selected.CivilStatus || "");
+            }
+          }
+        })
+        .catch(console.error);
+    }, []);
   const styles = StyleSheet.create({
     page: { padding: 30 },
     section: { marginBottom: 10 },
@@ -223,9 +236,9 @@ export default function Indigency() {
                                     (r) => r.value === currentValue
                                   )?.data;
                                   if (selected) {
-                                    if (selected.date_of_birth) {
+                                    if (selected.Birthday) {
                                       const dob = new Date(
-                                        selected.date_of_birth
+                                        selected.Birthday
                                       );
                                       const today = new Date();
                                       let calculatedAge =
@@ -243,7 +256,7 @@ export default function Indigency() {
                                     } else {
                                       setAge("");
                                     }
-                                    setCivilStatus(selected.civil_status || "");
+                                    setCivilStatus(selected.CivilStatus || "");
                                   }
                                   setOpen(false);
                                 }}
@@ -377,26 +390,21 @@ export default function Indigency() {
                   alert("Please select a resident first.");
                   return;
                 }
-
                 try {
-                  const nowIso = new Date().toISOString();
-                  await invoke("save_certificate_command", {
-                    cert: {
-                      resident_name: `${selectedResident.first_name} ${selectedResident.last_name}`,
-                      id: 0,
-                      type_: "Indigency Certificate",
-                      issued_date: nowIso,
-                      age: age ? parseInt(age) : undefined,
-                      civil_status: civilStatus || "",
-                      ownership_text: "",
-                      amount: amount || "",
-                      purpose:
-                        purpose === "custom" ? customPurpose || "" : purpose,
-                    },
-                  });
-
+                  const cert: any = {
+                    resident_id: selectedResident.ID,
+                    resident_name: `${selectedResident.Firstname} ${selectedResident.Lastname}`,
+                    type_: "Indigency Certificate",
+                    amount: amount ? parseFloat(amount) : 0,
+                    issued_date: new Date().toISOString().split("T")[0],
+                    ownership_text: "",
+                    civil_status: civilStatus || "",
+                    purpose: purpose === "custom" ? customPurpose || "" : purpose,
+                    age: age ? parseInt(age) : undefined,
+                  };
+                  await addCertificate(cert);
                   toast.success("Certificate saved successfully!", {
-                    description: `${selectedResident.first_name} ${selectedResident.last_name}'s certificate was saved.`,
+                    description: `${selectedResident.Firstname} ${selectedResident.Lastname}'s certificate was saved.`,
                   });
                 } catch (error) {
                   console.error("Save certificate failed:", error);
@@ -412,197 +420,128 @@ export default function Indigency() {
           <PDFViewer width="100%" height={600}>
             <Document>
               <Page size="A4" style={styles.page}>
-                <View style={{ position: "relative" }}>
-                  {logoDataUrl && (
-                    <Image
-                      src={logoDataUrl}
-                      style={{
-                        position: "absolute",
-                        top: 10,
-                        left: 30,
-                        width: 90,
-                        height: 90,
-                      }}
-                    />
-                  )}
-                  {logoMunicipalityDataUrl && (
-                    <Image
-                      src={logoMunicipalityDataUrl}
-                      style={{
-                        position: "absolute",
-                        top: 10,
-                        right: 30,
-                        width: 90,
-                        height: 90,
-                      }}
-                    />
-                  )}
-                  {logoDataUrl && (
-                    <Image
-                      src={logoDataUrl}
-                      style={{
-                        position: "absolute",
-                        top: "35%",
-                        left: "23%",
-                        transform: "translate(-50%, -50%)",
-                        width: 400,
-                        height: 400,
-                        opacity: 0.1,
-                      }}
-                    />
-                  )}
-                  <View style={styles.section}>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        marginBottom: 10,
-                      }}
-                    >
-                      <View style={{ flex: 1 }}>
-                        <Text style={{ textAlign: "center" }}>
-                          Republic of the Philippines
+                <CertificateHeader />
+                <View style={styles.section}>
+                  <Text
+                    style={{
+                      textAlign: "center",
+                      fontWeight: "bold",
+                      fontSize: 16,
+                      marginBottom: 10,
+                    }}
+                  >
+                    OFFICE OF THE PUNONG BARANGAY
+                  </Text>
+                  <Text
+                    style={{
+                      textAlign: "center",
+                      fontWeight: "bold",
+                      fontSize: 18,
+                      marginBottom: 10,
+                    }}
+                  >
+                    C E R T I F I C A T I O N
+                  </Text>
+                  <Text
+                    style={[
+                      styles.bodyText,
+                      { marginBottom: 10, marginTop: 10 },
+                    ]}
+                  >
+                    TO WHOM IT MAY CONCERN:
+                  </Text>
+                  {selectedResident ? (
+                    <>
+                      <Text
+                        style={[
+                          styles.bodyText,
+                          { textAlign: "justify", marginBottom: 8 },
+                        ]}
+                      >
+                        <Text style={{ fontWeight: "bold" }}>
+                          This is to certify that{" "}
                         </Text>
-                        <Text style={{ textAlign: "center" }}>
-                          Province of {settings?.province || "Province"}
+                        <Text style={{ fontWeight: "bold" }}>
+                          {`${selectedResident.Firstname} ${selectedResident.Lastname}`.toUpperCase()}
                         </Text>
-                        <Text style={{ textAlign: "center" }}>
-                          Municipality of{" "}
-                          {settings?.municipality || "Municipality"}
-                        </Text>
-                        <Text
-                          style={{
-                            textAlign: "center",
-                            marginTop: 10,
-                            marginBottom: 10,
-                          }}
-                        >
-                          BARANGAY{" "}
-                          {settings?.barangay?.toUpperCase() || "Barangay"}
-                        </Text>
-                      </View>
-                    </View>
-                    <Text
-                      style={{
-                        textAlign: "center",
-                        fontWeight: "bold",
-                        fontSize: 16,
-                        marginBottom: 10,
-                      }}
-                    >
-                      OFFICE OF THE PUNONG BARANGAY
-                    </Text>
-                    <Text
-                      style={{
-                        textAlign: "center",
-                        fontWeight: "bold",
-                        fontSize: 18,
-                        marginBottom: 10,
-                      }}
-                    >
-                      C E R T I F I C A T I O N
-                    </Text>
-                    <Text
-                      style={[
-                        styles.bodyText,
-                        { marginBottom: 10, marginTop: 10 },
-                      ]}
-                    >
-                      TO WHOM IT MAY CONCERN:
-                    </Text>
-                    {selectedResident ? (
-                      <>
-                        <Text
-                          style={[
-                            styles.bodyText,
-                            { textAlign: "justify", marginBottom: 8 },
-                          ]}
-                        >
-                          <Text style={{ fontWeight: "bold" }}>
-                            This is to certify that{" "}
-                          </Text>
-                          <Text style={{ fontWeight: "bold" }}>
-                            {`${selectedResident.first_name} ${selectedResident.last_name}`.toUpperCase()}
-                          </Text>
-                          <Text>
-                            , {age || "___"} years old, {civilStatus || "___"},
-                            is a resident of Barangay{" "}
-                            {settings ? settings.barangay : "________________"},{" "}
-                            {settings
-                              ? settings.municipality
-                              : "________________"}
-                            ,{" "}
-                            {settings ? settings.province : "________________"}{" "}
-                            since {residencyYear || "____"}. Sur.
-                          </Text>
-                        </Text>
-                        <Text
-                          style={[
-                            styles.bodyText,
-                            { textAlign: "justify", marginBottom: 8 },
-                          ]}
-                        >
-                          This certifies further that the above-named person
-                          belongs to the{" "}
-                          <Text style={{ fontWeight: "bold" }}>Indigency</Text>{" "}
-                          sector in this Barangay and is duly recognized as such
-                          by the local government unit.
-                        </Text>
-                        <Text
-                          style={[
-                            styles.bodyText,
-                            { textAlign: "justify", marginBottom: 8 },
-                          ]}
-                        >
-                          This certification is issued upon request of the
-                          interested party for whatever legal purpose it may
-                          serve.
-                        </Text>
-                        <Text
-                          style={[
-                            styles.bodyText,
-                            { marginTop: 10, marginBottom: 8 },
-                          ]}
-                        >
-                          {purpose || customPurpose
-                            ? `Purpose: ${
-                                purpose === "custom"
-                                  ? customPurpose || "________________"
-                                  : purpose
-                              }`
-                            : ""}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.bodyText,
-                            { marginTop: 10, marginBottom: 8 },
-                          ]}
-                        >
-                          Given this{" "}
-                          {new Date().toLocaleDateString("en-PH", {
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                          })}
-                          , at{" "}
-                          {settings ? settings.barangay : "________________"},
+                        <Text>
+                          , {age || "___"} years old, {civilStatus || "___"},
+                          is a resident of Barangay{" "}
+                          {settings ? settings.Barangay : "________________"},{" "}
                           {settings
-                            ? settings.municipality
+                            ? settings.Municipality
                             : "________________"}
-                          ,{settings ? settings.province : "________________"}
+                          ,{" "}
+                          {settings ? settings.Province : "________________"}{" "}
+                          since {residencyYear || "____"}.
                         </Text>
-                      </>
-                    ) : (
-                      <Text style={styles.bodyText}>
-                        Please select a resident to view certificate.
                       </Text>
-                    )}
-                    <CertificateFooter
-                      styles={styles}
-                      captainName={captainName}
-                      amount={amount}
-                    />
-                  </View>
+                      <Text
+                        style={[
+                          styles.bodyText,
+                          { textAlign: "justify", marginBottom: 8 },
+                        ]}
+                      >
+                        This certifies further that the above-named person
+                        belongs to the{" "}
+                        <Text style={{ fontWeight: "bold" }}>Indigency</Text>{" "}
+                        sector in this Barangay and is duly recognized as such
+                        by the local government unit.
+                      </Text>
+                      <Text
+                        style={[
+                          styles.bodyText,
+                          { textAlign: "justify", marginBottom: 8 },
+                        ]}
+                      >
+                        This certification is issued upon request of the
+                        interested party for whatever legal purpose it may
+                        serve.
+                      </Text>
+                      <Text
+                        style={[
+                          styles.bodyText,
+                          { marginTop: 10, marginBottom: 8 },
+                        ]}
+                      >
+                        {purpose || customPurpose
+                          ? `Purpose: ${
+                              purpose === "custom"
+                                ? customPurpose || "________________"
+                                : purpose
+                            }`
+                          : ""}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.bodyText,
+                          { marginTop: 10, marginBottom: 8 },
+                        ]}
+                      >
+                        Given this{" "}
+                        {new Date().toLocaleDateString("en-PH", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })}
+                        , at{" "}
+                        {settings ? settings.Barangay : "________________"},
+                        {settings
+                          ? settings.Municipality
+                          : "________________"}
+                        ,{settings ? settings.Province : "________________"}
+                      </Text>
+                    </>
+                  ) : (
+                    <Text style={styles.bodyText}>
+                      Please select a resident to view certificate.
+                    </Text>
+                  )}
+                  <CertificateFooter
+                    styles={styles}
+                    captainName={captainName}
+                    amount={amount}
+                  />
                 </View>
               </Page>
             </Document>

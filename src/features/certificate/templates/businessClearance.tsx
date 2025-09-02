@@ -33,9 +33,14 @@ import { ArrowLeftCircleIcon, Check, ChevronsUpDown } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
-// import { Input } from "@/components/ui/input";
-// import { Label } from "@/components/ui/label";
 import CertificateFooter from "../certificateFooter";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 if (!window.Buffer) {
   window.Buffer = Buffer;
@@ -85,6 +90,14 @@ export default function BusinessClearance() {
   const [age, setAge] = useState("");
   const [civilStatus, setCivilStatus] = useState("");
   // Captain name state is now derived below via getOfficialName.
+  const [purpose, setPurpose] = useState("");
+  const [customPurpose, setCustomPurpose] = useState("");
+  const purposeOptions = [
+    "Business Permit",
+    "Renewal",
+    "Loan Requirement",
+    "Others"
+  ];
 
   useEffect(() => {
     getSettings()
@@ -251,46 +264,98 @@ export default function BusinessClearance() {
             </Popover>
             <div className="my-4" />
             {/* End Select Resident Dropdown */}
-            <div className="grid gap-4">
-              <div>
-                <label>Business Name</label>
+            <div>
+              <div className="mt-4">
+                <label htmlFor="businessName" className="block text-sm font-medium text-gray-700 mb-1">
+                  Business Name
+                </label>
                 <input
+                  id="businessName"
+                  type="text"
                   value={businessName}
                   onChange={(e) => setBusinessName(e.target.value)}
                   className="w-full border rounded px-3 py-2 text-sm"
+                  placeholder="Enter Business Name"
                 />
               </div>
-              <div>
-                <label>Type of Business</label>
+              <div className="mt-4">
+                <label htmlFor="businessType" className="block text-sm font-medium text-gray-700 mb-1">
+                  Type of Business
+                </label>
                 <input
+                  id="businessType"
+                  type="text"
                   value={businessType}
                   onChange={(e) => setBusinessType(e.target.value)}
                   className="w-full border rounded px-3 py-2 text-sm"
+                  placeholder="Enter Type of Business"
                 />
               </div>
-              <div>
-                <label>Business Location</label>
+              <div className="mt-4">
+                <label htmlFor="businessLocation" className="block text-sm font-medium text-gray-700 mb-1">
+                  Business Location
+                </label>
                 <input
+                  id="businessLocation"
+                  type="text"
                   value={businessLocation}
                   onChange={(e) => setBusinessLocation(e.target.value)}
                   className="w-full border rounded px-3 py-2 text-sm"
+                  placeholder="Enter Business Location"
                 />
               </div>
-              <div>
-                <label>Owner</label>
+              <div className="mt-4">
+                <label htmlFor="businessOwner" className="block text-sm font-medium text-gray-700 mb-1">
+                  Owner
+                </label>
                 <input
+                  id="businessOwner"
+                  type="text"
                   value={businessOwner}
                   onChange={(e) => setBusinessOwner(e.target.value)}
                   className="w-full border rounded px-3 py-2 text-sm"
+                  placeholder="Enter Owner Name"
                 />
               </div>
-              <div>
-                <label>Amount</label>
+              <div className="mt-4">
+                <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
+                  Amount (PHP)
+                </label>
                 <input
+                  id="amount"
+                  type="text"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   className="w-full border rounded px-3 py-2 text-sm"
+                  placeholder="e.g., 150.00"
                 />
+              </div>
+              <div className="mt-4">
+                <label htmlFor="purpose" className="block text-sm font-medium text-gray-700 mb-1">
+                  Purpose of Certificate
+                </label>
+                <Select value={purpose} onValueChange={setPurpose}>
+                  <SelectTrigger className="w-full border rounded px-3 py-2 text-sm">
+                    <SelectValue placeholder="-- Select Purpose --" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {purposeOptions.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="custom">Other (please specify)</SelectItem>
+                  </SelectContent>
+                </Select>
+                {purpose === "custom" && (
+                  <input
+                    type="text"
+                    value={customPurpose}
+                    onChange={(e) => setCustomPurpose(e.target.value)}
+                    className="w-full border rounded px-3 py-2 text-sm mt-2"
+                    placeholder="Please specify the purpose"
+                  />
+                )}
               </div>
             </div>
           </CardContent>
@@ -313,7 +378,7 @@ export default function BusinessClearance() {
                     issued_date: new Date().toISOString().split("T")[0],
                     ownership_text: businessOwner || "",
                     civil_status: civilStatus || "",
-                    purpose: "",
+                    purpose: purpose === "custom" ? customPurpose || "" : purpose,
                     age: age ? parseInt(age) : undefined,
                   };
                   await addCertificate(cert);
@@ -428,6 +493,20 @@ export default function BusinessClearance() {
                         with local business regulations and may be presented to
                         relevant authorities as proof of residency and business
                         authorization.
+                      </Text>
+                      <Text
+                        style={[
+                          styles.bodyText,
+                          { marginTop: 10, marginBottom: 8 },
+                        ]}
+                      >
+                        {purpose || customPurpose
+                          ? `Purpose: ${
+                              purpose === "custom"
+                                ? customPurpose || "________________"
+                                : purpose
+                            }`
+                          : ""}
                       </Text>
                       <Text
                         style={[
