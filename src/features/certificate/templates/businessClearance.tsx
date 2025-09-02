@@ -24,14 +24,17 @@ import { cn } from "@/lib/utils";
 import { PDFViewer } from "@react-pdf/renderer";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { useEffect } from "react";
-import { Image } from "@react-pdf/renderer";
-import { invoke } from "@tauri-apps/api/core";
+import { useOfficial } from "@/features/api/official/useOfficial";
+import getSettings from "@/service/api/settings/getSettings";
+import getResident from "@/service/api/resident/getResident";
+import { useAddCertificate } from "@/features/api/certificate/useAddCertificate";
+import CertificateHeader from "../certificateHeader";
 import { ArrowLeftCircleIcon, Check, ChevronsUpDown } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+// import { Input } from "@/components/ui/input";
+// import { Label } from "@/components/ui/label";
 import CertificateFooter from "../certificateFooter";
 
 if (!window.Buffer) {
@@ -81,48 +84,54 @@ export default function BusinessClearance() {
   // Resident selection state
   const [age, setAge] = useState("");
   const [civilStatus, setCivilStatus] = useState("");
-  // Captain name state
-  const [captainName, setCaptainName] = useState<string | null>(null);
+  // Captain name state is now derived below via getOfficialName.
 
   useEffect(() => {
-    invoke("fetch_logo_command")
+    getSettings()
       .then((res) => {
-        if (typeof res === "string") setLogoDataUrl(res);
-      })
-      .catch(console.error);
-
-    invoke("fetch_settings_command")
-      .then((res) => {
-        if (typeof res === "object" && res !== null) {
-          const s = res as any;
+        if (res.setting) {
           setSettings({
-            barangay: s.barangay || "",
-            municipality: s.municipality || "",
-            province: s.province || "",
+            barangay: res.setting.Barangay || "",
+            municipality: res.setting.Municipality || "",
+            province: res.setting.Province || "",
           });
+          if (res.setting.ImageB) setLogoDataUrl(res.setting.ImageB);
         }
       })
       .catch(console.error);
 
-    invoke("fetch_all_residents_command")
+    getResident()
       .then((res) => {
-        if (Array.isArray(res)) setResidents(res as Resident[]);
-      })
-      .catch(console.error);
-
-    invoke("fetch_all_officials_command")
-      .then((data) => {
-        const captain = (data as any[]).find(
-          (person) =>
-            person.section?.toLowerCase() === "barangay officials" &&
-            person.role?.toLowerCase() === "barangay captain"
-        );
-        if (captain) {
-          setCaptainName(captain.name);
+        if (Array.isArray(res.residents)) {
+          // Map the API resident type to the local Resident type
+          const mapped = res.residents.map((r: any) => ({
+            id: r.id ?? r.ID,
+            first_name: r.first_name ?? r.Firstname,
+            middle_name: r.middle_name ?? r.Middlename,
+            last_name: r.last_name ?? r.Lastname,
+            suffix: r.suffix ?? r.Suffix,
+            date_of_birth: r.date_of_birth ?? r.Birthday,
+            civil_status: r.civil_status ?? r.CivilStatus ?? "",
+          }));
+          setResidents(mapped);
         }
       })
       .catch(console.error);
   }, []);
+
+  const { data: officials } = useOfficial();
+  const getOfficialName = (role: string, section: string) => {
+    if (!officials) return null;
+    const list = Array.isArray(officials) ? officials : officials.officials;
+    const found = list.find(
+      (o) =>
+        (o.Section?.toLowerCase() || "").includes(section.toLowerCase()) &&
+        (o.Role?.toLowerCase() || "").includes(role.toLowerCase())
+    );
+    return found?.Name ?? null;
+  };
+  const captainName = getOfficialName("barangay captain", "barangay officials");
+  const { mutateAsync: addCertificate } = useAddCertificate();
   const styles = StyleSheet.create({
     page: { padding: 30 },
     section: { marginBottom: 10 },
@@ -244,87 +253,81 @@ export default function BusinessClearance() {
             {/* End Select Resident Dropdown */}
             <div className="grid gap-4">
               <div>
-                <Label>Business Name</Label>
-                <Input
+                <label>Business Name</label>
+                <input
                   value={businessName}
                   onChange={(e) => setBusinessName(e.target.value)}
-                  placeholder="Enter business name"
+                  className="w-full border rounded px-3 py-2 text-sm"
                 />
               </div>
               <div>
-                <Label>Type of Business</Label>
-                <Input
+                <label>Type of Business</label>
+                <input
                   value={businessType}
                   onChange={(e) => setBusinessType(e.target.value)}
-                  placeholder="Enter type of business"
+                  className="w-full border rounded px-3 py-2 text-sm"
                 />
               </div>
               <div>
-                <Label>Business Location</Label>
-                <Input
+                <label>Business Location</label>
+                <input
                   value={businessLocation}
                   onChange={(e) => setBusinessLocation(e.target.value)}
-                  placeholder="Enter business location"
+                  className="w-full border rounded px-3 py-2 text-sm"
                 />
               </div>
               <div>
-                <Label>Owner</Label>
-                <Input
+                <label>Owner</label>
+                <input
                   value={businessOwner}
                   onChange={(e) => setBusinessOwner(e.target.value)}
-                  placeholder="Enter owner's name"
+                  className="w-full border rounded px-3 py-2 text-sm"
                 />
               </div>
               <div>
-                <Label>Amount</Label>
-                <Input
+                <label>Amount</label>
+                <input
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  placeholder="Enter amount (e.g. 150.00)"
+                  className="w-full border rounded px-3 py-2 text-sm"
                 />
               </div>
             </div>
           </CardContent>
           <CardFooter className="flex justify-between items-center gap-2">
-            <div className="flex-1 flex justify-start">
-              <Button
-                onClick={async () => {
-                  const selectedResident = allResidents.find(
-                    (res) => res.value === value
-                  )?.data;
-                  if (!selectedResident) {
-                    alert("Please select a resident first.");
-                    return;
-                  }
-
-                  try {
-                    const nowIso = new Date().toISOString();
-                    await invoke("save_certificate_command", {
-                      cert: {
-                        resident_name: `${selectedResident.first_name} ${selectedResident.last_name}`,
-                        id: 0,
-                        type_: "Barangay Business Clearance",
-                        issued_date: nowIso,
-                        age: age ? parseInt(age) : undefined,
-                        civil_status: civilStatus || "",
-                        ownership_text: businessOwner || "",
-                        amount: amount || "",
-                      },
-                    });
-
-                    toast.success("Certificate saved successfully!", {
-                      description: `${selectedResident.first_name} ${selectedResident.last_name}'s certificate was saved.`,
-                    });
-                  } catch (error) {
-                    console.error("Save certificate failed:", error);
-                    alert("Failed to save certificate.");
-                  }
-                }}
-              >
-                Save
-              </Button>
-            </div>
-            <div className="flex-1 flex justify-end"></div>
+            <Button
+              onClick={async () => {
+                const selectedResident = allResidents.find(
+                  (res) => res.value === value
+                )?.data;
+                if (!selectedResident) {
+                  alert("Please select a resident first.");
+                  return;
+                }
+                try {
+                  const cert: any = {
+                    resident_id: selectedResident.id,
+                    resident_name: `${selectedResident.first_name} ${selectedResident.last_name}`,
+                    type_: "Barangay Business Clearance",
+                    amount: parseFloat(amount),
+                    issued_date: new Date().toISOString().split("T")[0],
+                    ownership_text: businessOwner || "",
+                    civil_status: civilStatus || "",
+                    purpose: "",
+                    age: age ? parseInt(age) : undefined,
+                  };
+                  await addCertificate(cert);
+                  toast.success("Certificate saved successfully!", {
+                    description: `${selectedResident.first_name} ${selectedResident.last_name}'s certificate was saved.`,
+                  });
+                } catch (error) {
+                  console.error("Save certificate failed:", error);
+                  alert("Failed to save certificate.");
+                }
+              }}
+            >
+              Save
+            </Button>
           </CardFooter>
         </Card>
         <div className="flex-4">
@@ -332,73 +335,8 @@ export default function BusinessClearance() {
             <Document>
               <Page size="A4" style={styles.page}>
                 <View style={{ position: "relative" }}>
-                  {logoDataUrl && (
-                    <Image
-                      src={logoDataUrl}
-                      style={{
-                        position: "absolute",
-                        top: 10,
-                        left: 30,
-                        width: 90,
-                        height: 90,
-                      }}
-                    />
-                  )}
-                  {logoDataUrl && (
-                    <Image
-                      src={logoDataUrl}
-                      style={{
-                        position: "absolute",
-                        top: "35%",
-                        left: "23%",
-                        transform: "translate(-50%, -50%)",
-                        width: 400,
-                        height: 400,
-                        opacity: 0.1,
-                      }}
-                    />
-                  )}
+                  <CertificateHeader />
                   <View style={styles.section}>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        marginBottom: 10,
-                      }}
-                    >
-                      <View style={{ flex: 1 }}>
-                        <Text style={{ textAlign: "center" }}>
-                          Republic of the Philippines
-                        </Text>
-                        <Text style={{ textAlign: "center" }}>
-                          Province of {settings?.province || "Province"}
-                        </Text>
-                        <Text style={{ textAlign: "center" }}>
-                          Municipality of{" "}
-                          {settings?.municipality || "Municipality"}
-                        </Text>
-                        <Text
-                          style={{
-                            textAlign: "center",
-                            marginTop: 10,
-                            marginBottom: 10,
-                          }}
-                        >
-                          BARANGAY{" "}
-                          {settings?.barangay?.toUpperCase() || "Barangay"}
-                        </Text>
-                      </View>
-                    </View>
-                    <Text
-                      style={{
-                        textAlign: "center",
-                        fontWeight: "bold",
-                        fontSize: 16,
-                        marginBottom: 10,
-                      }}
-                    >
-                      OFFICE OF THE PUNONG BARANGAY
-                    </Text>
                     <Text
                       style={{
                         textAlign: "center",
@@ -506,15 +444,6 @@ export default function BusinessClearance() {
                         , at {settings ? settings.barangay : "________________"}
                         ,{settings ? settings.municipality : "________________"}
                         ,{settings ? settings.province : "________________"}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.bodyText,
-                          { textAlign: "justify", marginBottom: 8 },
-                        ]}
-                      >
-                        This Barangay Business Clearance is not valid without
-                        the signature of the Punong Barangay.
                       </Text>
                     </>
                     <CertificateFooter

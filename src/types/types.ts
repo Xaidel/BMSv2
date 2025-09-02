@@ -1,4 +1,4 @@
-import { ResProps } from "@/service/api/household/getHousehold";
+
 
 // export type Event = {
 //   id: number;

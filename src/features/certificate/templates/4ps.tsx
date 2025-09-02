@@ -42,7 +42,6 @@ import { Buffer } from "buffer";
 import CertificateHeader from "../certificateHeader";
 import CertificateFooter from "../certificateFooter";
 import { useAddCertificate } from "@/features/api/certificate/useAddCertificate";
-import { Certificate } from "@/types/apitypes";
 
 if (!window.Buffer) {
   window.Buffer = Buffer;
@@ -82,7 +81,6 @@ export default function Fourps() {
   };
 
   const captainName = getOfficialName("barangay captain", "barangay officials");
-  const secretaryName = getOfficialName("secretary", "barangay officials");
   const { mutateAsync: addCertificate } = useAddCertificate();
   const allResidents = useMemo(() => {
     return residents.map((res) => ({
