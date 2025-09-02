@@ -69,13 +69,15 @@ export type Event = {
 
 export type Certificate = {
   ID?: number;
-  Name: string;
+  ResidentID?: number;
+  ResidentName?: string;
   Type: string;
-  Age?: number;
+  Amount: number;
+  IssuedDate: string;
+  OwnershipText?: string;
   CivilStatus?: string;
-  Ownership?: string;
-  Amount?: string;
-  IssuedDate?: string;
+  Purpose?: string;
+  Age?: number;
 };
 
 export type Blotter = {

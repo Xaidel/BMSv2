@@ -7,7 +7,10 @@ import { PDFViewer } from "@react-pdf/renderer";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { useEffect } from "react";
 import { Image } from "@react-pdf/renderer";
-import { invoke } from "@tauri-apps/api/core";
+import { useOfficial } from "@/features/api/official/useOfficial";
+import getSettings from "@/service/api/settings/getSettings";
+import getResident from "@/service/api/resident/getResident";
+import { useAddCertificate } from "@/features/api/certificate/useAddCertificate";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
@@ -30,8 +33,19 @@ type Resident = {
 };
 
 export default function Birth() {
-  const [captainName, setCaptainName] = useState<string | null>(null);
-  const [preparedBy, setPreparedBy] = useState<string | null>(null);
+  const { data: officials } = useOfficial();
+  const getOfficialName = (role: string, section: string) => {
+    if (!officials) return null;
+    const list = Array.isArray(officials) ? officials : officials.officials;
+    const found = list.find(
+      (o) =>
+        (o.Section?.toLowerCase() || "").includes(section.toLowerCase()) &&
+        (o.Role?.toLowerCase() || "").includes(role.toLowerCase())
+    );
+    return found?.Name ?? null;
+  };
+  const captainName = getOfficialName("barangay captain", "barangay officials");
+  const preparedBy = getOfficialName("secretary", "barangay officials");
   const navigate = useNavigate()
   // Birth certificate form fields
   const [registryNo, setRegistryNo] = useState("");
@@ -88,60 +102,36 @@ export default function Birth() {
   }, [allResidents, value]);
 
   useEffect(() => {
-    invoke("fetch_logo_command")
+    getSettings()
       .then((res) => {
-        if (typeof res === "string") setLogoDataUrl(res);
-      })
-      .catch(console.error);
-
-    invoke("fetch_settings_command")
-      .then((res) => {
-        if (typeof res === "object" && res !== null) {
-          const s = res as any;
+        if (res.setting) {
           setSettings({
-            barangay: s.barangay || "",
-            municipality: s.municipality || "",
-            province: s.province || "",
+            barangay: res.setting.Barangay || "",
+            municipality: res.setting.Municipality || "",
+            province: res.setting.Province || "",
           });
-          if (s.logo) {
-            setLogoDataUrl(s.logo);
+          if (res.setting.ImageB) {
+            setLogoDataUrl(res.setting.ImageB);
           }
-          if (s.logo_municipality) {
-            setLogoMunicipalityDataUrl(s.logo_municipality);
+          if (res.setting.ImageM) {
+            setLogoMunicipalityDataUrl(res.setting.ImageM);
           }
         }
       })
       .catch(console.error);
 
-
-    // Fetch residents for selector
-    invoke("fetch_all_residents_command")
+    getResident()
       .then((res) => {
-        if (Array.isArray(res)) {
-          setResidents(res as Resident[]);
-        };
-      })
-      .catch(console.error);
-
-    // Fetch barangay officials and set captain's name and secretary's name
-    invoke("fetch_all_officials_command")
-      .then((res) => {
-        if (Array.isArray(res)) {
-          const officials = res as any[];
-
-          const captain = officials.find(
-            (o) => o.role?.toLowerCase() === "barangay captain"
-          );
-          if (captain) {
-            setCaptainName(captain.name || `${captain.first_name} ${captain.last_name}`);
-          }
-
-          const secretary = officials.find(
-            (o) => o.role?.toLowerCase() === "secretary"
-          );
-          if (secretary) {
-            setPreparedBy(secretary.name || `${secretary.first_name} ${secretary.last_name}`);
-          }
+        if (Array.isArray(res.residents)) {
+          setResidents(res.residents.map((r) => ({
+            id: r.ID,
+            first_name: r.Firstname,
+            middle_name: r.Middlename,
+            last_name: r.Lastname,
+            suffix: r.Suffix,
+            age: r.Birthday ? (new Date().getFullYear() - new Date(r.Birthday).getFullYear()) : undefined,
+            civil_status: r.CivilStatus,
+          })));
         }
       })
       .catch(console.error);
@@ -502,19 +492,6 @@ export default function Birth() {
                   placeholder="e.g. 10.00"
                 />
               </div>
-              <div className="mt-4">
-                <label htmlFor="preparedBy" className="block text-sm font-medium text-gray-700 mb-1">
-                  Prepared By
-                </label>
-                <input
-                  id="preparedBy"
-                  type="text"
-                  value={preparedBy || ""}
-                  onChange={(e) => setPreparedBy(e.target.value)}
-                  className="w-full border rounded px-3 py-2 text-sm"
-                  placeholder="e.g. MARILOU T. LOPEZ"
-                />
-              </div>
             </div>
           </CardContent>
           <CardFooter className="flex justify-between items-center">
@@ -524,22 +501,18 @@ export default function Birth() {
                   alert("Please select a resident first.");
                   return;
                 }
-
                 try {
-                  const nowIso = new Date().toISOString();
-                  await invoke("save_certificate_command", {
-                    cert: {
-                      resident_name: `${selectedResident.first_name} ${selectedResident.last_name}`,
-                      id: 0,
-                      type_: "Birth Certificate",
-                      issued_date: nowIso,
-                      age: selectedResident?.age ?? undefined,
-                      civil_status: civilStatus || "",
-                      ownership_text: "",
-                      amount: amount || "",
-                    }
+                  const { mutateAsync: addCertificate } = useAddCertificate();
+                  await addCertificate({
+                    ResidentID: selectedResident.id,
+                    ResidentName: `${selectedResident.first_name} ${selectedResident.last_name}`,
+                    Type: "Birth Certificate",
+                    IssuedDate: new Date().toISOString().split("T")[0],
+                    Age: selectedResident?.age ?? undefined,
+                    CivilStatus: civilStatus || "",
+                    OwnershipText: "",
+                    Amount: amount ? parseFloat(amount) : 0,
                   });
-
                   toast.success("Certificate saved successfully!", {
                     description: `${selectedResident.first_name} ${selectedResident.last_name}'s certificate was saved.`
                   });

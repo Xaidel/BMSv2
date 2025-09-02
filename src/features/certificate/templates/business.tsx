@@ -1,6 +1,5 @@
-import { Buffer } from "buffer";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -21,452 +20,303 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { PDFViewer } from "@react-pdf/renderer";
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
-import { useEffect } from "react";
-import { invoke } from "@tauri-apps/api/core";
-import { ArrowLeftCircleIcon, Check, ChevronsUpDown } from "lucide-react";
-import { useMemo, useState } from "react";
+import { PDFViewer, Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { ArrowLeftCircleIcon, Check, ChevronsUpDown } from "lucide-react";
+import { Buffer } from "buffer";
 import CertificateHeader from "../certificateHeader";
 import CertificateFooter from "../certificateFooter";
+import { useOfficial } from "@/features/api/official/useOfficial";
+import getSettings from "@/service/api/settings/getSettings";
+import getResident from "@/service/api/resident/getResident";
+import { useAddCertificate } from "@/features/api/certificate/useAddCertificate";
 
 if (!window.Buffer) {
   window.Buffer = Buffer;
 }
 
 type Resident = {
-  date_of_birth: any;
-  civil_status: string;
-  id?: number;
-  first_name: string;
-  middle_name?: string;
-  last_name: string;
-  suffix?: string;
-  // Add more fields if needed
+  ID?: number;
+  Firstname: string;
+  Middlename?: string;
+  Lastname: string;
+  Suffix?: string;
+  Birthday?: Date;
+  CivilStatus?: string;
 };
 
 export default function BusinessPermit() {
+  const { data: officials } = useOfficial();
   const navigate = useNavigate();
+  const [residents, setResidents] = useState<Resident[]>([]);
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
-  const [residents, setResidents] = useState<Resident[]>([]);
-  const allResidents = useMemo(() => {
-    return residents.map((res) => ({
-      value: `${res.first_name} ${res.last_name}`.toLowerCase(),
-      label: `${res.first_name} ${res.last_name}`,
-      data: res,
-    }));
-  }, [residents]);
   const [search, setSearch] = useState("");
-  const filteredResidents = useMemo(() => {
-    return allResidents.filter((res) =>
-      res.label.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [allResidents, search]);
-  const [, setLogoDataUrl] = useState<string | null>(null);
-  const [, setLogoMunicipalityDataUrl] = useState<
-    string | null
-  >(null);
-  const [settings, setSettings] = useState<{
-    barangay: string;
-    municipality: string;
-    province: string;
-  } | null>(null);
-
   const [businessName, setBusinessName] = useState("");
   const [businessType, setBusinessType] = useState("");
   const [businessLocation, setBusinessLocation] = useState("");
   const [businessOwner, setBusinessOwner] = useState("");
   const [amount, setAmount] = useState("150.00");
-  // Resident selection state
   const [age, setAge] = useState("");
   const [civilStatus, setCivilStatus] = useState("");
-  // Captain name state
-  const [captainName, setCaptainName] = useState<string | null>(null);
+
+  const [settings, setSettings] = useState<{ Barangay: string; Municipality: string; Province: string; } | null>(null);
+  const [, setLogoDataUrl] = useState<string | null>(null);
+  const [, setLogoMunicipalityDataUrl] = useState<string | null>(null);
+
+  const allResidents = useMemo(() => {
+    return residents.map((res) => ({
+      value: `${res.Firstname} ${res.Lastname}`.toLowerCase(),
+      label: `${res.Firstname} ${res.Lastname}`,
+      data: res,
+    }));
+  }, [residents]);
+
+  const filteredResidents = useMemo(() => {
+    return allResidents.filter((res) =>
+      res.label.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [allResidents, search]);
+
+  const selectedResident = useMemo(() => {
+    return allResidents.find((res) => res.value === value)?.data;
+  }, [allResidents, value]);
+
+  const getOfficialName = (role: string, section: string) => {
+    if (!officials) return null;
+    const list = Array.isArray(officials) ? officials : officials.officials;
+    const found = list.find(
+      (o) =>
+        (o.Section?.toLowerCase() || "").includes(section.toLowerCase()) &&
+        (o.Role?.toLowerCase() || "").includes(role.toLowerCase())
+    );
+    return found?.Name ?? null;
+  };
+
+  const captainName = getOfficialName("barangay captain", "barangay officials");
+  const { mutateAsync: addCertificate } = useAddCertificate();
 
   useEffect(() => {
-    invoke("fetch_logo_command")
+    getSettings()
       .then((res) => {
-        if (typeof res === "string") setLogoDataUrl(res);
-      })
-      .catch(console.error);
-
-    invoke("fetch_settings_command")
-      .then((res) => {
-        if (typeof res === "object" && res !== null) {
-          const s = res as any;
+        if (res.setting) {
           setSettings({
-            barangay: s.barangay || "",
-            municipality: s.municipality || "",
-            province: s.province || "",
+            Barangay: res.setting.Barangay || "",
+            Municipality: res.setting.Municipality || "",
+            Province: res.setting.Province || "",
           });
-          if (s.logo_municipality) {
-            setLogoMunicipalityDataUrl(s.logo_municipality);
-          }
+          if (res.setting.ImageB) setLogoDataUrl(res.setting.ImageB);
+          if (res.setting.ImageM) setLogoMunicipalityDataUrl(res.setting.ImageM);
         }
       })
       .catch(console.error);
 
-    invoke("fetch_all_residents_command")
+    getResident()
       .then((res) => {
-        if (Array.isArray(res)) setResidents(res as Resident[]);
-      })
-      .catch(console.error);
-
-    invoke("fetch_all_officials_command")
-      .then((data) => {
-        const captain = (data as any[]).find(
-          (person) =>
-            person.section?.toLowerCase() === "barangay officials" &&
-            person.role?.toLowerCase() === "barangay captain"
-        );
-        if (captain) {
-          setCaptainName(captain.name);
+        if (Array.isArray(res.residents)) {
+          setResidents(res.residents);
         }
       })
       .catch(console.error);
   }, []);
+
   const styles = StyleSheet.create({
     page: { padding: 30 },
     section: { marginBottom: 10 },
     heading: { fontSize: 18, marginBottom: 10 },
     bodyText: { fontSize: 14 },
   });
+
   return (
-    <>
-      <div className="flex gap-1 ">
-        <Card className="flex-2 flex flex-col justify-between">
-          <CardHeader>
-            <CardTitle className="flex gap-2 items-center justify-start">
-              <ArrowLeftCircleIcon
-                className="h-8 w-8"
-                onClick={() => navigate(-1)}
-              />
-              Barangay Business Permit
-            </CardTitle>
-            <CardDescription className="text-start">
-              Please fill out the necessary information needed for Barangay
-              Business Permit
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {/* Select Resident Dropdown */}
-            <Popover open={open} onOpenChange={setOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={open}
-                  className="w-full flex justify-between"
-                >
-                  {value
-                    ? allResidents.find((res) => res.value === value)?.label
-                    : "Select a Resident"}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="p-0 w-full">
-                <Command>
-                  <CommandInput
-                    placeholder="Search Resident..."
-                    className="h-9"
-                    value={search}
-                    onValueChange={setSearch}
-                  />
-                  {allResidents.length === 0 ? (
-                    <CommandEmpty>No Residents Found</CommandEmpty>
-                  ) : (
-                    <div className="h-60 overflow-hidden">
-                      <Virtuoso
-                        style={{ height: "100%" }}
-                        totalCount={filteredResidents.length}
-                        itemContent={(index) => {
-                          const res = filteredResidents[index];
-                          return (
-                            <CommandItem
-                              key={res.value}
-                              value={res.value}
-                              className="text-black"
-                              onSelect={(currentValue) => {
-                                const selected = allResidents.find(
-                                  (r) => r.value === currentValue
-                                )?.data;
-                                if (selected) {
-                                  if (selected.date_of_birth) {
-                                    const dob = new Date(
-                                      selected.date_of_birth
-                                    );
-                                    const today = new Date();
-                                    let calculatedAge =
-                                      today.getFullYear() - dob.getFullYear();
-                                    const m = today.getMonth() - dob.getMonth();
-                                    if (
-                                      m < 0 ||
-                                      (m === 0 &&
-                                        today.getDate() < dob.getDate())
-                                    ) {
-                                      calculatedAge--;
-                                    }
-                                    try {
-                                      setAge(calculatedAge.toString());
-                                    } catch {}
-                                  } else {
-                                    try {
-                                      setAge("");
-                                    } catch {}
-                                  }
-                                  try {
-                                    setCivilStatus(selected.civil_status || "");
-                                  } catch {}
-                                  setValue(
-                                    currentValue === value ? "" : currentValue
-                                  );
-                                }
-                                setOpen(false);
-                              }}
-                            >
-                              {res.label}
-                              <Check
-                                className={cn(
-                                  "ml-auto",
-                                  value === res.value
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                            </CommandItem>
-                          );
-                        }}
-                      />
-                    </div>
-                  )}
-                </Command>
-              </PopoverContent>
-            </Popover>
-            <div className="my-4" />
-            {/* End Select Resident Dropdown */}
-            <div className="grid gap-4">
-              <div>
-                <Label>Business Name</Label>
-                <Input
-                  value={businessName}
-                  onChange={(e) => setBusinessName(e.target.value)}
-                  placeholder="Enter business name"
-                />
-              </div>
-              <div>
-                <Label>Type of Business</Label>
-                <Input
-                  value={businessType}
-                  onChange={(e) => setBusinessType(e.target.value)}
-                  placeholder="Enter type of business"
-                />
-              </div>
-              <div>
-                <Label>Business Location</Label>
-                <Input
-                  value={businessLocation}
-                  onChange={(e) => setBusinessLocation(e.target.value)}
-                  placeholder="Enter business location"
-                />
-              </div>
-              <div>
-                <Label>Owner</Label>
-                <Input
-                  value={businessOwner}
-                  onChange={(e) => setBusinessOwner(e.target.value)}
-                  placeholder="Enter owner's name"
-                />
-              </div>
-              <div>
-                <Label>Amount</Label>
-                <Input
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="Enter amount (e.g. 150.00)"
-                />
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-between items-center gap-2">
-            <div className="flex-1 flex justify-start">
-              <Button
-                onClick={async () => {
-                  const selectedResident = allResidents.find(
-                    (res) => res.value === value
-                  )?.data;
-                  if (!selectedResident) {
-                    alert("Please select a resident first.");
-                    return;
-                  }
-
-                  try {
-                    const nowIso = new Date().toISOString();
-                    await invoke("save_certificate_command", {
-                      cert: {
-                        resident_name: `${selectedResident.first_name} ${selectedResident.last_name}`,
-                        id: 0,
-                        type_: "Barangay Business Permit",
-                        issued_date: nowIso,
-                        age: age ? parseInt(age) : undefined,
-                        civil_status: civilStatus || "",
-                        ownership_text: businessOwner || "",
-                        amount: amount || "",
-                      },
-                    });
-
-                    toast.success("Certificate saved successfully!", {
-                      description: `${selectedResident.first_name} ${selectedResident.last_name}'s certificate was saved.`,
-                    });
-                  } catch (error) {
-                    console.error("Save certificate failed:", error);
-                    alert("Failed to save certificate.");
-                  }
-                }}
-              >
-                Save
+    <div className="flex gap-1 ">
+      <Card className="flex-2 flex flex-col justify-between">
+        <CardHeader>
+          <CardTitle className="flex gap-2 items-center justify-start">
+            <ArrowLeftCircleIcon className="h-8 w-8" onClick={() => navigate(-1)} />
+            Barangay Business Permit
+          </CardTitle>
+          <CardDescription className="text-start">
+            Please fill out the necessary information needed for Barangay Business Permit
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" role="combobox" aria-expanded={open} className="w-full flex justify-between">
+                {value
+                  ? allResidents.find((res) => res.value === value)?.label
+                  : "Select a Resident"}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
+            </PopoverTrigger>
+            <PopoverContent className="p-0 w-full">
+              <Command>
+                <CommandInput placeholder="Search Resident..." className="h-9" value={search} onValueChange={setSearch} />
+                {allResidents.length === 0 ? (
+                  <CommandEmpty>No Residents Found</CommandEmpty>
+                ) : (
+                  <div className="h-60 overflow-hidden">
+                    <Virtuoso
+                      style={{ height: "100%" }}
+                      totalCount={filteredResidents.length}
+                      itemContent={(index) => {
+                        const res = filteredResidents[index];
+                        return (
+                          <CommandItem
+                            key={res.value}
+                            value={res.value}
+                            className="text-black"
+                            onSelect={(currentValue) => {
+                              const selected = allResidents.find(
+                                (r) => r.value === currentValue
+                              )?.data;
+                              if (selected) {
+                                if (selected.Birthday) {
+                                  const dob = new Date(selected.Birthday);
+                                  const today = new Date();
+                                  let calculatedAge = today.getFullYear() - dob.getFullYear();
+                                  const m = today.getMonth() - dob.getMonth();
+                                  if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                                    calculatedAge--;
+                                  }
+                                  setAge(calculatedAge.toString());
+                                } else {
+                                  setAge("");
+                                }
+                                setCivilStatus(selected.CivilStatus || "");
+                                setValue(currentValue === value ? "" : currentValue);
+                              }
+                              setOpen(false);
+                            }}
+                          >
+                            {res.label}
+                            <Check className={cn("ml-auto", value === res.value ? "opacity-100" : "opacity-0")} />
+                          </CommandItem>
+                        );
+                      }}
+                    />
+                  </div>
+                )}
+              </Command>
+            </PopoverContent>
+          </Popover>
+          <div className="my-4" />
+          <div className="grid gap-4">
+            <div>
+              <label>Business Name</label>
+              <input value={businessName} onChange={(e) => setBusinessName(e.target.value)} className="w-full border rounded px-3 py-2 text-sm" />
             </div>
-            <div className="flex-1 flex justify-end"></div>
-          </CardFooter>
-        </Card>
-        <div className="flex-4">
-          <PDFViewer width="100%" height={600}>
-            <Document>
-              <Page size="A4" style={styles.page}>
-                <View style={{ position: "relative" }}>
-                  <CertificateHeader />
-                  <Text
-                    style={{
-                      textAlign: "center",
-                      fontWeight: "bold",
-                      fontSize: 18,
-                      marginBottom: 10,
-                    }}
-                  >
-                    BARANGAY BUSINESS PERMIT
+            <div>
+              <label>Type of Business</label>
+              <input value={businessType} onChange={(e) => setBusinessType(e.target.value)} className="w-full border rounded px-3 py-2 text-sm" />
+            </div>
+            <div>
+              <label>Business Location</label>
+              <input value={businessLocation} onChange={(e) => setBusinessLocation(e.target.value)} className="w-full border rounded px-3 py-2 text-sm" />
+            </div>
+            <div>
+              <label>Owner</label>
+              <input value={businessOwner} onChange={(e) => setBusinessOwner(e.target.value)} className="w-full border rounded px-3 py-2 text-sm" />
+            </div>
+            <div>
+              <label>Amount</label>
+              <input value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full border rounded px-3 py-2 text-sm" />
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-between items-center gap-2">
+          <Button
+            onClick={async () => {
+              if (!selectedResident) {
+                alert("Please select a resident first.");
+                return;
+              }
+              try {
+                const cert: any = {
+                  resident_id: selectedResident.ID,
+                  resident_name: `${selectedResident.Firstname} ${selectedResident.Lastname}`,
+                  type_: "Barangay Business Permit",
+                  amount: parseFloat(amount),
+                  issued_date: new Date().toISOString().split("T")[0],
+                  ownership_text: businessOwner || "",
+                  civil_status: civilStatus || "",
+                  purpose: "",
+                  age: age ? parseInt(age) : undefined,
+                };
+                await addCertificate(cert);
+                toast.success("Certificate saved successfully!", {
+                  description: `${selectedResident.Firstname} ${selectedResident.Lastname}'s certificate was saved.`,
+                });
+              } catch (error) {
+                console.error("Save certificate failed:", error);
+                alert("Failed to save certificate.");
+              }
+            }}
+          >
+            Save
+          </Button>
+        </CardFooter>
+      </Card>
+      <div className="flex-4">
+        <PDFViewer width="100%" height={600}>
+          <Document key={captainName || "no-captain"}>
+            <Page size="A4" style={styles.page}>
+              <View style={{ position: "relative" }}>
+                <CertificateHeader />
+                <Text
+                  style={{
+                    textAlign: "center",
+                    fontWeight: "bold",
+                    fontSize: 18,
+                    marginBottom: 10,
+                  }}
+                >
+                  BARANGAY BUSINESS PERMIT
+                </Text>
+                <View
+                  style={{
+                    border: "2pt solid black",
+                    padding: 20,
+                    marginBottom: 20,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Text style={{ fontSize: 19, fontWeight: "bold", marginBottom: 4 }}>
+                    {businessName || "________________"}
                   </Text>
-                  <View
-                    style={{
-                      border: "2pt solid black",
-                      padding: 20,
-                      marginBottom: 20,
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: 19,
-                        fontWeight: "bold",
-                        marginBottom: 4,
-                      }}
-                    >
-                      {businessName || "________________"}
-                    </Text>
-                    <Text style={{ fontSize: 14, marginBottom: 10 }}>
-                      Business Name
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: 19,
-                        fontWeight: "bold",
-                        marginBottom: 4,
-                      }}
-                    >
-                      {businessType || "________________"}
-                    </Text>
-                    <Text style={{ fontSize: 14, marginBottom: 10 }}>
-                      Type of Business
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: 19,
-                        fontWeight: "bold",
-                        marginBottom: 4,
-                      }}
-                    >
-                      {businessLocation || "________________"}
-                    </Text>
-                    <Text style={{ fontSize: 14, marginBottom: 10 }}>
-                      Location
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: 19,
-                        fontWeight: "bold",
-                        marginBottom: 4,
-                      }}
-                    >
-                      {businessOwner || "________________"}
-                    </Text>
-                    <Text style={{ fontSize: 14 }}>Owner</Text>
-                  </View>
-                  <>
-                    <Text
-                      style={[
-                        styles.bodyText,
-                        { textAlign: "justify", marginBottom: 8 },
-                      ]}
-                    >
-                      And which said person had accomplish{" "}
-                      <Text style={{ fontWeight: "bold" }}>
-                        Barangay Ordinance No.14
-                      </Text>
-                      . This ordinance is imposing Barangay Permit fee and it is
-                      required for every business Trade or any transaction
-                      within the jurisdiction of this Barangay.
-                    </Text>
-                    <Text
-                      style={[
-                        styles.bodyText,
-                        { textAlign: "justify", marginBottom: 8 },
-                      ]}
-                    >
-                      This Barangay permit on business indorsed to this
-                      Municipality for registration purposes only.
-                    </Text>
-                    <Text
-                      style={[
-                        styles.bodyText,
-                        { marginTop: 10, marginBottom: 8 },
-                      ]}
-                    >
-                      Given this{" "}
-                      {new Date().toLocaleDateString("en-PH", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })}
-                      , at {settings ? settings.barangay : "________________"},
-                      {settings ? settings.municipality : "________________"},
-                      {settings ? settings.province : "________________"}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.bodyText,
-                        { textAlign: "justify", marginBottom: 8 },
-                      ]}
-                    >
-                      This Barangay Permit is not valid without official
-                      receipt.
-                    </Text>
-                  </>
-                  <CertificateFooter
-                    styles={styles}
-                    captainName={captainName}
-                    amount={amount}
-                  />
+                  <Text style={{ fontSize: 14, marginBottom: 10 }}>Business Name</Text>
+                  <Text style={{ fontSize: 19, fontWeight: "bold", marginBottom: 4 }}>
+                    {businessType || "________________"}
+                  </Text>
+                  <Text style={{ fontSize: 14, marginBottom: 10 }}>Type of Business</Text>
+                  <Text style={{ fontSize: 19, fontWeight: "bold", marginBottom: 4 }}>
+                    {businessLocation || "________________"}
+                  </Text>
+                  <Text style={{ fontSize: 14, marginBottom: 10 }}>Location</Text>
+                  <Text style={{ fontSize: 19, fontWeight: "bold", marginBottom: 4 }}>
+                    {businessOwner || "________________"}
+                  </Text>
+                  <Text style={{ fontSize: 14 }}>Owner</Text>
                 </View>
-              </Page>
-            </Document>
-          </PDFViewer>
-        </div>
+                <Text style={[styles.bodyText, { textAlign: "justify", marginBottom: 8 }]}>
+                  And which said person had accomplish <Text style={{ fontWeight: "bold" }}>Barangay Ordinance No.14</Text>. This ordinance is imposing Barangay Permit fee and it is required for every business Trade or any transaction within the jurisdiction of this Barangay.
+                </Text>
+                <Text style={[styles.bodyText, { textAlign: "justify", marginBottom: 8 }]}>
+                  This Barangay permit on business indorsed to this Municipality for registration purposes only.
+                </Text>
+                <Text style={[styles.bodyText, { marginTop: 10, marginBottom: 8 }]}>
+                  Given this{" "}
+                  {new Date().toLocaleDateString("en-PH", { day: "numeric", month: "long", year: "numeric" })}, at {settings ? settings.Barangay : "________________"},{settings ? settings.Municipality : "________________"},{settings ? settings.Province : "________________"}
+                </Text>
+                <CertificateFooter styles={styles} captainName={captainName ?? ""} amount={amount} />
+              </View>
+            </Page>
+          </Document>
+        </PDFViewer>
       </div>
-    </>
+    </div>
   );
 }

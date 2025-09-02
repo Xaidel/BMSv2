@@ -8,6 +8,7 @@ export type PatchCertificate = Partial<{
   Ownership: string
   Amount: string
   IssuedDate: string
+  Purpose: string
 }>
 export default async function editCertificate(certificate_id: number, updated: PatchCertificate) {
   try {

@@ -197,7 +197,7 @@ export default function Settings({ onSave }: { onSave: () => void }) {
                   d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 16H9v-2.828z"
                 />
               </svg>
-              Change Banrangay ImageB
+              Change Barangay Logo
               <input
                 type="file"
                 accept="image/*"
@@ -229,7 +229,7 @@ export default function Settings({ onSave }: { onSave: () => void }) {
                     d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 16H9v-2.828z"
                   />
                 </svg>
-                Change Municipality ImageB
+                Change Municipality Logo
                 <input
                   type="file"
                   accept="image/*"
