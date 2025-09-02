@@ -9,7 +9,7 @@ import { format } from "date-fns";
 import { Trash, Home, HomeIcon, UserCheck, Users, Eye } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Household } from "@/types/types";
+import { Household } from "@/types/apitypes";
 import { sort } from "@/service/household/householdSort";
 import SummaryCard from "@/components/summary-card/household";
 import { pdf } from "@react-pdf/renderer";
@@ -30,7 +30,7 @@ const columns: ColumnDef<Household>[] = [
   },
   {
     header: "Type of Household",
-    accessorKey: "type_",
+    accessorKey: "type",
   },
   {
     header: "Head of Household",
@@ -84,13 +84,19 @@ export default function Households() {
   const parsedData = useMemo(() => {
     if (isFetching || !household || !household.households) return []
     return household.households.map((household) => {
-      const members = household.residents
+      const member = household.residents.map(r => ({
+        ID: r.id,
+        Firstname: r.firstname,
+        Lastname: r.lastname,
+        Role: r.role,
+        Income: r.income,
+      }));
       const head = household.residents.find(r => r.role.toLowerCase() === "head");
       return {
         id: household.id,
         household_number: household.household_number,
-        type_: household.type.toUpperCase(),
-        members,
+        type: household.type,
+        member,
         head: head ? `${head.firstname} ${head.lastname}` : "N/A",
         zone: household.zone,
         date: new Date(household.date_of_residency),
@@ -113,7 +119,7 @@ export default function Households() {
       sorted = sorted.filter(
         (item) =>
           item.household_number.includes(query) ||
-          item.type_?.toLowerCase().includes(query) ||
+          item.type?.toLowerCase().includes(query) ||
           item.head?.toLowerCase().includes(query)
       );
     }
@@ -124,8 +130,8 @@ export default function Households() {
 
 
   const totalActive = parsedData.filter((item) => item.status === "Active").length;
-  const totalRenter = parsedData.filter((item) => item.type_ === "RENTER").length;
-  const totalOwner = parsedData.filter((item) => item.type_ === "OWNER").length;
+  const totalRenter = parsedData.filter((item) => item.type === "Renter").length;
+  const totalOwner = parsedData.filter((item) => item.type === "Owner").length;
   const total = parsedData.length;
   return (
     <>
@@ -180,7 +186,7 @@ export default function Households() {
           value={totalRenter}
           icon={<HomeIcon size={50} />}
           onClick={async () => {
-            const filtered = data.filter((d) => d.type_ === "Renter");
+            const filtered = data.filter((d) => d.type === "Renter");
             const blob = await pdf(<HouseholdPDF filter="Renter Households" households={filtered} />).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
@@ -203,7 +209,7 @@ export default function Households() {
           value={totalOwner}
           icon={<Home size={50} />}
           onClick={async () => {
-            const filtered = data.filter((d) => d.type_ === "Owner");
+            const filtered = data.filter((d) => d.type === "Owner");
             const blob = await pdf(<HouseholdPDF filter="Owner Households" households={filtered} />).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
