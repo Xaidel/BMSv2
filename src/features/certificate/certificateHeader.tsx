@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import { View, Text, Image } from "@react-pdf/renderer";
+import getSettings from "@/service/api/settings/getSettings";
 
 type Settings = {
-  barangay: string;
-  municipality: string;
-  province: string;
+  Barangay: string;
+  Municipality: string;
+  Province: string;
 };
 
 export default function CertificateHeader() {
@@ -16,27 +16,21 @@ export default function CertificateHeader() {
   const [settings, setSettings] = useState<Settings | null>(null);
 
   useEffect(() => {
-    invoke("fetch_logo_command")
-      .then((res) => {
-        if (typeof res === "string") setLogoDataUrl(res);
-      })
-      .catch(console.error);
-
-    invoke("fetch_settings_command")
-      .then((res) => {
-        if (typeof res === "object" && res !== null) {
-          const s = res as any;
-          setSettings({
-            barangay: s.barangay || "",
-            municipality: s.municipality || "",
-            province: s.province || "",
-          });
-          if (s.logo) setLogoDataUrl(s.logo);
-          if (s.logo_municipality)
-            setLogoMunicipalityDataUrl(s.logo_municipality);
-        }
-      })
-      .catch(console.error);
+    async function fetchSettings() {
+      try {
+        const data = await getSettings();
+        setSettings({
+          Barangay: data.setting.Barangay || "",
+          Municipality: data.setting.Municipality || "",
+          Province: data.setting.Province || "",
+        });
+        if (data.setting.ImageB) setLogoDataUrl(data.setting.ImageB);
+        if (data.setting.ImageM) setLogoMunicipalityDataUrl(data.setting.ImageM);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    fetchSettings();
   }, []);
 
   return (
@@ -85,10 +79,10 @@ export default function CertificateHeader() {
           Republic of the Philippines
         </Text>
         <Text style={{ textAlign: "center", fontSize: 16 }}>
-          Province of {settings?.province || "Province"}
+          Province of {settings?.Province || "Province"}
         </Text>
         <Text style={{ textAlign: "center", fontSize: 16 }}>
-          Municipality of {settings?.municipality || "Municipality"}
+          Municipality of {settings?.Municipality || "Municipality"}
         </Text>
         <Text
           style={{
@@ -98,7 +92,7 @@ export default function CertificateHeader() {
             fontWeight: "bold",
           }}
         >
-          BARANGAY {settings?.barangay?.toUpperCase() || "Barangay"}
+          BARANGAY {settings?.Barangay?.toUpperCase() || "Barangay"}
         </Text>
       </View>
 
