@@ -3,7 +3,7 @@ import Pasacao from "@/assets/geojson/Pasacao.json";
 import Street from "@/assets/geojson/Street.json";
 import Border from "@/assets/geojson/Border.json";
 import Building from "@/assets/geojson/Building.json";
-import { GeoJSON, MapContainer, TileLayer } from "react-leaflet";
+import { GeoJSON, MapContainer } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useMemo, useState } from "react";
@@ -146,7 +146,7 @@ export default function Map() {
       }
     });
 
-    layer.on("click", async (e) => {
+    layer.on("click", async () => {
       const householdId = infra.properties?.household_id;
       if (householdId) {
         try {
@@ -171,17 +171,17 @@ export default function Map() {
   };
 
   return (
-    <div className="w-[85vw] h-[80vh] border-1 p-10 rounded-2xl overflow-hidden shadow-md mx-auto">
-      <div className="mb-4 relative flex justify-center">
+    <div className="relative w-[85vw] h-[80vh] border-1 p-10 rounded-2xl overflow-hidden shadow-md mx-auto">
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-[1000] w-[300px]">
         <Input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search mapping name..."
-          className="border rounded px-3 py-2 w-[300px]"
+          className="border rounded px-3 py-2 w-full shadow-lg bg-white"
         />
         {searchQuery && (
-          <div className="absolute z-10 mt-7 w-[300px] border bg-white shadow rounded">
+          <div className="mt-1 border bg-white shadow rounded">
             {mappings?.mappings
               .filter((m: Mapping) =>
                 m.MappingName.toLowerCase().includes(searchQuery.toLowerCase())
