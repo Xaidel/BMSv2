@@ -21,7 +21,6 @@ import { Household } from "@/types/apitypes";
 import { Eye } from "lucide-react";
 import { getRoleIcon } from "./addHouseholdModal";
 import EditHouseholdModal from "./editHouseholdModal";
-import { buildFamilyTree } from "@/types/tree";
 
 export default function ViewHouseholdModal({
   household,
@@ -32,14 +31,11 @@ export default function ViewHouseholdModal({
   open: boolean;
   onClose: () => void;
 }) {
-  const overallIncome = household.member.reduce(
+  console.log(household)
+  const overallIncome = household?.member?.reduce(
     (sum, m) => sum + (m.Income || 0),
     0
   );
-  const nodes = buildFamilyTree({
-    ...household,
-    member: household.member,
-  } as any);
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
@@ -70,7 +66,7 @@ export default function ViewHouseholdModal({
                   >
                     Edit Household
                   </TabsTrigger>
-                  {/*<TabsTrigger value="tree" className="text-black data-[state=active]:bg-blue-500 data-[state=active]:text-white">Family Tree</TabsTrigger>*/}
+                  {/*<TabsTrigger value="" className="text-black data-[state=active]:bg-blue-500 data-[state=active]:text-white">Family Tree</TabsTrigger>*/}
                 </TabsList>
                 <TabsContent value="general">
                   <div className="flex w-full justify-between">
@@ -91,7 +87,7 @@ export default function ViewHouseholdModal({
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {household.member.map((m) => {
+                      {household?.member?.map((m) => {
                         const RoleIcon = getRoleIcon(m.Role);
                         return (
                           <TableRow key={m.ID}>
@@ -121,12 +117,12 @@ export default function ViewHouseholdModal({
                       ID: household.id, // ensure ID is passed
                       HouseholdNumber: household.household_number,
                       Type: household.type,
-                      Members: household.member.map((m) => ({
+                      Members: household?.member?.map((m) => ({
                         ID: m.ID,
                         Role: m.Role,
                       })),
                       Zone: household.zone,
-                      DateOfResidency: household.date.toISOString(), // ensure string
+                      DateOfResidency: household?.date?.toISOString(), // ensure string
                       Status: household.status,
                     }}
                     onClose={onClose}

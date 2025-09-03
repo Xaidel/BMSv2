@@ -260,21 +260,22 @@ export default function EditHouseholdModal({
         const res = residentMap[m.ID.toString()];
         return res
           ? {
-              ...res,
-              Role: m.Role,
-            }
+            ...res,
+            Role: m.Role,
+          }
           : {
-              ID: m.ID.toString(),
-              Name: "",
-              Role: m.Role,
-              Income: 0,
-              Age: 0,
-            };
-      }) || [];
-    setSelectedMembers(initialMembers);
-    // eslint-disable-next-line
-  }, [residents, household.Members]);
 
+            ID: m.ID.toString(),
+            Name: "",
+            Role: m.Role,
+            Income: 0,
+            Age: 0,
+          }
+      }) || []
+    setSelectedMembers(initialMembers)
+    // eslint-disable-next-line
+  }, [residents, household.Members])
+  console.log(household)
   const res = useMemo<SelectedMember[]>(() => {
     if (!residents?.residents) return [];
     return residents.residents.map((r) => {
