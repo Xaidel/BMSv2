@@ -1,4 +1,4 @@
-import { Household } from "@/types/types";
+import { Household } from "@/types/apitypes";
 
 export function sort(data: Household[], term: string): Household[] {
   switch (term) {
@@ -18,8 +18,8 @@ function sortNumerical(data: Household[]): Household[] {
 }
 
 function filterRenter(data: Household[]): Household[] {
-  return data.filter((household) => household.type_ === "RENTER")
+  return data.filter((household) => household.type === "Renter")
 }
 function filterOwner(data: Household[]): Household[] {
-  return data.filter((household) => household.type_ === "OWNER")
+  return data.filter((household) => household.type === "Owner")
 }

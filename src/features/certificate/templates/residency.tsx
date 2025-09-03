@@ -341,7 +341,7 @@ export default function Residency() {
                   const cert: any = {
                     resident_id: selectedResident.ID,
                     resident_name: `${selectedResident.Firstname} ${selectedResident.Lastname}`,
-                    type_: "4Ps Certificate",
+                    type_: "Residency Certificate",
                     amount: amount ? parseFloat(amount) : 0,
                     issued_date: new Date().toISOString().split("T")[0],
                     ownership_text: "",

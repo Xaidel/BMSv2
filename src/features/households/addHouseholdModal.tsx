@@ -128,14 +128,6 @@ const roleDefinitions: Record<string, string> = {
   Uncle: "Brother of a parent or husband of an aunt",
   Others: "Other family members or relationships not listed above",
 }
-interface HouseholdProps {
-  HouseholdNumber: string
-  HouseholdType: string
-  Members: { ID: number; Role: string }[]
-  Zone: string
-  DateOfResidency: string
-  Status: string
-}
 
 export const getRoleIcon = (role: string) => {
   const iconMap: Record<string, any> = {
@@ -201,11 +193,12 @@ export default function AddHouseholdModal() {
   const [householdType, setHouseholdType] = useState("")
   const [selectedMembers, setSelectedMembers] = useState<SelectedMember[]>([])
   const [zone, setZone] = useState("")
-  const [dateOfResidency, setDateOfResidency] = useState<Date>()
+  const [dateOfResidency, setDateOfResidency] = useState<Date>(new Date())
   const [status, setStatus] = useState("")
   const [showMemberSelection, setShowMemberSelection] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [roleSearchQuery, setRoleSearchQuery] = useState("")
+  const [openCalendar, setOpenCalendar] = useState(false)
   const { data: residents } = useResident()
   const addMutation = useAddHousehold()
 
@@ -266,20 +259,20 @@ export default function AddHouseholdModal() {
       toast.error("Please add at least one family member")
       return
     }
-    const formData: HouseholdProps = {
-      HouseholdNumber: householdNumber,
-      HouseholdType: householdType,
-      Members: selectedMembers.map((m) => ({
-        ID: Number(m.ID),
-        Role: m.Role,
+    const formData = {
+      householdNumber: householdNumber,
+      householdType: householdType,
+      zone: zone,
+      status: status,
+      dateOfResidency: dateOfResidency, // JSON.stringify will send ISO8601
+      members: selectedMembers.map((m) => ({
+        id: Number(m.ID),
+        role: m.Role,
       })),
-      Zone: zone,
-      DateOfResidency: dateOfResidency instanceof Date ? dateOfResidency.toISOString() : "",
-      Status: status,
     }
     toast.promise(addMutation.mutateAsync(formData), {
       loading: "Inserting household",
-      success: (data) => {
+      success: () => {
         queryClient.invalidateQueries({ queryKey: ["household"] })
         setOpenModal(false)
         return {
@@ -321,8 +314,8 @@ export default function AddHouseholdModal() {
                 <div>
                   <h3 className="font-semibold text-lg mb-4">Basic Information</h3>
 
-                  <div className="space-y-4">
-                    <div>
+                  <div className="flex gap-4">
+                    <div className="flex-1">
                       <Label htmlFor="household-number" className="text-sm font-medium">
                         Household Number <span className="text-red-500">*</span>
                       </Label>
@@ -336,8 +329,7 @@ export default function AddHouseholdModal() {
                         required
                       />
                     </div>
-
-                    <div>
+                    <div className="flex-1">
                       <Label htmlFor="type" className="text-sm font-medium">
                         Household Type <span className="text-red-500">*</span>
                       </Label>
@@ -348,7 +340,7 @@ export default function AddHouseholdModal() {
                         <SelectContent>
                           <SelectItem value="Owner">Owner</SelectItem>
                           <SelectItem value="Renter">Renter</SelectItem>
-                          <SelectItem value="Other">Other</SelectItem>
+                          <SelectItem value="Others">Others</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -507,9 +499,40 @@ export default function AddHouseholdModal() {
 
                 <div>
                   <h3 className="font-semibold text-lg mb-4">Additional Details</h3>
-
-                  <div className="space-y-4">
-                    <div>
+                  <div>
+                      <Label htmlFor="date" className="text-sm font-medium">
+                        Date of Residency <span className="text-red-500">*</span>
+                      </Label>
+                      <Popover open={openCalendar} onOpenChange={setOpenCalendar}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full mt-1 justify-start text-left font-normal text-black hover:bg-primary hover:text-white",
+                              !dateOfResidency && "text-muted-foreground",
+                            )}
+                          >
+                            {dateOfResidency ? format(dateOfResidency, "PPP") : <span>Pick a date</span>}
+                            <CalendarIcon className="ml-auto h-4 w-4 hover:text-white" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="center">
+                          <Calendar
+                            mode="single"
+                            selected={dateOfResidency}
+                            onSelect={(date) => {
+                              setDateOfResidency(date)
+                              setOpenCalendar(false)
+                            }}
+                            captionLayout="dropdown"
+                            onDayClick={() => setOpenCalendar(false)}
+                            disabled={(date) => date > new Date()}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  <div className="flex gap-4 mt-4">
+                    <div className="flex-1">
                       <Label htmlFor="zone" className="text-sm font-medium">
                         Zone <span className="text-red-500">*</span>
                       </Label>
@@ -522,39 +545,14 @@ export default function AddHouseholdModal() {
                           <SelectItem value="2">Zone 2</SelectItem>
                           <SelectItem value="3">Zone 3</SelectItem>
                           <SelectItem value="4">Zone 4</SelectItem>
+                          <SelectItem value="5">Zone 5</SelectItem>
+                          <SelectItem value="6">Zone 6</SelectItem>
+                          <SelectItem value="7">Zone 7</SelectItem>
+                          <SelectItem value="8">Zone 8</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
-
-                    <div>
-                      <Label htmlFor="date" className="text-sm font-medium">
-                        Date of Residency <span className="text-red-500">*</span>
-                      </Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full mt-1 justify-start text-left font-normal",
-                              !dateOfResidency && "text-muted-foreground",
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {dateOfResidency ? format(dateOfResidency, "PPP") : "Pick a date"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={dateOfResidency}
-                            onSelect={setDateOfResidency}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-
-                    <div>
+                    <div className="flex-1">
                       <Label htmlFor="status" className="text-sm font-medium">
                         Status <span className="text-red-500">*</span>
                       </Label>

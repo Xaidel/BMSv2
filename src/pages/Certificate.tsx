@@ -102,7 +102,8 @@ const columns: ColumnDef<Certificate>[] = [
       const oneYearLater = new Date(row.original.issued_date);
       oneYearLater.setFullYear(row.original.issued_date.getFullYear() + 1);
       const status = new Date() > oneYearLater ? "Expired" : "Active";
-      return <p>{status}</p>;
+      const colorClass = status === "Active" ? "text-green-500" : "text-red-500";
+      return <p className={colorClass}>{status}</p>;
     },
   },
 ];
