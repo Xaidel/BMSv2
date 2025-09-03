@@ -1,21 +1,12 @@
 import { api } from "@/service/api"
-export type PatchHousehold = Partial<{
-  ID: number;
-  household_number: string;
-  type: string;
-  member: {
-    ID: number;
-    Firstname: string;
-    Lastname: string;
-    Role: string;
-    Income: number;
-  }[];
-  head: string;
-  zone: string;
-  date: string;
-  status: "Moved Out" | "Active" | string;
-  selected_resident?: string[];
-}>;
+export type PatchHousehold = {
+  HouseholdNumber: string;
+  Type: string;
+  Members: { ID: number; Role: string }[];
+  Zone: string;
+  DateOfResidency: string;
+  Status: string;
+};
 export default async function editHousehold(ID: number, updated: PatchHousehold) {
   try {
     const res = await fetch(`${api}/households/${ID}`, {
@@ -28,7 +19,7 @@ export default async function editHousehold(ID: number, updated: PatchHousehold)
       const errorData = await res.json() as { error: string }
       throw errorData
     }
-    return res.json() as PatchHousehold
+    return (await res.json()) as PatchHousehold
   } catch (error) {
     throw error
   }

@@ -130,7 +130,7 @@ const roleDefinitions: Record<string, string> = {
 }
 interface HouseholdProps {
   HouseholdNumber: string
-  Type: string
+  HouseholdType: string
   Members: { ID: number; Role: string }[]
   Zone: string
   DateOfResidency: string
@@ -268,7 +268,7 @@ export default function AddHouseholdModal() {
     }
     const formData: HouseholdProps = {
       HouseholdNumber: householdNumber,
-      Type: householdType,
+      HouseholdType: householdType,
       Members: selectedMembers.map((m) => ({
         ID: Number(m.ID),
         Role: m.Role,

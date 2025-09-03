@@ -134,7 +134,7 @@ export interface HouseholdProps {
   Zone: string
   DateOfResidency: string
   Status: string
-  ID?: number
+  ID: number
 }
 
 export const getRoleIcon = (role: string) => {
@@ -313,7 +313,8 @@ export default function EditHouseholdModal({ household, onClose }: EditHousehold
       })),
       Zone: zone,
       DateOfResidency: dateOfResidency instanceof Date ? dateOfResidency.toISOString() : "",
-      Status: household.Status, 
+      Status: status,
+      ID: household.ID,
     }
     toast.promise(
       editMutation.mutateAsync({ ID: household.ID, updated: formData }),
