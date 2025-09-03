@@ -20,7 +20,9 @@ function sortNumerical(data: Income[]): Income[] {
   return [...data].sort((a, b) => b.Amount - a.Amount)
 }
 function sortDateDesc(data: Income[]): Income[] {
-  return [...data].sort((a, b) => b.DateReceived.getTime() - a.DateReceived.getTime())
+  return [...data].sort(
+    (a, b) => new Date(b.DateReceived).getTime() - new Date(a.DateReceived).getTime()
+  );
 }
 function filterThisWeek(data: Income[]): Income[] {
   const now = new Date();

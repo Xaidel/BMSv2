@@ -1,18 +1,7 @@
 import { useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
-import {
-  DollarSign,
-  Banknote,
-  PiggyBank,
-  Coins,
-  Wallet,
-  Layers,
-  Shirt,
-  Trash,
-  Eye,
-  Droplets,
-} from "lucide-react";
+import {DollarSign, Banknote, PiggyBank, Coins, Wallet, Layers, Shirt, Trash, Eye, Droplets,} from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { toast } from "sonner";
 import { pdf } from "@react-pdf/renderer";
@@ -344,8 +333,7 @@ export default function IncomeNewPage() {
           }}
         />
       </div>
-
-      {/* Search + Filter */}
+      
       <div className="flex gap-5 w-full items-center justify-center mb-0">
         <Searchbar
           placeholder="Search Income"

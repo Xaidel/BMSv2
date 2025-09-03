@@ -1,11 +1,21 @@
-import type React from "react"
-import { useMemo, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import type React from "react";
+import { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   X,
   Plus,
@@ -18,23 +28,28 @@ import {
   CalendarIcon,
   Shield,
   FileQuestion as CircleQuestionMark,
-} from "lucide-react"
-import { Checkbox } from "@/components/ui/checkbox"
+} from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { TooltipProvider } from "@/components/ui/tooltip"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { format } from "date-fns"
-import { cn, getAge } from "@/lib/utils"
-import { toast } from "sonner"
-import { useResident } from "../api/resident/useResident"
-import { useEditHousehold } from "../api/household/useEditHousehold"
-import { useQueryClient } from "@tanstack/react-query"
+} from "@/components/ui/dialog";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { format } from "date-fns";
+import { cn, getAge } from "@/lib/utils";
+import { toast } from "sonner";
+import { useResident } from "../api/resident/useResident";
+import { useEditHousehold } from "../api/household/useEditHousehold";
+import { useQueryClient } from "@tanstack/react-query";
 
 const householdRoles = [
   "Head",
@@ -80,11 +95,12 @@ const householdRoles = [
   "Tenant",
   "Uncle",
   "Others",
-]
+];
 
 const roleDefinitions: Record<string, string> = {
   Head: "Primary household member responsible for major decisions and household management",
-  "Adopted Daughter": "Female child who has been legally adopted into the family",
+  "Adopted Daughter":
+    "Female child who has been legally adopted into the family",
   "Adopted Son": "Male child who has been legally adopted into the family",
   Auntie: "Sister of a parent or spouse of an uncle",
   Brother: "Male sibling sharing the same parents",
@@ -126,15 +142,15 @@ const roleDefinitions: Record<string, string> = {
   Tenant: "Person renting space in the household",
   Uncle: "Brother of a parent or husband of an aunt",
   Others: "Other family members or relationships not listed above",
-}
+};
 export interface HouseholdProps {
-  HouseholdNumber: string
-  Type: string
-  Members: { ID: number; Role: string }[]
-  Zone: string
-  DateOfResidency: string
-  Status: string
-  ID?: number
+  HouseholdNumber: string;
+  Type: string;
+  Members: { ID: number; Role: string }[];
+  Zone: string;
+  DateOfResidency: string;
+  Status: string;
+  ID?: number;
 }
 
 export const getRoleIcon = (role: string) => {
@@ -182,64 +198,73 @@ export const getRoleIcon = (role: string) => {
     "House maid/helper": User,
     Tenant: User,
     Others: CircleQuestionMark,
-  }
+  };
 
-  return iconMap[role] || User
-}
+  return iconMap[role] || User;
+};
 
 interface SelectedMember {
-  ID: string
-  Name: string
-  Role: string
-  Income: number
-  Age: number
+  ID: string;
+  Name: string;
+  Role: string;
+  Income: number;
+  Age: number;
 }
 
 type EditHouseholdModalProps = {
-  household: HouseholdProps
-  onClose: () => void
-}
+  household: HouseholdProps;
+  onClose: () => void;
+};
 
-export default function EditHouseholdModal({ household, onClose }: EditHouseholdModalProps) {
-  const [openModal, setOpenModal] = useState(true)
-  const [householdNumber, setHouseholdNumber] = useState(household.HouseholdNumber || "0")
-  const [householdType, setHouseholdType] = useState(household.Type || "")
-  const [selectedMembers, setSelectedMembers] = useState<SelectedMember[]>([])
-  const [zone, setZone] = useState(household.Zone || "")
+export default function EditHouseholdModal({
+  household,
+  onClose,
+}: EditHouseholdModalProps) {
+  const [openModal, setOpenModal] = useState(true);
+  const [householdNumber, setHouseholdNumber] = useState(
+    household.HouseholdNumber || "0"
+  );
+  const [householdType, setHouseholdType] = useState(household.Type || "");
+  const [selectedMembers, setSelectedMembers] = useState<SelectedMember[]>([]);
+  const [zone, setZone] = useState(household.Zone || "");
   const [dateOfResidency, setDateOfResidency] = useState<Date>(
-    household.DateOfResidency ? new Date(household.DateOfResidency) : undefined,
-  )
-  const [status, setStatus] = useState(household.Status || "")
-  const [showMemberSelection, setShowMemberSelection] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [roleSearchQuery, setRoleSearchQuery] = useState("")
-  const { data: residents } = useResident()
-  const editMutation = useEditHousehold()
+    household.DateOfResidency ? new Date(household.DateOfResidency) : undefined
+  );
+  const [status, setStatus] = useState(household.Status || "");
+  const [showMemberSelection, setShowMemberSelection] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [roleSearchQuery, setRoleSearchQuery] = useState("");
+  const [openCalendar, setOpenCalendar] = useState(false);
+  const { data: residents } = useResident();
+  const editMutation = useEditHousehold();
 
   // On mount, populate selectedMembers from household prop and resident data
   useMemo(() => {
-    if (!residents?.residents) return
+    if (!residents?.residents) return;
     // Build a map for quick lookup
-    const residentMap: Record<string, any> = {}
+    const residentMap: Record<string, any> = {};
     residents.residents.forEach((r) => {
-      const middleInitial = r.Middlename ? ` ${r.Middlename.charAt(0).toUpperCase()}.` : ""
+      const middleInitial = r.Middlename
+        ? ` ${r.Middlename.charAt(0).toUpperCase()}.`
+        : "";
       residentMap[r.ID.toString()] = {
         ID: r.ID.toString(),
         Name: `${r.Firstname}${middleInitial} ${r.Lastname}`.trim(),
         Income: r.AvgIncome,
         Age: getAge(r.Birthday.toString()),
-      }
-    })
+      };
+    });
     // Populate from household.Members
     const initialMembers: SelectedMember[] =
       household.Members?.map((m) => {
-        const res = residentMap[m.ID.toString()]
+        const res = residentMap[m.ID.toString()];
         return res
           ? {
             ...res,
             Role: m.Role,
           }
           : {
+
             ID: m.ID.toString(),
             Name: "",
             Role: m.Role,
@@ -252,21 +277,27 @@ export default function EditHouseholdModal({ household, onClose }: EditHousehold
   }, [residents, household.Members])
   console.log(household)
   const res = useMemo<SelectedMember[]>(() => {
-    if (!residents?.residents) return []
+    if (!residents?.residents) return [];
     return residents.residents.map((r) => {
-      const middleInitial = r.Middlename ? ` ${r.Middlename.charAt(0).toUpperCase()}.` : ""
+      const middleInitial = r.Middlename
+        ? ` ${r.Middlename.charAt(0).toUpperCase()}.`
+        : "";
       return {
         ID: r.ID.toString(),
         Name: `${r.Firstname}${middleInitial} ${r.Lastname}`.trim(),
         Role: "",
         Income: r.AvgIncome,
         Age: getAge(r.Birthday.toString()),
-      }
-    })
-  }, [residents])
-  const filteredResidents = res.filter((resident) => resident.Name.toLowerCase().includes(searchQuery.toLowerCase()))
+      };
+    });
+  }, [residents]);
+  const filteredResidents = res.filter((resident) =>
+    resident.Name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-  const filteredRoles = householdRoles.filter((role) => role.toLowerCase().includes(roleSearchQuery.toLowerCase()))
+  const filteredRoles = householdRoles.filter((role) =>
+    role.toLowerCase().includes(roleSearchQuery.toLowerCase())
+  );
 
   const toggleMember = (resident: (typeof res)[0], checked: boolean) => {
     if (checked) {
@@ -279,30 +310,42 @@ export default function EditHouseholdModal({ household, onClose }: EditHousehold
           Income: resident.Income,
           Age: resident.Age,
         },
-      ])
+      ]);
     } else {
-      setSelectedMembers(selectedMembers.filter((member) => member.ID !== resident.ID))
+      setSelectedMembers(
+        selectedMembers.filter((member) => member.ID !== resident.ID)
+      );
     }
-  }
+  };
 
   const updateMemberRole = (memberId: string, role: string) => {
-    setSelectedMembers(selectedMembers.map((member) => (member.ID === memberId ? { ...member, Role: role } : member)))
-    setRoleSearchQuery("")
-  }
+    setSelectedMembers(
+      selectedMembers.map((member) =>
+        member.ID === memberId ? { ...member, Role: role } : member
+      )
+    );
+    setRoleSearchQuery("");
+  };
 
   const hasHeadOfHousehold = () => {
-    return selectedMembers.some((member) => member.Role === "Head")
-  }
-  const queryClient = useQueryClient()
+    return selectedMembers.some((member) => member.Role === "Head");
+  };
+  const queryClient = useQueryClient();
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!householdNumber || !householdType || !zone || !dateOfResidency || !status) {
-      toast.error("Please fill in all required fields")
-      return
+    e.preventDefault();
+    if (
+      !householdNumber ||
+      !householdType ||
+      !zone ||
+      !dateOfResidency ||
+      !status
+    ) {
+      toast.error("Please fill in all required fields");
+      return;
     }
     if (selectedMembers.length === 0) {
-      toast.error("Please add at least one family member")
-      return
+      toast.error("Please add at least one family member");
+      return;
     }
     const formData = {
       householdNumber: householdNumber,
@@ -312,21 +355,22 @@ export default function EditHouseholdModal({ household, onClose }: EditHousehold
         role: m.Role,
       })),
       zone: zone,
-      dateOfResidency: dateOfResidency instanceof Date ? dateOfResidency.toISOString() : "",
+      dateOfResidency:
+        dateOfResidency instanceof Date ? dateOfResidency.toISOString() : "",
       status: status,
-    }
+    };
     toast.promise(
       editMutation.mutateAsync({ ID: household.ID, updated: formData }),
       {
         loading: "Updating household...",
         success: () => {
-          queryClient.invalidateQueries({ queryKey: ["household"] })
-          setOpenModal(false)
-          onClose?.()
+          queryClient.invalidateQueries({ queryKey: ["household"] });
+          setOpenModal(false);
+          onClose?.();
           return {
             message: "Household updated successfully",
             description: "Household details have been updated",
-          }
+          };
         },
         error: (error: any) => {
           return {
@@ -335,15 +379,21 @@ export default function EditHouseholdModal({ household, onClose }: EditHousehold
               error?.response?.data?.message ||
               error?.message ||
               "An unexpected error occurred",
-          }
+          };
         },
       }
-    )
-  }
+    );
+  };
 
   return (
     <TooltipProvider>
-      <Dialog open={openModal} onOpenChange={(open) => { setOpenModal(open); if (!open) onClose?.() }}>
+      <Dialog
+        open={openModal}
+        onOpenChange={(open) => {
+          setOpenModal(open);
+          if (!open) onClose?.();
+        }}
+      >
         <DialogContent className="text-black max-h-[90vh] flex flex-col p-0">
           <div className="sticky top-0  px-6 pt-4 z-10">
             <DialogHeader>
@@ -357,12 +407,17 @@ export default function EditHouseholdModal({ household, onClose }: EditHousehold
           <div className="flex-1 overflow-y-auto px-6">
             <form onSubmit={handleSubmit} className="flex flex-col">
               <div className="space-y-6 py-4">
+                {/* Basic Information */}
                 <div>
-                  <h3 className="font-semibold text-lg mb-4">Basic Information</h3>
-
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="household-number" className="text-sm font-medium">
+                  <h3 className="font-semibold text-lg mb-4">
+                    Basic Information
+                  </h3>
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <Label
+                        htmlFor="household-number"
+                        className="text-sm font-medium"
+                      >
                         Household Number <span className="text-red-500">*</span>
                       </Label>
                       <Input
@@ -375,30 +430,33 @@ export default function EditHouseholdModal({ household, onClose }: EditHousehold
                         required
                       />
                     </div>
-
-                    <div>
+                    <div className="flex-1">
                       <Label htmlFor="type" className="text-sm font-medium">
                         Household Type <span className="text-red-500">*</span>
                       </Label>
-                      <Select value={householdType} onValueChange={setHouseholdType} required>
+                      <Select
+                        value={householdType}
+                        onValueChange={setHouseholdType}
+                        required
+                      >
                         <SelectTrigger className="mt-1">
                           <SelectValue placeholder="Choose household type" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="Owner">Owner</SelectItem>
                           <SelectItem value="Renter">Renter</SelectItem>
-                          <SelectItem value="Other">Other</SelectItem>
+                          <SelectItem value="Others">Others</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
                 </div>
 
+                {/* Add Family Members */}
                 <div>
                   <h3 className="font-semibold text-lg mb-4">
                     Add Family Members <span className="text-red-500">*</span>
                   </h3>
-
                   {!showMemberSelection ? (
                     <Button
                       onClick={() => setShowMemberSelection(true)}
@@ -411,12 +469,17 @@ export default function EditHouseholdModal({ household, onClose }: EditHousehold
                   ) : (
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <Label className="text-sm font-medium">Select People to Add:</Label>
-                        <Button onClick={() => setShowMemberSelection(false)} variant="ghost" size="sm">
+                        <Label className="text-sm font-medium">
+                          Select People to Add:
+                        </Label>
+                        <Button
+                          onClick={() => setShowMemberSelection(false)}
+                          variant="ghost"
+                          size="sm"
+                        >
                           Done
                         </Button>
                       </div>
-
                       <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input
@@ -426,42 +489,58 @@ export default function EditHouseholdModal({ household, onClose }: EditHousehold
                           className="pl-10"
                         />
                       </div>
-
                       <div className="space-y-3 max-h-48 overflow-y-auto border rounded-md p-3">
                         {filteredResidents.length === 0 ? (
                           <div className="text-center text-gray-500 py-4">
-                            {searchQuery ? "No residents found matching your search" : "No residents available"}
+                            {searchQuery
+                              ? "No residents found matching your search"
+                              : "No residents available"}
                           </div>
                         ) : (
                           filteredResidents.map((resident) => {
-                            const isSelected = selectedMembers.some((member) => member.ID === resident.ID)
+                            const isSelected = selectedMembers.some(
+                              (member) => member.ID === resident.ID
+                            );
                             return (
-                              <div key={resident.ID} className="flex items-center space-x-3">
+                              <div
+                                key={resident.ID}
+                                className="flex items-center space-x-3"
+                              >
                                 <Checkbox
                                   id={resident.ID}
                                   checked={isSelected}
-                                  onCheckedChange={(checked) => toggleMember(resident, checked as boolean)}
+                                  onCheckedChange={(checked) =>
+                                    toggleMember(resident, checked as boolean)
+                                  }
                                 />
-                                <Label htmlFor={resident.ID} className="flex-1 cursor-pointer">
+                                <Label
+                                  htmlFor={resident.ID}
+                                  className="flex-1 cursor-pointer"
+                                >
                                   <div>
-                                    <div className="font-medium">{resident.Name}</div>
-                                    <div className="text-sm text-gray-500">Age: {resident.Age}</div>
+                                    <div className="font-medium">
+                                      {resident.Name}
+                                    </div>
+                                    <div className="text-sm text-gray-500">
+                                      Age: {resident.Age}
+                                    </div>
                                   </div>
                                 </Label>
                               </div>
-                            )
+                            );
                           })
                         )}
                       </div>
                     </div>
                   )}
-
                   {selectedMembers.length > 0 && (
                     <div className="mt-4 space-y-3">
-                      <Label className="text-sm font-medium">Selected Members:</Label>
+                      <Label className="text-sm font-medium">
+                        Selected Members:
+                      </Label>
                       <div className="flex flex-wrap gap-2 p-3 border rounded-md bg-gray-50 min-h-[50px]">
                         {selectedMembers.map((member) => {
-                          const IconComponent = getRoleIcon(member.Role)
+                          const IconComponent = getRoleIcon(member.Role);
                           return (
                             <div
                               key={member.ID}
@@ -477,7 +556,10 @@ export default function EditHouseholdModal({ household, onClose }: EditHousehold
                                     <IconComponent className="h-3 w-3" />
                                   </button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="start" className="w-80 max-h-96 overflow-y-auto p-0">
+                                <DropdownMenuContent
+                                  align="start"
+                                  className="w-80 max-h-96 overflow-y-auto p-0"
+                                >
                                   <div className="sticky top-0 bg-white border-b p-2 z-10">
                                     <div className="relative">
                                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -485,7 +567,9 @@ export default function EditHouseholdModal({ household, onClose }: EditHousehold
                                         placeholder="Search roles..."
                                         className="h-8 text-sm pl-10"
                                         value={roleSearchQuery}
-                                        onChange={(e) => setRoleSearchQuery(e.target.value)}
+                                        onChange={(e) =>
+                                          setRoleSearchQuery(e.target.value)
+                                        }
                                         onClick={(e) => e.stopPropagation()}
                                       />
                                     </div>
@@ -493,21 +577,33 @@ export default function EditHouseholdModal({ household, onClose }: EditHousehold
                                   <div className="max-h-80 overflow-y-auto">
                                     {filteredRoles.length === 0 ? (
                                       <div className="p-4 text-center text-gray-500 text-sm">
-                                        No roles found matching "{roleSearchQuery}"
+                                        No roles found matching "
+                                        {roleSearchQuery}"
                                       </div>
                                     ) : (
                                       filteredRoles.map((Role) => {
-                                        const RoleIcon = getRoleIcon(Role)
-                                        const isSelected = member.Role === Role
+                                        const RoleIcon = getRoleIcon(Role);
+                                        const isSelected = member.Role === Role;
                                         const isHeadDisabled =
-                                          Role === "Head" && hasHeadOfHousehold() && member.Role !== "Head"
-
+                                          Role === "Head" &&
+                                          hasHeadOfHousehold() &&
+                                          member.Role !== "Head";
                                         return (
                                           <DropdownMenuItem
                                             key={Role}
-                                            onClick={() => !isHeadDisabled && updateMemberRole(member.ID, Role)}
-                                            className={`flex items-start gap-3 p-3 cursor-pointer ${isSelected ? "bg-blue-50 text-blue-700" : ""
-                                              } ${isHeadDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                                            onClick={() =>
+                                              !isHeadDisabled &&
+                                              updateMemberRole(member.ID, Role)
+                                            }
+                                            className={`flex items-start gap-3 p-3 cursor-pointer ${
+                                              isSelected
+                                                ? "bg-blue-50 text-blue-700"
+                                                : ""
+                                            } ${
+                                              isHeadDisabled
+                                                ? "opacity-50 cursor-not-allowed"
+                                                : ""
+                                            }`}
                                             disabled={isHeadDisabled}
                                           >
                                             <RoleIcon className="h-4 w-4 mt-0.5 flex-shrink-0" />
@@ -515,40 +611,51 @@ export default function EditHouseholdModal({ household, onClose }: EditHousehold
                                               <div className="font-medium text-sm flex items-center gap-2">
                                                 {Role}
                                                 {isHeadDisabled && (
-                                                  <span className="text-xs text-gray-400">(Already assigned)</span>
+                                                  <span className="text-xs text-gray-400">
+                                                    (Already assigned)
+                                                  </span>
                                                 )}
                                               </div>
                                               <div className="text-xs text-gray-600 mt-1 leading-relaxed">
-                                                {roleDefinitions[Role] || "Family member or household resident"}
+                                                {roleDefinitions[Role] ||
+                                                  "Family member or household resident"}
                                               </div>
                                             </div>
                                           </DropdownMenuItem>
-                                        )
+                                        );
                                       })
                                     )}
                                   </div>
                                 </DropdownMenuContent>
                               </DropdownMenu>
                               <button
-                                onClick={() => setSelectedMembers(selectedMembers.filter((m) => m.ID !== member.ID))}
+                                onClick={() =>
+                                  setSelectedMembers(
+                                    selectedMembers.filter(
+                                      (m) => m.ID !== member.ID
+                                    )
+                                  )
+                                }
                                 className="ml-1 hover:bg-blue-200 rounded-full p-0.5 transition-colors"
                                 type="button"
                               >
                                 <X className="h-2.5 w-2.5" />
                               </button>
                             </div>
-                          )
+                          );
                         })}
                       </div>
                     </div>
                   )}
                 </div>
 
+                {/* Additional Details */}
                 <div>
-                  <h3 className="font-semibold text-lg mb-4">Additional Details</h3>
-
-                  <div className="space-y-4">
-                    <div>
+                  <h3 className="font-semibold text-lg mb-4">
+                    Additional Details
+                  </h3>
+                  <div className="flex gap-4 mt-4">
+                    <div className="flex-1">
                       <Label htmlFor="zone" className="text-sm font-medium">
                         Zone <span className="text-red-500">*</span>
                       </Label>
@@ -561,39 +668,14 @@ export default function EditHouseholdModal({ household, onClose }: EditHousehold
                           <SelectItem value="2">Zone 2</SelectItem>
                           <SelectItem value="3">Zone 3</SelectItem>
                           <SelectItem value="4">Zone 4</SelectItem>
+                          <SelectItem value="5">Zone 5</SelectItem>
+                          <SelectItem value="6">Zone 6</SelectItem>
+                          <SelectItem value="7">Zone 7</SelectItem>
+                          <SelectItem value="8">Zone 8</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
-
-                    <div>
-                      <Label htmlFor="date" className="text-sm font-medium">
-                        Date of Residency <span className="text-red-500">*</span>
-                      </Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full mt-1 justify-start text-left font-normal",
-                              !dateOfResidency && "text-muted-foreground",
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {dateOfResidency ? format(dateOfResidency, "PPP") : "Pick a date"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={dateOfResidency}
-                            onSelect={setDateOfResidency}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-
-                    <div>
+                    <div className="flex-1">
                       <Label htmlFor="status" className="text-sm font-medium">
                         Status <span className="text-red-500">*</span>
                       </Label>
@@ -608,6 +690,40 @@ export default function EditHouseholdModal({ household, onClose }: EditHousehold
                         </SelectContent>
                       </Select>
                     </div>
+                  </div>
+                  <div className="mt-4">
+                    <Label htmlFor="date" className="text-sm font-medium">
+                      Date of Residency <span className="text-red-500">*</span>
+                    </Label>
+                    <Popover open={openCalendar} onOpenChange={setOpenCalendar}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full mt-1 justify-start text-left font-normal hover:bg-blue-50 hover:text-blue-700",
+                            !dateOfResidency && "text-muted-foreground"
+                          )}
+                          onClick={() => setOpenCalendar((prev) => !prev)}
+                          type="button"
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {dateOfResidency
+                            ? format(dateOfResidency, "PPP")
+                            : "Pick a date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={dateOfResidency}
+                          onSelect={(date) => {
+                            setDateOfResidency(date);
+                            setOpenCalendar(false);
+                          }}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 </div>
               </div>
@@ -626,5 +742,5 @@ export default function EditHouseholdModal({ household, onClose }: EditHousehold
         </DialogContent>
       </Dialog>
     </TooltipProvider>
-  )
+  );
 }

@@ -3,8 +3,6 @@ import { styles } from "./Stylesheet";
 import { format } from "date-fns";
 import { Resident } from "@/types/apitypes";
 
-
-
 type Props = {
   filter: string;
   residents: Resident[];

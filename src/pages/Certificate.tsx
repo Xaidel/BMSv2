@@ -4,7 +4,6 @@ import { BaseDirectory, writeFile } from "@tauri-apps/plugin-fs";
 import { pdf } from "@react-pdf/renderer";
 import { CertificatePDF } from "@/components/pdf/certificatepdf";
 import { useSearchParams } from "react-router-dom";
-
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import DataTable from "@/components/ui/datatable";
@@ -13,12 +12,7 @@ import Searchbar from "@/components/ui/searchbar";
 import IssueCertificateModal from "@/features/certificate/issueCertificateModal";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import {
-  Trash,
-  FileText,
-  CheckCircle,
-  XCircle,
-} from "lucide-react";
+import {Trash, FileText, CheckCircle, XCircle,} from "lucide-react";
 import searchCertificate from "@/service/certificate/searchCertificate";
 import { invoke } from "@tauri-apps/api/core";
 import getCertificate from "@/service/api/certificate/getCertificate";
@@ -335,7 +329,7 @@ export default function Certificate() {
             const selectedIds = Object.keys(rowSelection)
               .map((key) => filteredData[parseInt(key)])
               .filter((row) => !!row)
-              .map((row) => row.id); // make sure we use the 'id'
+              .map((row) => row.id); 
 
             if (selectedIds.length === 0) {
               toast.error("No certificates selected.");

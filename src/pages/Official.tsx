@@ -123,7 +123,7 @@ export default function OfficialsPage() {
   return (
     <div className="ml-0 pl-0 pr-2 py-6 min-w-[1500px] overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 scale-90 xl:scale-79 origin-top-left transition-transform">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Officials</h1>
+        <h1 className="text-2xl font-bold">Officials & Staff</h1>
         <AddOfficialModal
           onSave={() => {
             window.location.reload();

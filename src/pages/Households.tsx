@@ -18,7 +18,6 @@ import { HouseholdPDF } from "@/components/pdf/householdpdf";
 import { toast } from "sonner";
 import { useHousehold } from "@/features/api/household/useHousehold";
 import ViewHouseholdModal from "@/features/households/viewHouseholdModal";
-
 import { useQueryClient } from "@tanstack/react-query";
 import { useDeleteHousehold } from "@/features/api/household/useDeleteHousehold";
 
@@ -76,6 +75,7 @@ const columns: ColumnDef<Household>[] = [
   },
 ];
 
+
 export default function Households() {
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [searchParams, setSearchParams] = useSearchParams();
@@ -126,12 +126,9 @@ export default function Households() {
           item.head?.toLowerCase().includes(query)
       );
     }
-
     return sorted;
   }, [searchParams, searchQuery, parsedData]);
-
-
-
+  
   const totalActive = parsedData.filter((item) => item.status === "Active").length;
   const totalRenter = parsedData.filter((item) => item.type === "Renter").length;
   const totalOwner = parsedData.filter((item) => item.type === "Owner").length;

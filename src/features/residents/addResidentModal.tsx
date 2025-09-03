@@ -33,13 +33,15 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useAddResident } from "../api/resident/useAddResident";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { ErrorResponse } from "@/service/api/auth/login";
 import { residentSchema } from "@/types/formSchema";
+import getSettings from "@/service/api/settings/getSettings";
+import { Settings } from "@/types/apitypes";
 
 const civilStatusOptions = ["Single", "Married", "Widowed", "Separated"];
 const statusOption = ["Active", "Dead", "Missing", "Moved Out"];
@@ -58,24 +60,8 @@ export default function AddResidentModal() {
   const [openCalendar, setOpenCalendar] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [step, setStep] = useState(1);
-
-  /* useEffect(() => {
-     async function loadDefaultLocation() {
-       try {
-         const settings = await invoke("fetch_settings_command") as z.infer<typeof settingsSchema>;
-         if (settings) {
-           form.setValue("barangay", settings.barangay || "");
-           form.setValue("town", settings.municipality || "");
-           form.setValue("province", settings.province || "");
-         }
-       } catch (error) {
-         console.error("Failed to load default location from settings:", error);
-       }
-     }
- 
-     loadDefaultLocation();
-   }, []); */
-
+  const [settings, setSettings] = useState<Settings | null>(null);
+  
   const form = useForm<z.infer<typeof residentSchema>>({
     resolver: zodResolver(residentSchema),
     defaultValues: {
@@ -105,6 +91,27 @@ export default function AddResidentModal() {
       AvgIncome: 0,
     },
   });
+
+  useEffect(() => {
+    async function fetchSettings() {
+      try {
+        const data = await getSettings();
+        setSettings({
+          Barangay: data.setting.Barangay || "",
+          Municipality: data.setting.Municipality || "",
+          Province: data.setting.Province || "",
+        });
+        if (data.setting) {
+          form.setValue("Barangay", data.setting.Barangay || "");
+          form.setValue("Town", data.setting.Municipality || "");
+          form.setValue("Province", data.setting.Province || "");
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    fetchSettings();
+  }, [form]);
 
   const addMutation = useAddResident();
   const queryClient = useQueryClient();

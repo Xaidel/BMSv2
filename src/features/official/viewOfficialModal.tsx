@@ -59,7 +59,9 @@ export default function ViewOfficialModal({
   open: boolean;
   onClose: () => void;
 }) {
-  const [imagePreview, setImagePreview] = useState(person?.Image || "");
+  const [imagePreview, setImagePreview] = useState(
+    person?.Image || "/logoBarangay.png" || "/logoMunicipality.png"
+  );
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
   const queryClient = useQueryClient();

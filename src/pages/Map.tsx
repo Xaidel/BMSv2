@@ -12,10 +12,10 @@ import type { Feature } from "geojson";
 import useMapping from "@/features/api/map/useMapping";
 import { Mapping } from "@/service/api/map/getMapping";
 import { AddMappingModal } from "@/features/map/AddMappingModal";
-
 import { api } from "@/service/api";
 import type { Household } from "@/types/apitypes";
 import ViewHouseholdModal from "@/features/households/viewHouseholdModal";
+import { createPortal } from "react-dom";
 
 const center: LatLngExpression = [13.579126, 123.063078];
 
@@ -116,8 +116,15 @@ export default function Map() {
   };
   const onEachInfra = (infra, layer) => {
     const display = infra.properties?.mapping_name;
-    const popupContent = String(display ?? "Not Assigned yet.");
-
+    let popupContent = String(display ?? "Not Assigned yet.");
+    if (popupContent.includes(",")) {
+      const parts = popupContent.split(",").map(p => p.trim());
+      if (parts.length > 1) {
+        const commercial = `<div style="text-align:center;font-weight:bold;">${parts.slice(1).join(", ")}</div>`;
+        const household = `<div style="text-align:center;">${parts[0]}</div>`;
+        popupContent = `${commercial}<br/>${household}`;
+      }
+    }
     layer.bindPopup(popupContent);
     layer.on("mouseover", () => {
       layer.openPopup();
@@ -146,8 +153,7 @@ export default function Map() {
       }
     });
 
-    layer.on("click", async (e) => {
-      console.log(infra)
+    layer.on("click", async () => {
       const householdId = infra.properties?.household_id;
       if (householdId) {
         try {
@@ -192,17 +198,17 @@ export default function Map() {
   };
 
   return (
-    <div className="w-[85vw] h-[80vh] border-1 p-10 rounded-2xl overflow-hidden shadow-md mx-auto">
-      <div className="mb-4 relative flex justify-center">
+    <div className="relative w-[85vw] h-[80vh] border-1 p-10 rounded-2xl overflow-hidden shadow-md mx-auto">
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-[1000] w-[300px]">
         <Input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search mapping name..."
-          className="border rounded px-3 py-2 w-[300px]"
+          className="border rounded px-3 py-2 w-full shadow-lg bg-white"
         />
         {searchQuery && (
-          <div className="absolute z-10 mt-7 w-[300px] border bg-white shadow rounded">
+          <div className="mt-1 border bg-white shadow rounded">
             {mappings?.mappings
               .filter((m: Mapping) =>
                 m.MappingName.toLowerCase().includes(searchQuery.toLowerCase())
@@ -269,21 +275,26 @@ export default function Map() {
           onEachFeature={onEachInfra}
         />
       </MapContainer>
-      {viewHousehold && (
-        <ViewHouseholdModal
-          household={viewHousehold}
-          open={!!viewHousehold}
-          onClose={() => setViewHousehold(null)}
-        />
+      {viewHousehold &&
+        createPortal(
+          <ViewHouseholdModal
+            household={viewHousehold}
+            open={!!viewHousehold}
+            onClose={() => setViewHousehold(null)}
+          />,
+          document.body
+        )}
+      {createPortal(
+        <AddMappingModal
+          feature={selectedFeature}
+          dialogOpen={dialogOpen}
+          onOpenChange={() => {
+            setDialogOpen(false);
+            setSelectedFeature(null);
+          }}
+        />,
+        document.body
       )}
-      <AddMappingModal
-        feature={selectedFeature}
-        dialogOpen={dialogOpen}
-        onOpenChange={() => {
-          setDialogOpen(false)
-          setSelectedFeature(null)
-        }}
-      />
       <h1 className="mt-2 text-end">Land Area
         : <span className="font-bold">294.754571456 Hectares</span></h1>
     </div>
