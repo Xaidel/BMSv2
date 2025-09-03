@@ -6,24 +6,13 @@ import Searchbar from "@/components/ui/searchbar";
 import AddResidentModal from "@/features/residents/addResidentModal";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import {
-  Trash,
-  Users,
-  UserCheck,
-  UserMinus,
-  Mars,
-  Venus,
-  User,
-  Eye,
-  Accessibility,
-} from "lucide-react";
+import {Trash, Users, UserCheck, UserMinus, Mars, Venus, User, Eye, Accessibility,} from "lucide-react";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { sort } from "@/service/resident/residentSort";
 import searchResident from "@/service/resident/searchResident";
 import SummaryCardResidents from "@/components/summary-card/residents";
 import { useResident } from "@/features/api/resident/useResident";
-
 import { useDeleteResident } from "@/features/api/resident/useDeleteResident";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -440,7 +429,6 @@ export default function Residents() {
         </Button>
         <AddResidentModal />
       </div>
-
       <DataTable<Resident>
         classname="py-5"
         height="43.3rem"
@@ -499,10 +487,6 @@ export default function Residents() {
                 <Button onClick={() => setViewResidentId(row.original.ID)}>
                   <Eye /> View Resident
                 </Button>
-                {/* <DeleteResidentModal
-                  id={row.original.id}
-                  full_name={row.original.full_name}
-                /> */}
               </div>
             ),
           },

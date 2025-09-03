@@ -10,14 +10,7 @@ import { sort } from "@/service/event/eventSort";
 import searchEvent from "@/service/event/searchEvent";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import {
-  Trash,
-  CalendarPlus,
-  CalendarCheck,
-  CalendarX2,
-  CalendarClock,
-  Eye,
-} from "lucide-react";
+import {Trash, CalendarPlus, CalendarCheck, CalendarX2, CalendarClock, Eye,} from "lucide-react";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useEvent } from "@/features/api/event/useEvent";
@@ -26,6 +19,9 @@ import { toast } from "sonner";
 import { useDeleteEvent } from "@/features/api/event/useDeleteEvent";
 import { useQueryClient } from "@tanstack/react-query";
 import { ErrorResponse } from "@/service/api/auth/login";
+import { pdf } from "@react-pdf/renderer";
+import { writeFile, BaseDirectory } from "@tauri-apps/plugin-fs";
+import { EventPDF } from "@/components/pdf/eventpdf";
 
 const filters = [
   "All Events",
@@ -135,13 +131,6 @@ export default function Events() {
           value={total}
           icon={<CalendarClock size={50} />}
           onClick={async () => {
-            const { pdf } = await import("@react-pdf/renderer");
-            const { writeFile, BaseDirectory } = await import(
-              "@tauri-apps/plugin-fs"
-            );
-            const { toast } = await import("sonner");
-            const { EventPDF } = await import("@/components/pdf/eventpdf");
-
             const blob = await pdf(
               <EventPDF filter="All Events" events={[]} />
             ).toBlob();
@@ -166,14 +155,6 @@ export default function Events() {
           value={upcoming}
           icon={<CalendarPlus size={50} />}
           onClick={async () => {
-            //  const filtered = event.filter((d) => d.Status === "Upcoming");
-            const { pdf } = await import("@react-pdf/renderer");
-            const { writeFile, BaseDirectory } = await import(
-              "@tauri-apps/plugin-fs"
-            );
-            const { toast } = await import("sonner");
-            const { EventPDF } = await import("@/components/pdf/eventpdf");
-
             const blob = await pdf(
               <EventPDF filter="Upcoming Events" events={[]} />
             ).toBlob();
@@ -198,14 +179,6 @@ export default function Events() {
           value={finished}
           icon={<CalendarCheck size={50} />}
           onClick={async () => {
-            //           const filtered = event.filter((d) => d.Status === "Finished");
-            const { pdf } = await import("@react-pdf/renderer");
-            const { writeFile, BaseDirectory } = await import(
-              "@tauri-apps/plugin-fs"
-            );
-            const { toast } = await import("sonner");
-            const { EventPDF } = await import("@/components/pdf/eventpdf");
-
             const blob = await pdf(
               <EventPDF filter="Finished Events" events={[]} />
             ).toBlob();
@@ -230,14 +203,6 @@ export default function Events() {
           value={cancelled}
           icon={<CalendarX2 size={50} />}
           onClick={async () => {
-            //           const filtered = event.filter((d) => d.Status === "Cancelled");
-            const { pdf } = await import("@react-pdf/renderer");
-            const { writeFile, BaseDirectory } = await import(
-              "@tauri-apps/plugin-fs"
-            );
-            const { toast } = await import("sonner");
-            const { EventPDF } = await import("@/components/pdf/eventpdf");
-
             const blob = await pdf(
               <EventPDF filter="Cancelled Events" events={[]} />
             ).toBlob();
@@ -288,7 +253,7 @@ export default function Events() {
                   setRowSelection((prevSelection) => {
                     const newSelection = { ...prevSelection };
                     selectedEvent.forEach((_, i) => {
-                      delete newSelection[i]; // remove key for deleted event id
+                      delete newSelection[i];
                     });
                     console.log(newSelection);
                     return newSelection;
@@ -376,12 +341,6 @@ export default function Events() {
                   <Button onClick={() => setViewEventId(row.original.ID)}>
                     <Eye /> View Event
                   </Button>
-                  {/*                {status !== "Upcoming" && status !== "Ongoing" && status !== "Finished" && (
-                    < DeleteEventModal
-                      {...row.original}
-                  onDelete={ }
-                    />
-                  )}*/}
                 </div>
               );
             },

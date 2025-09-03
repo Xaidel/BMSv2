@@ -1,9 +1,7 @@
-
-
 import { Document, Page, Text, View } from "@react-pdf/renderer";
 import { styles } from "./Stylesheet";
 import { format } from "date-fns";
-import { Household } from "@/types/types";
+import { Household } from "@/types/apitypes";
 
 type Props = {
   filter: string;
@@ -45,8 +43,8 @@ export const HouseholdPDF = ({ filter, households }: Props) => {
                 >
                   <View style={styles.tableCell}><Text>{household.id}</Text></View>
                   <View style={styles.tableCell}><Text>{household.household_number}</Text></View>
-                  <View style={styles.tableCell}><Text>{household.type_}</Text></View>
-                  <View style={styles.tableCell}><Text>{household.members}</Text></View>
+                  <View style={styles.tableCell}><Text>{household.type}</Text></View>
+                  <View style={styles.tableCell}><Text>{Array.isArray(household.member) ? household.member.length : household.member}</Text></View>
                   <View style={styles.tableCell}><Text>{household.head}</Text></View>
                   <View style={styles.tableCell}><Text>{household.zone}</Text></View>
                   <View style={styles.tableCell}><Text>{format(household.date, "MMMM do, yyyy")}</Text></View>

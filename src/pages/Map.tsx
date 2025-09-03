@@ -12,10 +12,10 @@ import type { Feature } from "geojson";
 import useMapping from "@/features/api/map/useMapping";
 import { Mapping } from "@/service/api/map/getMapping";
 import { AddMappingModal } from "@/features/map/AddMappingModal";
-
 import { api } from "@/service/api";
 import type { Household } from "@/types/apitypes";
 import ViewHouseholdModal from "@/features/households/viewHouseholdModal";
+import { createPortal } from "react-dom";
 
 const center: LatLngExpression = [13.579126, 123.063078];
 
@@ -116,8 +116,15 @@ export default function Map() {
   };
   const onEachInfra = (infra, layer) => {
     const display = infra.properties?.mapping_name;
-    const popupContent = String(display ?? "Not Assigned yet.");
-
+    let popupContent = String(display ?? "Not Assigned yet.");
+    if (popupContent.includes(",")) {
+      const parts = popupContent.split(",").map(p => p.trim());
+      if (parts.length > 1) {
+        const commercial = `<div style="text-align:center;font-weight:bold;">${parts.slice(1).join(", ")}</div>`;
+        const household = `<div style="text-align:center;">${parts[0]}</div>`;
+        popupContent = `${commercial}<br/>${household}`;
+      }
+    }
     layer.bindPopup(popupContent);
     layer.on("mouseover", () => {
       layer.openPopup();
@@ -268,21 +275,26 @@ export default function Map() {
           onEachFeature={onEachInfra}
         />
       </MapContainer>
-      {viewHousehold && (
-        <ViewHouseholdModal
-          household={viewHousehold}
-          open={!!viewHousehold}
-          onClose={() => setViewHousehold(null)}
-        />
+      {viewHousehold &&
+        createPortal(
+          <ViewHouseholdModal
+            household={viewHousehold}
+            open={!!viewHousehold}
+            onClose={() => setViewHousehold(null)}
+          />,
+          document.body
+        )}
+      {createPortal(
+        <AddMappingModal
+          feature={selectedFeature}
+          dialogOpen={dialogOpen}
+          onOpenChange={() => {
+            setDialogOpen(false);
+            setSelectedFeature(null);
+          }}
+        />,
+        document.body
       )}
-      <AddMappingModal
-        feature={selectedFeature}
-        dialogOpen={dialogOpen}
-        onOpenChange={() => {
-          setDialogOpen(false)
-          setSelectedFeature(null)
-        }}
-      />
       <h1 className="mt-2 text-end">Land Area
         : <span className="font-bold">294.754571456 Hectares</span></h1>
     </div>

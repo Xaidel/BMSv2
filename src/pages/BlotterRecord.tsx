@@ -5,14 +5,7 @@ import Filter from "@/components/ui/filter";
 import Searchbar from "@/components/ui/searchbar";
 import AddBlotterModal from "@/features/blotter/addBlotterModal";
 import ViewBlotterModal from "@/features/blotter/viewBlotterModal";
-import {
-  Eye,
-  Users,
-  Gavel,
-  BookOpenCheck,
-  Siren,
-  Loader,
-} from "lucide-react";
+import { Eye, Users, Gavel, BookOpenCheck, Siren, Loader } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { Trash } from "lucide-react";
@@ -24,7 +17,10 @@ import searchBlotter from "@/service/blotter/searchBlotter";
 import { useDeleteBlotter } from "@/features/api/blotter/useDeleteBlotter";
 import { useBlotter } from "@/features/api/blotter/useBlotter";
 import { toast } from "sonner";
+import { pdf } from "@react-pdf/renderer";
+import { writeFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 import SummaryCardBlotter from "@/components/summary-card/blotter";
+import { BlotterPDF } from "@/components/pdf/blotterpdf";
 
 const filters = [
   "All Blotter Records",
@@ -74,7 +70,7 @@ const columns: ColumnDef<Blotter>[] = [
       switch (Status) {
         case "On Going": {
           color = "#FFB30F";
-          
+
           break;
         }
         case "Active": {
@@ -105,7 +101,6 @@ export default function BlotterRecordPage() {
   const [selectedBlotter, setSelectedBlotter] = useState<number[]>([]);
   const { data: blotterResponse } = useBlotter();
   const { mutateAsync: deleteBlotter } = useDeleteBlotter();
-
   const blotter = useMemo(() => {
     return blotterResponse?.blotters ?? [];
   }, [blotterResponse]);
@@ -148,17 +143,6 @@ export default function BlotterRecordPage() {
           value={total}
           icon={<Users size={50} />}
           onClick={async () => {
-            const [
-              { pdf },
-              { writeFile, BaseDirectory },
-              { toast },
-              { BlotterPDF },
-            ] = await Promise.all([
-              import("@react-pdf/renderer"),
-              import("@tauri-apps/plugin-fs"),
-              import("sonner"),
-              import("@/components/pdf/blotterpdf"),
-            ]);
             const blob = await pdf(
               <BlotterPDF filter="All Blotters" blotters={blotter} />
             ).toBlob();
@@ -178,23 +162,11 @@ export default function BlotterRecordPage() {
             }
           }}
         />
-
         <SummaryCardBlotter
           title="Total Finished"
           value={finished}
           icon={<BookOpenCheck size={50} />}
           onClick={async () => {
-            const [
-              { pdf },
-              { writeFile, BaseDirectory },
-              { toast },
-              { BlotterPDF },
-            ] = await Promise.all([
-              import("@react-pdf/renderer"),
-              import("@tauri-apps/plugin-fs"),
-              import("sonner"),
-              import("@/components/pdf/blotterpdf"),
-            ]);
             const filtered = blotter.filter((d) => d.Status === "Finished");
             const blob = await pdf(
               <BlotterPDF filter="Finished Blotters" blotters={filtered} />
@@ -220,17 +192,6 @@ export default function BlotterRecordPage() {
           value={active}
           icon={<Eye size={50} />}
           onClick={async () => {
-            const [
-              { pdf },
-              { writeFile, BaseDirectory },
-              { toast },
-              { BlotterPDF },
-            ] = await Promise.all([
-              import("@react-pdf/renderer"),
-              import("@tauri-apps/plugin-fs"),
-              import("sonner"),
-              import("@/components/pdf/blotterpdf"),
-            ]);
             const filtered = blotter.filter((d) => d.Status === "Active");
             const blob = await pdf(
               <BlotterPDF filter="Active Blotters" blotters={filtered} />
@@ -256,17 +217,6 @@ export default function BlotterRecordPage() {
           value={ongoing}
           icon={<Loader size={50} />}
           onClick={async () => {
-            const [
-              { pdf },
-              { writeFile, BaseDirectory },
-              { toast },
-              { BlotterPDF },
-            ] = await Promise.all([
-              import("@react-pdf/renderer"),
-              import("@tauri-apps/plugin-fs"),
-              import("sonner"),
-              import("@/components/pdf/blotterpdf"),
-            ]);
             const filtered = blotter.filter((d) => d.Status === "On Going");
             const blob = await pdf(
               <BlotterPDF filter="On Going Blotters" blotters={filtered} />
@@ -292,17 +242,6 @@ export default function BlotterRecordPage() {
           value={closed}
           icon={<Gavel size={50} />}
           onClick={async () => {
-            const [
-              { pdf },
-              { writeFile, BaseDirectory },
-              { toast },
-              { BlotterPDF },
-            ] = await Promise.all([
-              import("@react-pdf/renderer"),
-              import("@tauri-apps/plugin-fs"),
-              import("sonner"),
-              import("@/components/pdf/blotterpdf"),
-            ]);
             const filtered = blotter.filter((d) => d.Status === "Closed");
             const blob = await pdf(
               <BlotterPDF filter="Closed Blotters" blotters={filtered} />
@@ -328,17 +267,6 @@ export default function BlotterRecordPage() {
           value={transferred}
           icon={<Siren size={50} />}
           onClick={async () => {
-            const [
-              { pdf },
-              { writeFile, BaseDirectory },
-              { toast },
-              { BlotterPDF },
-            ] = await Promise.all([
-              import("@react-pdf/renderer"),
-              import("@tauri-apps/plugin-fs"),
-              import("sonner"),
-              import("@/components/pdf/blotterpdf"),
-            ]);
             const filtered = blotter.filter(
               (d) => d.Status === "Transferred to Police"
             );
@@ -405,7 +333,6 @@ export default function BlotterRecordPage() {
           <Trash />
           Delete Selected
         </Button>
-
         <AddBlotterModal />
       </div>
 
@@ -490,4 +417,3 @@ export default function BlotterRecordPage() {
     </>
   );
 }
-

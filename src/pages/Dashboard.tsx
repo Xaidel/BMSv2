@@ -20,7 +20,6 @@ import PopulationChart from "@/components/ui/populationchart";
 
 const categories = [];
 
-
 export default function Dashboard() {
   const [populationData, setPopulationData] = useState<{ zone: number; population: number }[]>([]);
   const { data: residents } = useResident();
