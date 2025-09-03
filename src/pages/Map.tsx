@@ -7,10 +7,15 @@ import { GeoJSON, MapContainer, TileLayer } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useMemo, useState } from "react";
+import { Input } from "@/components/ui/input";
 import type { Feature } from "geojson";
 import useMapping from "@/features/api/map/useMapping";
 import { Mapping } from "@/service/api/map/getMapping";
 import { AddMappingModal } from "@/features/map/AddMappingModal";
+
+import { api } from "@/service/api";
+import type { Household } from "@/types/apitypes";
+import ViewHouseholdModal from "@/features/households/viewHouseholdModal";
 
 const center: LatLngExpression = [13.579126, 123.063078];
 
@@ -18,12 +23,13 @@ export default function Map() {
   const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const { data: mappings } = useMapping();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [viewHousehold, setViewHousehold] = useState<Household | null>(null);
 
   const building = useMemo(() => {
     if (!mappings) return Building;
-    return {
-      ...Building,
-      features: Building.features.map((feature: any) => {
+    const filteredFeatures = Building.features
+      .map((feature: any) => {
         const fid = Number(feature.properties?.id);
         const mapping = mappings.mappings.find((m: Mapping) => m.FID === fid);
         return {
@@ -32,17 +38,27 @@ export default function Map() {
             ...feature.properties,
             ...(mapping
               ? {
-                type: mapping.Type,
-                mapping_name: mapping.MappingName,
-                household_id: mapping.HouseholdID,
-                mapping_id: mapping.ID,
-              }
+                  type: mapping.Type,
+                  mapping_name: mapping.MappingName,
+                  household_id: mapping.HouseholdID,
+                  mapping_id: mapping.ID,
+                }
               : {}),
           },
         };
-      }),
+      })
+      .filter((feature: any) =>
+        searchQuery
+          ? (feature.properties?.mapping_name ?? "")
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase())
+          : true
+      );
+    return {
+      ...Building,
+      features: filteredFeatures,
     };
-  }, [mappings]);
+  }, [mappings, searchQuery]);
 
   const roadStyle: L.PathOptions = {
     color: "#333446",
@@ -130,14 +146,62 @@ export default function Map() {
       }
     });
 
-    layer.on("click", (e) => {
-      setSelectedFeature(infra);
-      setDialogOpen(true);
+    layer.on("click", async (e) => {
+      const householdId = infra.properties?.household_id;
+      if (householdId) {
+        try {
+          const res = await fetch(`${api}/households/${householdId}`);
+          if (res.ok) {
+            const data = await res.json();
+            setViewHousehold(data.household);
+          } else {
+            setSelectedFeature(infra);
+            setDialogOpen(true);
+          }
+        } catch (err) {
+          console.error(err);
+          setSelectedFeature(infra);
+          setDialogOpen(true);
+        }
+      } else {
+        setSelectedFeature(infra);
+        setDialogOpen(true);
+      }
     });
   };
 
   return (
-    <div className="w-[85vw] h-[80vh] border-1 p-10 rounded-2xl overflow-hidden shadow-md">
+    <div className="w-[85vw] h-[80vh] border-1 p-10 rounded-2xl overflow-hidden shadow-md mx-auto">
+      <div className="mb-4 relative flex justify-center">
+        <Input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search mapping name..."
+          className="border rounded px-3 py-2 w-[300px]"
+        />
+        {searchQuery && (
+          <div className="absolute z-10 mt-7 w-[300px] border bg-white shadow rounded">
+            {mappings?.mappings
+              .filter((m: Mapping) =>
+                m.MappingName.toLowerCase().includes(searchQuery.toLowerCase())
+              )
+              .slice(0, 5)
+              .map((m: Mapping) => (
+                <div
+                  key={m.ID}
+                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    setSearchQuery(m.MappingName);
+                  }}
+                >
+                  {m.MappingName}
+                </div>
+              ))}
+          </div>
+        )}
+      </div>
       <MapContainer
         center={center}
         zoom={17}
@@ -184,6 +248,13 @@ export default function Map() {
           onEachFeature={onEachInfra}
         />
       </MapContainer>
+      {viewHousehold && (
+        <ViewHouseholdModal
+          household={viewHousehold}
+          open={!!viewHousehold}
+          onClose={() => setViewHousehold(null)}
+        />
+      )}
       <AddMappingModal
         feature={selectedFeature}
         dialogOpen={dialogOpen}

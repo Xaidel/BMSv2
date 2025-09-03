@@ -130,7 +130,7 @@ const roleDefinitions: Record<string, string> = {
 }
 interface HouseholdProps {
   HouseholdNumber: string
-  Type: string
+  HouseholdType: string
   Members: { ID: number; Role: string }[]
   Zone: string
   DateOfResidency: string
@@ -268,7 +268,7 @@ export default function AddHouseholdModal() {
     }
     const formData: HouseholdProps = {
       HouseholdNumber: householdNumber,
-      Type: householdType,
+      HouseholdType: householdType,
       Members: selectedMembers.map((m) => ({
         ID: Number(m.ID),
         Role: m.Role,
@@ -346,9 +346,9 @@ export default function AddHouseholdModal() {
                           <SelectValue placeholder="Choose household type" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="owner">Owner</SelectItem>
-                          <SelectItem value="renter">Renter</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
+                          <SelectItem value="Owner">Owner</SelectItem>
+                          <SelectItem value="Renter">Renter</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -563,9 +563,9 @@ export default function AddHouseholdModal() {
                           <SelectValue placeholder="Choose status" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="active">Active</SelectItem>
-                          <SelectItem value="moved">Moved Out</SelectItem>
-                          <SelectItem value="absent">Temporarily Absent</SelectItem>
+                          <SelectItem value="Active">Active</SelectItem>
+                          <SelectItem value="Moved Out">Moved Out</SelectItem>
+                          <SelectItem value="Others">Others</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

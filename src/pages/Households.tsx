@@ -18,8 +18,9 @@ import { HouseholdPDF } from "@/components/pdf/householdpdf";
 import { toast } from "sonner";
 import { useHousehold } from "@/features/api/household/useHousehold";
 import ViewHouseholdModal from "@/features/households/viewHouseholdModal";
-import { useDeleteHousehold } from "@/features/api/household/useDeleteHousehold";
+
 import { useQueryClient } from "@tanstack/react-query";
+import { useDeleteHousehold } from "@/features/api/household/useDeleteHousehold";
 
 const filters = ["All Households", "Numerical", "Renter", "Owner"];
 
@@ -62,8 +63,12 @@ const columns: ColumnDef<Household>[] = [
           color = "#00BD29";
           break;
         }
+        case "Others": {
+          color = "#0000FF";
+          break;
+        }
         default: {
-          color = "#000000";
+          color = "#0000FF";
         }
       }
       return <div style={{ color: color }}>{status}</div>;
@@ -75,10 +80,9 @@ export default function Households() {
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
-  const [data, setData] = useState<Household[]>([]);
+  const [data] = useState<Household[]>([]);
   const { data: household, isFetching } = useHousehold()
   const [viewHouseholdId, setViewHouseholdId] = useState<number | null>(null)
-  const [selectedHousehold, setSelectedHousehold] = useState<number[]>([])
   const deleteMutation = useDeleteHousehold()
   const queryClient = useQueryClient()
   const parsedData = useMemo(() => {
@@ -100,7 +104,7 @@ export default function Households() {
         head: head ? `${head.firstname} ${head.lastname}` : "N/A",
         zone: household.zone,
         date: new Date(household.date_of_residency),
-        status: household.status.charAt(0).toUpperCase() + household.status.slice(1),
+        status: household.status,
       };
     });
   }, [household, isFetching]);
@@ -247,31 +251,25 @@ export default function Households() {
           size="lg"
           disabled={Object.keys(rowSelection).length === 0}
           onClick={() => {
-            if (selectedHousehold) {
+            const ids = Object.keys(rowSelection).map(Number)
+            if (ids.length > 0) {
               toast.promise(
-                deleteMutation.mutateAsync(selectedHousehold), {
-                loading: "Deleting household, Please wait...",
-                success: () => {
-                  queryClient.invalidateQueries({ queryKey: ['household'] })
-                  setRowSelection((prevSelection) => {
-                    const newSelection = { ...prevSelection }
-                    selectedHousehold.forEach((_, i) => {
-                      delete newSelection[i]
-                    })
-                    return newSelection
-                  })
-                  setSelectedHousehold([])
-                  return {
-                    message: "Household sucessfully deleted"
-                  }
-                },
-                error: (error: { error: string }) => {
-                  return {
-                    message: "Failed to delete households",
-                    description: error.error
+                deleteMutation.mutateAsync(ids), {
+                  loading: "Deleting household, Please wait...",
+                  success: () => {
+                    queryClient.invalidateQueries({ queryKey: ['household'] })
+                    setRowSelection({})
+                    return {
+                      message: "Household successfully deleted"
+                    }
+                  },
+                  error: (error: any) => {
+                    return {
+                      message: "Failed to delete households",
+                      description: error?.response?.data?.message || error.message
+                    }
                   }
                 }
-              }
               )
             }
           }}
@@ -299,12 +297,6 @@ export default function Households() {
                 }
                 onCheckedChange={(value) => {
                   table.toggleAllPageRowsSelected(!!value)
-                  if (value) {
-                    const allVisibleRows = table.getRowModel().rows.map(row => row.original.id)
-                    setSelectedHousehold(allVisibleRows)
-                  } else {
-                    setSelectedHousehold([])
-                  }
                 }}
                 aria-label="Select all"
                 className="flex items-center justify-center"
@@ -315,11 +307,6 @@ export default function Households() {
                 checked={row.getIsSelected()}
                 onCheckedChange={(value) => {
                   row.toggleSelected(!!value)
-                  if (value) {
-                    setSelectedHousehold(prev => [...prev, row.original.id])
-                  } else {
-                    setSelectedHousehold(prev => prev.filter(res => res !== row.original.id))
-                  }
                 }}
                 aria-label="Select row"
                 className="flex items-center justify-center"

@@ -304,22 +304,22 @@ export default function EditHouseholdModal({ household, onClose }: EditHousehold
       toast.error("Please add at least one family member")
       return
     }
-    const formData: HouseholdProps = {
-      HouseholdNumber: householdNumber,
-      Type: householdType,
-      Members: selectedMembers.map((m) => ({
-        ID: Number(m.ID),
-        Role: m.Role,
+    const formData = {
+      householdNumber: householdNumber,
+      householdType: householdType,
+      members: selectedMembers.map((m) => ({
+        id: Number(m.ID),
+        role: m.Role,
       })),
-      Zone: zone,
-      DateOfResidency: dateOfResidency instanceof Date ? dateOfResidency.toISOString() : "",
-      Status: household.Status, 
+      zone: zone,
+      dateOfResidency: dateOfResidency instanceof Date ? dateOfResidency.toISOString() : "",
+      status: status,
     }
     toast.promise(
       editMutation.mutateAsync({ ID: household.ID, updated: formData }),
       {
         loading: "Updating household...",
-        success: (data) => {
+        success: () => {
           queryClient.invalidateQueries({ queryKey: ["household"] })
           setOpenModal(false)
           onClose?.()
@@ -385,9 +385,9 @@ export default function EditHouseholdModal({ household, onClose }: EditHousehold
                           <SelectValue placeholder="Choose household type" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="owner">Owner</SelectItem>
-                          <SelectItem value="renter">Renter</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
+                          <SelectItem value="Owner">Owner</SelectItem>
+                          <SelectItem value="Renter">Renter</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -602,9 +602,9 @@ export default function EditHouseholdModal({ household, onClose }: EditHousehold
                           <SelectValue placeholder="Choose status" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="active">Active</SelectItem>
-                          <SelectItem value="moved">Moved Out</SelectItem>
-                          <SelectItem value="absent">Temporarily Absent</SelectItem>
+                          <SelectItem value="Active">Active</SelectItem>
+                          <SelectItem value="Moved Out">Moved Out</SelectItem>
+                          <SelectItem value="Others">Others</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
