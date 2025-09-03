@@ -1,9 +1,9 @@
 import { useResident } from "@/features/api/resident/useResident";
 import { useEffect, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import { useEvent } from "@/features/api/event/useEvent";
 import { useIncome } from "@/features/api/income/useIncome";
 import { useExpense } from "@/features/api/expense/useExpense";
+import { useHousehold } from "@/features/api/household/useHousehold";
 
 import CustomFemale from "@/components/icons/CustomFemale";
 import CustomHouse from "@/components/icons/CustomHouse";
@@ -17,17 +17,11 @@ import ExpenseChart from "@/components/ui/expensechart";
 import Greet from "@/components/ui/greetings";
 import IncomeChart from "@/components/ui/incomechart";
 import PopulationChart from "@/components/ui/populationchart";
-import { Household } from "@/types/apitypes";
 
 const categories = [];
 
 
 export default function Dashboard() {
-  const [householdTotal, setHouseholdTotal] = useState(0);
-  const [householdData, setHouseholdData] = useState<any[]>([]);
-  const [eventTotal, setEventTotal] = useState(0);
-  // Removed: upcomingEventsTotal as state
-  // Removed: maleTotal, femaleTotal, pwdTotal, seniorTotal as state
   const [populationData, setPopulationData] = useState<{ zone: number; population: number }[]>([]);
   const { data: residents } = useResident();
   const res = residents?.residents || [];
@@ -61,35 +55,9 @@ export default function Dashboard() {
   const events = eventResponse?.events || [];
   const upcomingEventsTotal = events.filter((e) => e.Status === "Upcoming").length;
 
-  console.log(householdData, eventTotal)
-  useEffect(() => {
-    invoke<Household[]>("fetch_all_households_command")
-      .then((fetched) => {
-        const parsed = fetched.map((household) => ({
-          ...household,
-          date: new Date(household.Date),
-        }));
-        setHouseholdData(parsed);
-        setHouseholdTotal(parsed.length);
-      })
-      .catch((err) => {
-        console.error("Failed to fetch households:", err);
-        setHouseholdTotal(0);
-      });
-  }, []);
+  const { data: householdResponse } = useHousehold();
+  const householdTotal = householdResponse?.households?.length || 0;
 
-  useEffect(() => {
-    invoke<any[]>("fetch_all_events_command")
-      .then((events) => {
-        setEventTotal(events.length);
-      })
-      .catch((err) => {
-        console.error("Failed to fetch events:", err);
-        setEventTotal(0);
-      });
-  }, []);
-
-  // Removed useEffect that fetches upcoming events and sets upcomingEventsTotal
 
   const { data: incomeResponse } = useIncome();
   const incomes = incomeResponse?.incomes || [];

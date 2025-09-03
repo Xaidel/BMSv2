@@ -174,7 +174,7 @@ export default function Settings({ onSave }: { onSave: () => void }) {
 
         <div className="flex flex-col md:flex-row items-center justify-center gap-10">
           {/* ImageB Upload Section */}
-          {/* <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center">
             <div className="w-40 h-40 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
               <img
                 src={ImageB}
@@ -238,7 +238,7 @@ export default function Settings({ onSave }: { onSave: () => void }) {
                 />
               </label>
             </div>
-          </div> */}
+          </div>
 
           {/* Form Section */}
           <form
