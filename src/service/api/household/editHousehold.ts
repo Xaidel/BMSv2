@@ -1,11 +1,11 @@
 import { api } from "@/service/api"
 export type PatchHousehold = {
-  HouseholdNumber: string;
-  Type: string;
-  Members: { ID: number; Role: string }[];
-  Zone: string;
-  DateOfResidency: string;
-  Status: string;
+  householdNumber: string;
+  householdType: string;
+  members: { id: number; role: string }[];
+  zone: string;
+  dateOfResidency: string;
+  status: string;
 };
 export default async function editHousehold(ID: number, updated: PatchHousehold) {
   try {

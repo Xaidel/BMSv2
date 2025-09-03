@@ -19,9 +19,9 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Household } from "@/types/apitypes";
 import { Eye } from "lucide-react";
-import { getRoleIcon } from "./addHouseholdModal";
-import EditHouseholdModal from "./editHouseholdModal";
 import { buildFamilyTree } from "@/types/tree";
+import { getRoleIcon } from "../households/addHouseholdModal";
+import EditHouseholdModal from "../households/editHouseholdModal";
 
 export default function ViewHouseholdModal({
   household,

@@ -63,8 +63,12 @@ const columns: ColumnDef<Household>[] = [
           color = "#00BD29";
           break;
         }
+        case "Others": {
+          color = "#0000FF";
+          break;
+        }
         default: {
-          color = "#000000";
+          color = "#0000FF";
         }
       }
       return <div style={{ color: color }}>{status}</div>;
@@ -76,7 +80,7 @@ export default function Households() {
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
-  const [data, setData] = useState<Household[]>([]);
+  const [data] = useState<Household[]>([]);
   const { data: household, isFetching } = useHousehold()
   const [viewHouseholdId, setViewHouseholdId] = useState<number | null>(null)
   const deleteMutation = useDeleteHousehold()
