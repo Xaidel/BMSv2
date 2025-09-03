@@ -55,8 +55,8 @@ export function buildFamilyTree(household: Household) {
 
   const getFullName = (r: any) => `${r.Firstname} ${r.Lastname}`;
 
-  const head = members.find(r => r.Role === "Head");
-  const spouse = members.find(r => roleCategories.spouse.includes(r.Role));
+  const head = members?.find(r => r.Role === "Head");
+  const spouse = members?.find(r => roleCategories.spouse.includes(r.Role));
 
   return members.map(r => {
     let parents: string[] = [];

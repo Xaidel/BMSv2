@@ -85,7 +85,7 @@ export type Blotter = {
   Type: string;
   ReportedBy: string;
   Involved: string;
-  IncidentDate: Date; 
+  IncidentDate: Date;
   Location: string;
   Zone: string;
   Status: string;
@@ -94,7 +94,7 @@ export type Blotter = {
   Witnesses: string;
   Evidence: string;
   Resolution: string;
-  HearingDate: Date; 
+  HearingDate: Date;
 };
 
 export type Official = {
@@ -139,6 +139,7 @@ export type Household = {
   household_number: string;
   type: string;
   member: ResProps[];
+  residents?: ResProps[];
   head: string;
   zone: string;
   date: Date;

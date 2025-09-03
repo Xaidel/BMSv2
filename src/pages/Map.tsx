@@ -38,11 +38,11 @@ export default function Map() {
             ...feature.properties,
             ...(mapping
               ? {
-                  type: mapping.Type,
-                  mapping_name: mapping.MappingName,
-                  household_id: mapping.HouseholdID,
-                  mapping_id: mapping.ID,
-                }
+                type: mapping.Type,
+                mapping_name: mapping.MappingName,
+                household_id: mapping.HouseholdID,
+                mapping_id: mapping.ID,
+              }
               : {}),
           },
         };
@@ -50,8 +50,8 @@ export default function Map() {
       .filter((feature: any) =>
         searchQuery
           ? (feature.properties?.mapping_name ?? "")
-              .toLowerCase()
-              .includes(searchQuery.toLowerCase())
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())
           : true
       );
     return {
@@ -153,7 +153,27 @@ export default function Map() {
           const res = await fetch(`${api}/households/${householdId}`);
           if (res.ok) {
             const data = await res.json();
-            setViewHousehold(data.household);
+            const parsedData = () => {
+              const member = data?.household?.residents?.map(r => ({
+                ID: r.id,
+                Firstname: r.firstname,
+                Lastname: r.lastname,
+                Role: r.role,
+                Income: r.income
+              }))
+              const head = member?.find(r => r.Role.toLowerCase() === "head")
+              return {
+                id: data?.household.id,
+                household_number: data?.household?.household_number,
+                type: data?.household?.type,
+                member,
+                head: head ? `${head.Firstname} ${head.Lastname}` : "N/A",
+                zone: data?.household?.zone,
+                date: new Date(data?.household?.date_of_residency),
+                status: data?.household?.status,
+              }
+            }
+            setViewHousehold(parsedData);
           } else {
             setSelectedFeature(infra);
             setDialogOpen(true);

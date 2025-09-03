@@ -108,7 +108,6 @@ export default function Households() {
       };
     });
   }, [household, isFetching]);
-
   const handleSortChange = (sortValue: string) => {
     searchParams.set("sort", sortValue);
     setSearchParams(searchParams);
@@ -255,21 +254,21 @@ export default function Households() {
             if (ids.length > 0) {
               toast.promise(
                 deleteMutation.mutateAsync(ids), {
-                  loading: "Deleting household, Please wait...",
-                  success: () => {
-                    queryClient.invalidateQueries({ queryKey: ['household'] })
-                    setRowSelection({})
-                    return {
-                      message: "Household successfully deleted"
-                    }
-                  },
-                  error: (error: any) => {
-                    return {
-                      message: "Failed to delete households",
-                      description: error?.response?.data?.message || error.message
-                    }
+                loading: "Deleting household, Please wait...",
+                success: () => {
+                  queryClient.invalidateQueries({ queryKey: ['household'] })
+                  setRowSelection({})
+                  return {
+                    message: "Household successfully deleted"
+                  }
+                },
+                error: (error: any) => {
+                  return {
+                    message: "Failed to delete households",
+                    description: error?.response?.data?.message || error.message
                   }
                 }
+              }
               )
             }
           }}

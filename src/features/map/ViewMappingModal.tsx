@@ -32,13 +32,13 @@ export default function ViewHouseholdModal({
   open: boolean;
   onClose: () => void;
 }) {
-  const overallIncome = household.member.reduce(
+  const overallIncome = household?.member?.reduce(
     (sum, m) => sum + (m.Income || 0),
     0
   );
   const nodes = buildFamilyTree({
     ...household,
-    member: household.member,
+    member: household?.member,
   } as any);
   return (
     <>
@@ -91,7 +91,7 @@ export default function ViewHouseholdModal({
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {household.member.map((m) => {
+                      {household?.member?.map((m) => {
                         const RoleIcon = getRoleIcon(m.Role);
                         return (
                           <TableRow key={m.ID}>
