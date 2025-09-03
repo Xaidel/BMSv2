@@ -31,7 +31,6 @@ export default function ViewHouseholdModal({
   open: boolean;
   onClose: () => void;
 }) {
-  console.log(household)
   const overallIncome = household?.member?.reduce(
     (sum, m) => sum + (m.Income || 0),
     0

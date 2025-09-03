@@ -3,7 +3,7 @@ import Pasacao from "@/assets/geojson/Pasacao.json";
 import Street from "@/assets/geojson/Street.json";
 import Border from "@/assets/geojson/Border.json";
 import Building from "@/assets/geojson/Building.json";
-import { GeoJSON, MapContainer, TileLayer } from "react-leaflet";
+import { GeoJSON, MapContainer } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useMemo, useState } from "react";
@@ -147,6 +147,7 @@ export default function Map() {
     });
 
     layer.on("click", async (e) => {
+      console.log(infra)
       const householdId = infra.properties?.household_id;
       if (householdId) {
         try {
