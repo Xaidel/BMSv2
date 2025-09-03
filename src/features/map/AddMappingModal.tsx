@@ -17,7 +17,7 @@ import { useHousehold } from "../api/household/useHousehold"
 type BuildingType = "residential" | "commercial" | "institutional"
 
 export interface BuildingData {
-  residential: { householdNumber: string } | null
+  residential: { householdID: number; householdNumber: string } | null
   commercial: { businessName: string } | null
   institutional: { institutionType: string; institutionName: string } | null
 }
@@ -68,7 +68,8 @@ export function AddMappingModal({ dialogOpen, onOpenChange, feature }: props) {
         householdNumber: h.household_number,
         householdHead: head
           ? `${head.firstname} ${head.lastname}`
-          : "No Assigned Head"
+          : "No Assigned Head",
+        householdID: h.id
       }
     })
   }, [household])
@@ -89,6 +90,7 @@ export function AddMappingModal({ dialogOpen, onOpenChange, feature }: props) {
   const handleTypeToggle = (type: BuildingType) => {
     setSelectedTypes((prev) => (prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]))
   }
+
   const addMutation = useAddMapping()
   const handleSubmit = async () => {
     const mappingNames: string[] = []
@@ -98,7 +100,7 @@ export function AddMappingModal({ dialogOpen, onOpenChange, feature }: props) {
     if (buildingData.residential) {
       mappingNames.push(`Household #${buildingData.residential.householdNumber}`)
       types.push("Household")
-      householdID = Number.parseInt(buildingData.residential.householdNumber)
+      householdID = buildingData.residential.householdID // ✅ real household ID
     }
 
     if (buildingData.commercial) {
@@ -166,9 +168,20 @@ export function AddMappingModal({ dialogOpen, onOpenChange, feature }: props) {
 
   useEffect(() => {
     if (currentInputs.residential) {
-      setBuildingData((prev) => ({ ...prev, residential: { householdNumber: currentInputs.residential } }))
+      const selectedHousehold = householdData?.find(
+        (h) => String(h.householdID) === currentInputs.residential
+      )
+      if (selectedHousehold) {
+        setBuildingData((prev) => ({
+          ...prev,
+          residential: {
+            householdID: selectedHousehold.householdID,
+            householdNumber: selectedHousehold.householdNumber,
+          },
+        }))
+      }
     }
-  }, [currentInputs.residential])
+  }, [currentInputs.residential, householdData])
 
   useEffect(() => {
     if (currentInputs.commercial.trim()) {
@@ -187,7 +200,6 @@ export function AddMappingModal({ dialogOpen, onOpenChange, feature }: props) {
       }))
     }
   }, [currentInputs.institutional, currentInputs.institutionalName])
-
 
   return (
     <Dialog open={dialogOpen} onOpenChange={onOpenChange}>
@@ -267,7 +279,7 @@ export function AddMappingModal({ dialogOpen, onOpenChange, feature }: props) {
                               </div>
                               {householdData?.length > 0 ? (
                                 householdData?.map((num) => (
-                                  <SelectItem key={num.householdNumber} value={num.householdNumber}>
+                                  <SelectItem key={num.householdID} value={String(num.householdID)}>
                                     <div className="p-2 text-xs text-left">
                                       <p>Household #{num.householdNumber}</p>
                                       <p>Head: {num.householdHead}</p>
@@ -351,7 +363,6 @@ export function AddMappingModal({ dialogOpen, onOpenChange, feature }: props) {
             </div>
           )}
 
-          {/* Summary and Actions */}
           {getTotalCount() > 0 && (
             <div className="space-y-6">
               <Separator />
