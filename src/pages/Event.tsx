@@ -132,7 +132,7 @@ export default function Events() {
           icon={<CalendarClock size={50} />}
           onClick={async () => {
             const blob = await pdf(
-              <EventPDF filter="All Events" events={[]} />
+              <EventPDF filter="All Events" events={event} />
             ).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
@@ -156,7 +156,7 @@ export default function Events() {
           icon={<CalendarPlus size={50} />}
           onClick={async () => {
             const blob = await pdf(
-              <EventPDF filter="Upcoming Events" events={[]} />
+              <EventPDF filter="Upcoming Events" events={event.filter((e) => e.Status === "Upcoming")} />
             ).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
@@ -180,7 +180,7 @@ export default function Events() {
           icon={<CalendarCheck size={50} />}
           onClick={async () => {
             const blob = await pdf(
-              <EventPDF filter="Finished Events" events={[]} />
+              <EventPDF filter="Finished Events" events={event.filter((e) => e.Status === "Finished")} />
             ).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
@@ -204,7 +204,7 @@ export default function Events() {
           icon={<CalendarX2 size={50} />}
           onClick={async () => {
             const blob = await pdf(
-              <EventPDF filter="Cancelled Events" events={[]} />
+              <EventPDF filter="Cancelled Events" events={event.filter((e) => e.Status === "Cancelled")} />
             ).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);

@@ -4,7 +4,6 @@ import { useEvent } from "@/features/api/event/useEvent";
 import { useIncome } from "@/features/api/income/useIncome";
 import { useExpense } from "@/features/api/expense/useExpense";
 import { useHousehold } from "@/features/api/household/useHousehold";
-
 import CustomFemale from "@/components/icons/CustomFemale";
 import CustomHouse from "@/components/icons/CustomHouse";
 import CustomMale from "@/components/icons/CustomMale";
@@ -17,6 +16,7 @@ import ExpenseChart from "@/components/ui/expensechart";
 import Greet from "@/components/ui/greetings";
 import IncomeChart from "@/components/ui/incomechart";
 import PopulationChart from "@/components/ui/populationchart";
+import CustomCalendar from "@/components/icons/CustomCalendar";
 
 const categories = [];
 
@@ -166,7 +166,7 @@ export default function Dashboard() {
             <CategoryCard
               title="Upcoming Events"
               count={upcomingEventsTotal}
-              icon={CustomPopulation}
+              icon={CustomCalendar}
             />
           </div>
           <div className="w-[22%] min-w-[150px]">

@@ -206,7 +206,7 @@ export default function Certificate() {
           icon={<FileText size={50} />}
           onClick={async () => {
             const blob = await pdf(
-              <CertificatePDF filter="All Certificates" certificates={data.map(cert => ({ ...cert, issued_date: cert.issued_date.toISOString() }))} />
+              <CertificatePDF filter="All Certificates" certificates={data} />
             ).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
@@ -230,7 +230,7 @@ export default function Certificate() {
           icon={<CheckCircle size={50} />}
           onClick={async () => {
             const blob = await pdf(
-              <CertificatePDF filter="Issued Certificates Today" certificates={issuedTodayCertificates.map(cert => ({ ...cert, issued_date: cert.issued_date.toISOString() }))} />
+              <CertificatePDF filter="Issued Certificates Today" certificates={issuedTodayCertificates} />
             ).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
@@ -259,7 +259,7 @@ export default function Certificate() {
               return new Date() <= expiry;
             });
             const blob = await pdf(
-              <CertificatePDF filter="Active Certificates" certificates={activeCerts.map(cert => ({ ...cert, issued_date: cert.issued_date.toISOString() }))} />
+              <CertificatePDF filter="Active Certificates" certificates={activeCerts} />
             ).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
@@ -288,7 +288,7 @@ export default function Certificate() {
               return new Date() > expiry;
             });
             const blob = await pdf(
-              <CertificatePDF filter="Expired Certificates" certificates={expiredCerts.map(cert => ({ ...cert, issued_date: cert.issued_date.toISOString() }))} />
+              <CertificatePDF filter="Expired Certificates" certificates={expiredCerts} />
             ).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);

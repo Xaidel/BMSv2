@@ -3,13 +3,14 @@
 import { Document, Page, Text, View } from "@react-pdf/renderer";
 import { styles } from "./Stylesheet";
 import { format } from "date-fns";
+import PDFHeader from "./pdfheader";
 
 type Logbook = {
   ID: number;
   Name: string;
   Date: Date;
   TimeInAm?: string;
-  TimeOutAM?: string;
+  TimeOutAm?: string;
   TimeInPm?: string;
   TimeOutPm?: string;
   Remarks?: string;
@@ -27,11 +28,7 @@ export const LogbookPDF = ({ filter, logbook }: Props) => {
     <Document>
       <Page orientation="landscape" size="A4" wrap={false}>
         <View style={{ margin: "20px" }}>
-          <View style={styles.header}>
-            <Text>Republic of the Philippines</Text>
-            <Text>Province of Camarines Sur</Text>
-            <Text>Municipality of Pamplona</Text>
-          </View>
+          <PDFHeader/>
           <View style={{ margin: "40px" }}>
             <View style={{ marginBottom: 10 }}>
               <Text style={{ fontSize: 14 }}>{filter}</Text>
@@ -61,7 +58,7 @@ export const LogbookPDF = ({ filter, logbook }: Props) => {
                   <View style={styles.tableCell}><Text>{entry.Name}</Text></View>
                   <View style={styles.tableCell}><Text>{format(entry.Date, "MMMM do, yyyy")}</Text></View>
                   <View style={styles.tableCell}><Text>{entry.TimeInAm || ""}</Text></View>
-                  <View style={styles.tableCell}><Text>{entry.TimeOutAM || ""}</Text></View>
+                  <View style={styles.tableCell}><Text>{entry.TimeOutAm || ""}</Text></View>
                   <View style={styles.tableCell}><Text>{entry.TimeInPm || ""}</Text></View>
                   <View style={styles.tableCell}><Text>{entry.TimeOutPm || ""}</Text></View>
                   <View style={styles.tableCell}><Text>{entry.Remarks || ""}</Text></View>

@@ -1,19 +1,8 @@
-
-
 import { Document, Page, Text, View } from "@react-pdf/renderer";
 import { styles } from "./Stylesheet";
 import { format } from "date-fns";
-
-type Event = {
-  id: number;
-  name: string;
-  type_: string;
-  status: "Upcoming" | "Finished" | "Ongoing" | "Cancelled";
-  date: Date;
-  venue: string;
-  attendee: string;
-  notes: string;
-};
+import PDFHeader from "./pdfheader";
+import { Event } from "@/types/apitypes";
 
 type Props = {
   filter: string;
@@ -25,11 +14,7 @@ export const EventPDF = ({ filter, events }: Props) => {
     <Document>
       <Page orientation="landscape" size="A4" wrap={false}>
         <View style={{ margin: "20px" }}>
-          <View style={styles.header}>
-            <Text>Republic of the Philippines</Text>
-            <Text>Province of Camarines Sur</Text>
-            <Text>Municipality of Pamplona</Text>
-          </View>
+          <PDFHeader/>
           <View style={{ margin: "40px" }}>
             <View style={{ marginBottom: 10 }}>
               <Text style={{ fontSize: 14 }}>{filter}</Text>
@@ -51,16 +36,16 @@ export const EventPDF = ({ filter, events }: Props) => {
                     styles.tableRow,
                     { backgroundColor: index % 2 === 0 ? "#f9f9f9" : "white" }
                   ]}
-                  key={event.id}
+                  key={event.ID}
                 >
-                  <View style={styles.tableCell}><Text>{event.id}</Text></View>
-                  <View style={styles.tableCell}><Text>{event.name}</Text></View>
-                  <View style={styles.tableCell}><Text>{event.type_}</Text></View>
-                  <View style={styles.tableCell}><Text>{event.status}</Text></View>
-                  <View style={styles.tableCell}><Text>{format(event.date, "MMMM do, yyyy")}</Text></View>
-                  <View style={styles.tableCell}><Text>{event.venue}</Text></View>
-                  <View style={styles.tableCell}><Text>{event.attendee}</Text></View>
-                  <View style={styles.tableCell}><Text>{event.notes}</Text></View>
+                  <View style={styles.tableCell}><Text>{event.ID}</Text></View>
+                  <View style={styles.tableCell}><Text>{event.Name}</Text></View>
+                  <View style={styles.tableCell}><Text>{event.Type}</Text></View>
+                  <View style={styles.tableCell}><Text>{event.Status}</Text></View>
+                  <View style={styles.tableCell}><Text>{format(event.Date, "MMMM do, yyyy")}</Text></View>
+                  <View style={styles.tableCell}><Text>{event.Venue}</Text></View>
+                  <View style={styles.tableCell}><Text>{event.Audience}</Text></View>
+                  <View style={styles.tableCell}><Text>{event.Notes}</Text></View>
                 </View>
               ))}
             </View>

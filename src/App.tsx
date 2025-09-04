@@ -1,7 +1,7 @@
 import { QueryClient } from "@tanstack/query-core";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
+// import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
 import AppLayout from "./components/ui/applayout";
 import Dashboard from "./pages/Dashboard";
 import Event from "./pages/Event";
@@ -30,7 +30,7 @@ function App() {
   });
   return (
     <QueryClientProvider client={queryClient}>
-      <ReactQueryDevtools initialIsOpen={false} position="right" />
+      {/* <ReactQueryDevtools initialIsOpen={false} position="right" /> */}
       <Router>
         <Routes>
           <Route element={<AppLayout />}>
