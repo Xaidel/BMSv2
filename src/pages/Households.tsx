@@ -80,7 +80,6 @@ export default function Households() {
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
-  const [data] = useState<Household[]>([]);
   const { data: household, isFetching } = useHousehold()
   const [viewHouseholdId, setViewHouseholdId] = useState<number | null>(null)
   const deleteMutation = useDeleteHousehold()
@@ -141,7 +140,7 @@ export default function Households() {
           value={total}
           icon={<Users size={50} />}
           onClick={async () => {
-            const blob = await pdf(<HouseholdPDF filter="All Households" households={data} />).toBlob();
+            const blob = await pdf(<HouseholdPDF filter="All Households" households={parsedData} />).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
             try {
@@ -163,7 +162,7 @@ export default function Households() {
           value={totalActive}
           icon={<UserCheck size={50} />}
           onClick={async () => {
-            const filtered = data.filter((d) => d.status === "Active");
+            const filtered = parsedData.filter((d) => d.status === "Active");
             const blob = await pdf(<HouseholdPDF filter="Active Households" households={filtered} />).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
@@ -186,7 +185,7 @@ export default function Households() {
           value={totalRenter}
           icon={<HomeIcon size={50} />}
           onClick={async () => {
-            const filtered = data.filter((d) => d.type === "Renter");
+            const filtered = parsedData.filter((d) => d.type === "Renter");
             const blob = await pdf(<HouseholdPDF filter="Renter Households" households={filtered} />).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
@@ -209,7 +208,7 @@ export default function Households() {
           value={totalOwner}
           icon={<Home size={50} />}
           onClick={async () => {
-            const filtered = data.filter((d) => d.type === "Owner");
+            const filtered = parsedData.filter((d) => d.type === "Owner");
             const blob = await pdf(<HouseholdPDF filter="Owner Households" households={filtered} />).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);

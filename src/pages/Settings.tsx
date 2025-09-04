@@ -10,7 +10,7 @@ import { ErrorResponse } from "@/service/api/auth/login";
 import { useAddSettings } from "@/features/api/settings/useAddSettings";
 import { useEditSettings } from "@/features/api/settings/useEditSettings";
 import { useSettings } from "@/features/api/settings/useSettings";
-export default function Settings({ onSave }: { onSave: () => void }) {
+export default function Settings({ onSave }: { onSave?: () => void }) {
   const [ImageB, setImageB] = useState(ImageBPlaceholder);
   const [ImageM, setImageM] = useState(ImageBPlaceholder);
   const { data: setting } = useSettings()

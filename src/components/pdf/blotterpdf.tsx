@@ -2,6 +2,7 @@ import { Blotter } from "@/types/apitypes"
 import { Document, Page, Text, View } from "@react-pdf/renderer"
 import { styles } from "./Stylesheet"
 import { format } from "date-fns"
+import PDFHeader from "./pdfheader"
 
 type Props = {
   filter: string
@@ -17,11 +18,7 @@ export const BlotterPDF = ({ filter, blotters }: Props) => {
         wrap={false}
       >
         <View style={{ margin: "20px" }}>
-          <View style={styles.header}>
-            <Text>Republic of the Philippines</Text>
-            <Text>Province of Camarines Sur</Text>
-            <Text>Municipality of Pamplona</Text>
-          </View>
+          <PDFHeader/>
           <View style={{ margin: "40px" }}>
             <View style={{ marginBottom: 10 }}>
               <Text style={{ fontSize: 14 }}>{filter}</Text>

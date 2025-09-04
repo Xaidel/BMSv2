@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { useEffect } from "react";
 import { ArrowLeftCircleIcon, Check, ChevronsUpDown } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useOfficial } from "@/features/api/official/useOfficial";
 import { useNavigate } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
 import { useAddCertificate } from "@/features/api/certificate/useAddCertificate";
@@ -78,8 +79,19 @@ export default function Residency() {
     Municipality: string;
     Province: string;
   } | null>(null);
-  const [captainName] = useState<string | null>(null);
   const addCertificate = useAddCertificate();
+  const { data: officials } = useOfficial();
+  const getOfficialName = (role: string, section: string) => {
+    if (!officials) return null;
+    const list = Array.isArray(officials) ? officials : officials.officials;
+    const found = list.find(
+      (o) =>
+        (o.Section?.toLowerCase() || "").includes(section.toLowerCase()) &&
+        (o.Role?.toLowerCase() || "").includes(role.toLowerCase())
+    );
+    return found?.Name ?? null;
+  };
+  const captainName = getOfficialName("barangay captain", "barangay officials");
 
   const purposeOptions = [
     "Scholarship",
@@ -435,10 +447,10 @@ export default function Residency() {
                       </Text>
                     )}
                       <CertificateFooter
-                      styles={styles}
-                      captainName={captainName}
-                      amount={amount}
-                    />
+                        styles={styles}
+                        captainName={captainName ?? ""}
+                        amount={amount}
+                      />
                   </View>
               </Page>
             </Document>

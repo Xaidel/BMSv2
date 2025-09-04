@@ -2,6 +2,7 @@ import { Document, Page, Text, View } from "@react-pdf/renderer";
 import { styles } from "./Stylesheet";
 import { format } from "date-fns";
 import { Resident } from "@/types/apitypes";
+import PDFHeader from "./pdfheader";
 
 type Props = {
   filter: string;
@@ -13,11 +14,7 @@ export const ResidentPDF = ({ filter, residents }: Props) => {
     <Document>
       <Page orientation="landscape" size="A4" wrap={false}>
         <View style={{ margin: "20px" }}>
-          <View style={styles.header}>
-            <Text>Republic of the Philippines</Text>
-            <Text>Province of Camarines Sur</Text>
-            <Text>Municipality of Pamplona</Text>
-          </View>
+          <PDFHeader/>
           <View style={{ margin: "40px" }}>
             <View style={{ marginBottom: 10 }}>
               <Text style={{ fontSize: 14 }}>{filter}</Text>
