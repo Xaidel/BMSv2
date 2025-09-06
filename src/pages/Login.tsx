@@ -9,11 +9,8 @@ import logo from "../assets/new_logo_small.png";
 import { useNavigate } from "react-router-dom";
 import { loginSchema } from "@/types/formSchema";
 import { toast } from "sonner";
-import { invoke } from "@tauri-apps/api/core";
-import { useEffect } from "react";
 import { useLogin } from "@/features/api/auth/useLogin";
 import { ErrorResponse, LoginResponse } from "@/service/api/auth/login";
-
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -62,19 +59,19 @@ export default function LoginPage() {
     );
   }
 
-  useEffect(() => {
-    if (typeof invoke !== "function") {
-      console.warn("⚠️ Tauri invoke not available (running in browser dev?)");
-      return;
-    }
-    invoke("test_db_connection")
-      .then((res) => {
-        console.log("✅ DB test:", res);
-      })
-      .catch((err) => {
-        console.error("❌ DB test error:", err);
-      });
-  }, []);
+  // useEffect(() => {
+  //   if (typeof invoke !== "function") {
+  //     console.warn("⚠️ Tauri invoke not available (running in browser dev?)");
+  //     return;
+  //   }
+  //   invoke("test_db_connection")
+  //     .then((res) => {
+  //       console.log("✅ DB test:", res);
+  //     })
+  //     .catch((err) => {
+  //       console.error("❌ DB test error:", err);
+  //     });
+  // }, []);
 
   return (
     <div className="min-w-screen min-h-screen bg-background flex flex-col items-center justify-center ">
