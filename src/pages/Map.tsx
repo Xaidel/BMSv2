@@ -296,7 +296,7 @@ export default function Map() {
         document.body
       )}
       <h1 className="mt-2 text-end">Land Area
-        : <span className="font-bold">294.754571456 Hectares</span></h1>
+        : <span className="font-bold">294.754 Hectares</span></h1>
     </div>
   );
 }
