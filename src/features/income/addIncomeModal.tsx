@@ -69,7 +69,7 @@ export default function AddIncomeModal() {
       ReceivedBy: "",
       ReceivedFrom: "",
       Category: "",
-      DateReceived: undefined,
+      DateReceived: new Date(),
     },
   });
 
@@ -157,11 +157,11 @@ export default function AddIncomeModal() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-black font-bold text-xs">
-                      Income Type
+                      Income Name
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Enter income type"
+                        placeholder="Enter income name"
                         className="text-black"
                         {...field}
                       />
@@ -231,7 +231,7 @@ export default function AddIncomeModal() {
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Enter payer/source"
+                        placeholder="Enter sender"
                         className="text-black"
                         {...field}
                       />
@@ -252,7 +252,7 @@ export default function AddIncomeModal() {
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Enter staff/receiver"
+                        placeholder="Enter receiver"
                         className="text-black"
                         {...field}
                       />

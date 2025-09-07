@@ -103,7 +103,7 @@ export default function AddEventModal() {
     <>
       <Dialog open={openModal} onOpenChange={setOpenModal}>
         <DialogTrigger asChild>
-          <Button size="lg" disabled={parsedUser.user.Role !== "secretary"}>
+          <Button size="lg">
             <Plus />
             Add Event
           </Button>
@@ -121,33 +121,6 @@ export default function AddEventModal() {
                 </p>
               </DialogHeader>
               <div className="flex flex-col gap-3">
-                <div>
-                  <FormField
-                    control={form.control}
-                    name="Name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel
-                          htmlFor="name"
-                          className="text-black font-bold text-xs"
-                        >
-                          Name
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            id="Name"
-                            type="text"
-                            placeholder="Enter event name"
-                            required
-                            {...field}
-                            className="text-black"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
                 <div>
                   <FormField
                     control={form.control}
@@ -179,6 +152,33 @@ export default function AddEventModal() {
                             ))}
                           </SelectContent>
                         </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div>
+                  <FormField
+                    control={form.control}
+                    name="Name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel
+                          htmlFor="name"
+                          className="text-black font-bold text-xs"
+                        >
+                          Name
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id="Name"
+                            type="text"
+                            placeholder="Enter event name"
+                            required
+                            {...field}
+                            className="text-black"
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}

@@ -48,6 +48,7 @@ const statusOption = ["Active", "Dead", "Missing", "Moved Out"];
 const genderOptions = ["Male", "Female"];
 const suffixOptions = ["Jr.", "Sr.", "II", "III"];
 const educAttainment = [
+  "No Education Attainment",
   "Elementary Graduate",
   "Highschool Graduate",
   "Senior Highschool Graduate",

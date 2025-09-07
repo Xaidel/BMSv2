@@ -67,7 +67,7 @@ export default function AddExpenseModal() {
       PaidBy: "",
       PaidTo: "",
       Category: "",
-      Date: undefined,
+      Date: new Date(),
     },
   });
 
@@ -240,7 +240,7 @@ export default function AddExpenseModal() {
                       <Input
                         id="PaidTo"
                         type="text"
-                        placeholder="Enter Paid From"
+                        placeholder="Enter receiver"
                         required
                         {...field}
                         className="text-black"
@@ -265,7 +265,7 @@ export default function AddExpenseModal() {
                       <Input
                         id="PaidBy"
                         type="text"
-                        placeholder="Enter Paid By"
+                        placeholder="Enter sender"
                         required
                         {...field}
                         className="text-black"

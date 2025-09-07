@@ -141,34 +141,7 @@ export default function ViewEventModal({
                 </p>
               </DialogHeader>
               <div className="flex flex-col gap-3">
-                <div>
-                  <FormField
-                    control={form.control}
-                    name="Name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel
-                          htmlFor="name"
-                          className="text-black font-bold text-xs"
-                        >
-                          Name
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            id="name"
-                            type="text"
-                            placeholder="Enter event name"
-                            required
-                            {...field}
-                            className="text-black"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div>
+                 <div>
                   <FormField
                     control={form.control}
                     name="Type"
@@ -199,6 +172,33 @@ export default function ViewEventModal({
                             ))}
                           </SelectContent>
                         </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div>
+                  <FormField
+                    control={form.control}
+                    name="Name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel
+                          htmlFor="name"
+                          className="text-black font-bold text-xs"
+                        >
+                          Name
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id="name"
+                            type="text"
+                            placeholder="Enter event name"
+                            required
+                            {...field}
+                            className="text-black"
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}

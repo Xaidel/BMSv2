@@ -332,11 +332,11 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-black font-bold text-xs">
-                      Zone
+                      Assigned 
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Enter Zone"
+                        placeholder="Enter Zone/Office"
                         className="text-black"
                         {...field}
                       />
