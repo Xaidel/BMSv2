@@ -190,11 +190,11 @@ interface SelectedMember {
 export default function AddHouseholdModal() {
   const [openModal, setOpenModal] = useState(false)
   const [householdNumber, setHouseholdNumber] = useState("0")
-  const [householdType, setHouseholdType] = useState("")
+  const [householdType, setHouseholdType] = useState("Owner")
   const [selectedMembers, setSelectedMembers] = useState<SelectedMember[]>([])
   const [zone, setZone] = useState("")
   const [dateOfResidency, setDateOfResidency] = useState<Date>(new Date())
-  const [status, setStatus] = useState("")
+  const [status, setStatus] = useState("Active")
   const [showMemberSelection, setShowMemberSelection] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [roleSearchQuery, setRoleSearchQuery] = useState("")
