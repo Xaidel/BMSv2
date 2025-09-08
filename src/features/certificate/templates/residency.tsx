@@ -55,7 +55,7 @@ export default function Residency() {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
   const [residents, setResidents] = useState<Resident[]>([]);
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState("100.00");
   const [age, setAge] = useState("");
   const [civilStatus, setCivilStatus] = useState("");
   const allResidents = useMemo(() => {

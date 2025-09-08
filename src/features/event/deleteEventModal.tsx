@@ -12,7 +12,6 @@ import { XIcon } from "lucide-react";
 import { toast } from "sonner";
 import { invoke } from "@tauri-apps/api/core";
 
-
 interface Props {
   id: number;
   name: string;

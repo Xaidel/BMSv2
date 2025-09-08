@@ -68,7 +68,7 @@ export default function soloParent() {
   const [residents, setResidents] = useState<Resident[]>([]);
   const [age, setAge] = useState("");
   const [civilStatus, setCivilStatus] = useState("");
-  const [amount, setAmount] = useState("10.00");
+  const [amount, setAmount] = useState("100.00");
   const [soloParentText, setSoloParentText] = useState("");
   const [purpose, setPurpose] = useState("");
   const [customPurpose, setCustomPurpose] = useState("");

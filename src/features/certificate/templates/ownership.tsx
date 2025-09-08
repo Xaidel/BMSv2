@@ -78,7 +78,7 @@ export default function Fourps() {
   const selectedResident = useMemo(() => {
     return allResidents.find((res) => res.value === value)?.data;
   }, [allResidents, value]);
-  const [amount, setAmount] = useState("10.00");
+  const [amount, setAmount] = useState("100.00");
   const [ownershipText, setOwnershipText] = useState("");
   const [settings, setSettings] = useState<{
     barangay: string;
@@ -426,7 +426,7 @@ export default function Fourps() {
                           </Text>
                           <Text>
                             , {age || "___"} years old, {civilStatus || "___"},
-                            a resident of Barangay , at{" "}
+                            a resident of Barangay{" "}
                             {settings ? settings.barangay : "________________"},{" "}
                             {settings ? settings.municipality : "________________"},{" "}
                             {settings ? settings.province : "________________"}{" "}

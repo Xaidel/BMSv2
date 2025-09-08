@@ -46,7 +46,7 @@ export default function AddOfficialModal({ onSave }: { onSave: () => void }) {
   const [openCalendarTermStart, setOpenCalendarTermStart] = useState(false);
   const [openCalendarTermEnd, setOpenCalendarTermEnd] = useState(false);
   const [openModal, setOpenModal] = useState(false);
-  const [imagePreview, setImagePreview] = useState("");
+  const [, setImagePreview] = useState("");
 
   const form = useForm<z.infer<typeof officialSchema>>({
     resolver: zodResolver(officialSchema),
