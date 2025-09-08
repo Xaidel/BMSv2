@@ -40,7 +40,7 @@ export default function Marriage() {
   const [value, setValue] = useState("")
   const [value2, setValue2] = useState("")
   const [residents, setResidents] = useState<Resident[]>([]);
-  const [amount, setAmount] = useState("10.00");
+  const [amount, setAmount] = useState("100.00");
   const [ageMale, setAgeMale] = useState("");
   const [civilStatusMale, setCivilStatusMale] = useState("");
   const [ageFemale, setAgeFemale] = useState("");
@@ -64,8 +64,6 @@ export default function Marriage() {
   const selectedResident2 = useMemo(() => {
     return allResidents.find((res) => res.value === value2)?.data;
   }, [allResidents, value2])
-  const [, setLogoDataUrl] = useState<string | null>(null)
-  const [, setLogoMunicipalityDataUrl] = useState<string | null>(null);
   const [settings, setSettings] = useState<{ barangay: string; municipality: string; province: string } | null>(null);
 
   const { data: officials } = useOfficial();

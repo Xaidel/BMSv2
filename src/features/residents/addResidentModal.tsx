@@ -61,7 +61,7 @@ export default function AddResidentModal() {
   const [openCalendar, setOpenCalendar] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [step, setStep] = useState(1);
-  const [settings, setSettings] = useState<Settings | null>(null);
+  const [, setSettings] = useState<Settings | null>(null);
   
   const form = useForm<z.infer<typeof residentSchema>>({
     resolver: zodResolver(residentSchema),

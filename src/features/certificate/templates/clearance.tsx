@@ -38,32 +38,21 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Official } from "@/types/apitypes";
 import { ArrowLeftCircleIcon, Check, ChevronsUpDown } from "lucide-react";
 import CertificateHeader from "../certificateHeader";
 import CertificateFooter from "../certificateFooter";
+import { Resident } from "@/types/apitypes";
 
 if (!window.Buffer) {
   window.Buffer = Buffer;
 }
-
-type Resident = {
-  ID?: number;
-  Firstname: string;
-  Middlename?: string;
-  Lastname: string;
-  Suffix?: string;
-  Birthday?: Date;
-  CivilStatus?: string;
-  Zone?: number;
-};
 
 export default function Clearance() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
   const [residents, setResidents] = useState<Resident[]>([]);
-  const [amount, setAmount] = useState("10.00");
+  const [amount, setAmount] = useState("100.00");
   const [age, setAge] = useState("");
   const [civilStatus, setCivilStatus] = useState("");
   const [residencyYear, setResidencyYear] = useState(""); // Add state for residency year

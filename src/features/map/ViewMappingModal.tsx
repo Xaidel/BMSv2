@@ -19,7 +19,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Household } from "@/types/apitypes";
 import { Eye } from "lucide-react";
-import { buildFamilyTree } from "@/types/tree";
 import { getRoleIcon } from "../households/addHouseholdModal";
 import EditHouseholdModal from "../households/editHouseholdModal";
 
@@ -36,10 +35,6 @@ export default function ViewHouseholdModal({
     (sum, m) => sum + (m.Income || 0),
     0
   );
-  const nodes = buildFamilyTree({
-    ...household,
-    member: household?.member,
-  } as any);
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
