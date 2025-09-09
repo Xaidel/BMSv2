@@ -2,7 +2,7 @@ import { api } from "@/service/api"
 
 export default async function deleteMapping(id: number) {
   try {
-    const res = await fetch(`${api}/mapping/${id}`, {
+    const res = await fetch(`${api}/mappings/${id}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json"

@@ -14,8 +14,10 @@ import { Mapping } from "@/service/api/map/getMapping";
 import { AddMappingModal } from "@/features/map/AddMappingModal";
 import { api } from "@/service/api";
 import type { Household } from "@/types/apitypes";
-import ViewHouseholdModal from "@/features/households/viewHouseholdModal";
 import { createPortal } from "react-dom";
+import useDeleteMapping from "@/features/api/map/useDeleteMapping";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 const center: LatLngExpression = [13.579126, 123.063078];
 
@@ -25,6 +27,7 @@ export default function Map() {
   const { data: mappings } = useMapping();
   const [searchQuery, setSearchQuery] = useState("");
   const [viewHousehold, setViewHousehold] = useState<Household | null>(null);
+  const deleteMutation = useDeleteMapping()
 
   const building = useMemo(() => {
     if (!mappings) return Building;
@@ -114,6 +117,7 @@ export default function Map() {
       });
     });
   };
+  const queryClient = useQueryClient()
   const onEachInfra = (infra, layer) => {
     const display = infra.properties?.mapping_name;
     let popupContent = String(display ?? "Not Assigned yet.");
@@ -126,6 +130,7 @@ export default function Map() {
       }
     }
     layer.bindPopup(popupContent);
+
     layer.on("mouseover", () => {
       layer.openPopup();
       layer.setStyle({
@@ -136,7 +141,12 @@ export default function Map() {
 
     layer.on("mouseout", () => {
       layer.closePopup();
-      if (infra.properties?.type?.includes("Commercial") || infra.properties?.type?.includes("commercial")) {
+      if (infra.properties?.type?.includes("Commercial") || infra.properties?.type?.includes("commercial") && /Household #\s*\d+/.test(display)) {
+        layer.setStyle({
+          color: "red",
+          fillColor: "red",
+        });
+      } else if (infra.properties?.type?.includes("Commercial") || infra.properties?.type?.includes("commercial")) {
         layer.setStyle({
           color: "blue",
           fillColor: "blue",
@@ -154,6 +164,20 @@ export default function Map() {
     });
 
     layer.on("click", async () => {
+      const feature = building?.features.find((b) => b.properties?.id === infra?.properties?.id)
+      if (feature?.properties?.mapping_name !== undefined) {
+        toast.promise(deleteMutation.mutateAsync(feature?.properties?.id), {
+          loading: "Deleting mapping",
+          success: () => {
+            queryClient.invalidateQueries({ queryKey: ['mappings'] })
+            return {
+              message: "Map deleted"
+            }
+          },
+          error: "Failed to delete mapping"
+        })
+      }
+
       const householdId = infra.properties?.household_id;
       if (householdId) {
         try {
@@ -259,11 +283,19 @@ export default function Map() {
           key={JSON.stringify(building)}
           data={building as any}
           style={(feature: any) => {
+
+            if (
+              (feature.properties?.type?.toLowerCase().includes("commercial")) &&
+              /Household #\s*\d+/.test(feature?.properties?.mapping_name)
+            ) {
+              return { color: "red", fillColor: "red" };
+            }
             if (
               /Household #\s*\d+/.test(feature.properties?.mapping_name)
             ) {
               return updatedStyle;
             }
+
             if (feature.properties?.type?.includes("Commercial") || feature.properties?.type?.includes("commercial")) {
               return { color: "blue", fillColor: "blue" };
             }
@@ -275,16 +307,7 @@ export default function Map() {
           onEachFeature={onEachInfra}
         />
       </MapContainer>
-      {viewHousehold &&
-        createPortal(
-          <ViewHouseholdModal
-            household={viewHousehold}
-            open={!!viewHousehold}
-            onClose={() => setViewHousehold(null)}
-          />,
-          document.body
-        )}
-      {createPortal(
+      {!selectedFeature?.properties?.mapping_name && createPortal(
         <AddMappingModal
           feature={selectedFeature}
           dialogOpen={dialogOpen}
