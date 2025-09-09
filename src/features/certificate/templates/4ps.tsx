@@ -132,10 +132,10 @@ export default function Fourps() {
             Province: res.setting.Province || "",
           });
           if (res.setting.ImageB) {
-            setLogoDataUrl(res.setting.ImageB);
+            setLogoDataUrl(`data:image/png;base64,${res.setting.ImageB}`);
           }
           if (res.setting.ImageM) {
-            setLogoMunicipalityDataUrl(res.setting.ImageM);
+            setLogoMunicipalityDataUrl(`data:image/png;base64,${res.setting.ImageM}`);
           }
         }
       })
@@ -494,11 +494,10 @@ export default function Fourps() {
                         ]}
                       >
                         {purpose || customPurpose
-                          ? `Purpose: ${
-                              purpose === "custom"
-                                ? customPurpose || "________________"
-                                : purpose
-                            }`
+                          ? `Purpose: ${purpose === "custom"
+                            ? customPurpose || "________________"
+                            : purpose
+                          }`
                           : ""}
                       </Text>
                       <Text

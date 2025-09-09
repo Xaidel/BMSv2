@@ -12,7 +12,8 @@ type Settings = {
 
 export default function CertificateHeader() {
   const [settings, setSettings] = useState<Settings | null>(null);
-
+  const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
+  const [municipalityDataUrl, setLogoMunicipalityDataUrl] = useState<string | null>(null);
   useEffect(() => {
     async function fetchSettings() {
       try {
@@ -22,6 +23,12 @@ export default function CertificateHeader() {
           Municipality: data.setting.Municipality || "",
           Province: data.setting.Province || "",
         });
+        if (data.setting.ImageB) {
+          setLogoDataUrl(`data:image/png;base64,${data.setting.ImageB}`);
+        }
+        if (data.setting.ImageM) {
+          setLogoMunicipalityDataUrl(`data:image/png;base64,${data.setting.ImageM}`);
+        }
       } catch (error) {
         console.error(error);
       }
@@ -32,7 +39,7 @@ export default function CertificateHeader() {
   return (
     <View style={{ position: "relative" }}>
       <Image
-        src={logoBarangay}
+        src={logoDataUrl}
         style={{
           position: "absolute",
           top: 10,
@@ -42,7 +49,7 @@ export default function CertificateHeader() {
         }}
       />
       <Image
-        src={logoMunicipality}
+        src={municipalityDataUrl}
         style={{
           position: "absolute",
           top: 10,
@@ -52,7 +59,7 @@ export default function CertificateHeader() {
         }}
       />
       <Image
-        src={logoBarangay}
+        src={logoDataUrl}
         style={{
           position: "absolute",
           top: "150%",

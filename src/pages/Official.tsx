@@ -1,4 +1,4 @@
-import {useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -37,7 +37,7 @@ export default function OfficialsPage() {
   const [selectedOfficial, setSelectedOfficial] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [open, setOpen] = useState(false);
-  const [activeNode, ] = useState<any>(null);
+  const [activeNode,] = useState<any>(null);
   const { data: officials } = useOfficial();
   const off = useMemo(() => {
     const structured = {
@@ -48,7 +48,6 @@ export default function OfficialsPage() {
 
     if (!officials) return structured;
 
-    // works whether officials is an array or { officials: [...] }
     const list = Array.isArray(officials) ? officials : officials.officials;
 
     list.forEach((person) => {
@@ -81,7 +80,6 @@ export default function OfficialsPage() {
     });
     return structured;
   }, [officials]);
-  console.log(off);
 
   const viewMore = (official) => setSelectedOfficial(official);
 
@@ -173,7 +171,6 @@ export default function OfficialsPage() {
         <AddOfficialModal
           onSave={() => {
             setIsAddModalOpen(false);
-            // re-fetch updated officials list
             invoke<Official[]>("fetch_all_officials_command")
               .then((data) => {
                 const structured = {

@@ -64,10 +64,11 @@ export default function Settings({ onSave }: { onSave?: () => void }) {
       }
     }
   }, [settingData, form]);
+
   useEffect(() => {
     async function loadSettings() {
       try {
-        const res = await fetch("/api/settings"); // adjust endpoint if necessary
+        const res = await fetch("/api/settings");
         if (!res.ok) throw new Error("Failed to load settings");
         let loaded: z.infer<typeof settingsSchema> | null = null;
         try {
@@ -78,24 +79,19 @@ export default function Settings({ onSave }: { onSave?: () => void }) {
         if (loaded) {
           form.reset(loaded);
           if (loaded.ImageB && typeof loaded.ImageB === "string") {
-            const isDataUrlB = loaded.ImageB.startsWith("data:");
-            const previewB = isDataUrlB ? loaded.ImageB : `data:image/png;base64,${loaded.ImageB}`;
-            setImageB(previewB);
-            const base64B = isDataUrlB ? loaded.ImageB.split(",")[1] ?? loaded.ImageB : loaded.ImageB;
-            form.setValue("ImageB", base64B);
+            setImageB(loaded.ImageB);
+            form.setValue("ImageB", loaded.ImageB);
           }
           if (loaded.ImageM && typeof loaded.ImageM === "string") {
-            const isDataUrlM = loaded.ImageM.startsWith("data:");
-            const previewM = isDataUrlM ? loaded.ImageM : `data:image/png;base64,${loaded.ImageM}`;
-            setImageM(previewM);
-            const base64M = isDataUrlM ? loaded.ImageM.split(",")[1] ?? loaded.ImageM : loaded.ImageM;
-            form.setValue("ImageM", base64M);
+            setImageM(loaded.ImageM);
+            form.setValue("ImageM", loaded.ImageM);
           }
         }
       } catch (error) {
         console.error("Failed to load settings:", error);
       }
     }
+
 
     loadSettings();
   }, []);
