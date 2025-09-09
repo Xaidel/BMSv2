@@ -65,7 +65,7 @@ export default function BusinessPermit() {
   const [businessType, setBusinessType] = useState("");
   const [businessLocation, setBusinessLocation] = useState("");
   const [businessOwner, setBusinessOwner] = useState("");
-  const [amount, setAmount] = useState("150.00");
+  const [amount, setAmount] = useState("100.00");
   const [age, setAge] = useState("");
   const [civilStatus, setCivilStatus] = useState("");
   const [purpose, setPurpose] = useState("");

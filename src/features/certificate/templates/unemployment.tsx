@@ -38,8 +38,6 @@ import { toast } from "sonner";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
-
-
 import { Buffer } from "buffer";
 import CertificateHeader from "../certificateHeader";
 import CertificateFooter from "../certificateFooter";
@@ -75,7 +73,7 @@ export default function Unemployment() {
   const [civilStatus, setCivilStatus] = useState("");
   const [purpose, setPurpose] = useState("");
   const [customPurpose, setCustomPurpose] = useState("");
-  const [amount, setAmount] = useState("10.00");
+  const [amount, setAmount] = useState("100.00");
 
   // Fetch officials and get captain name
   const { data: officials } = useOfficial();

@@ -83,8 +83,6 @@ export default function AddEventModal() {
   const [openCalendar, setOpenCalendar] = useState(false);
   const [openModal, setOpenModal] = useState(false);
 
-  const user = sessionStorage.getItem("user");
-  const parsedUser = JSON.parse(user);
 
   const form = useForm<z.infer<typeof eventSchema>>({
     resolver: zodResolver(eventSchema),

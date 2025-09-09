@@ -74,7 +74,7 @@ export default function BusinessClearance() {
       res.label.toLowerCase().includes(search.toLowerCase())
     );
   }, [allResidents, search]);
-  const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
+  const [, setLogoDataUrl] = useState<string | null>(null);
   const [settings, setSettings] = useState<{
     barangay: string;
     municipality: string;
@@ -85,7 +85,7 @@ export default function BusinessClearance() {
   const [businessType, setBusinessType] = useState("");
   const [businessLocation, setBusinessLocation] = useState("");
   const [businessOwner, setBusinessOwner] = useState("");
-  const [amount, setAmount] = useState("150.00");
+  const [amount, setAmount] = useState("100.00");
   // Resident selection state
   const [age, setAge] = useState("");
   const [civilStatus, setCivilStatus] = useState("");
@@ -511,7 +511,7 @@ export default function BusinessClearance() {
                       <Text
                         style={[
                           styles.bodyText,
-                          { marginTop: 10, marginBottom: 8 },
+                          { marginTop: 0, marginBottom: 4 },
                         ]}
                       >
                         Given this{" "}

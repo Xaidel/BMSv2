@@ -1,7 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { useResident } from "../api/resident/useResident"
-import { useMemo, useState } from "react"
-import { getAge } from "@/lib/utils"
+import { useState } from "react"
 
 
 interface SelectedResident {
@@ -12,25 +10,7 @@ interface SelectedResident {
   Zone: number
 }
 export default function ViewCaptainModal() {
-  const { data: residentsData } = useResident()
-  const [selectedResident, setSelectedResident] = useState<SelectedResident[]>([])
-  const res = useMemo<SelectedResident[]>(() => {
-    if (!residentsData?.residents) return []
-
-    return residentsData.residents.map((r) => {
-      const middleInitial = r.Middlename
-        ? ` ${r.Middlename.charAt(0).toUpperCase()}.`
-        : ""
-
-      return {
-        ID: r.ID.toString(),
-        Name: `${r.Firstname}${middleInitial} ${r.Lastname}`.trim(),
-        Role: "",
-        Age: getAge(r.Birthday.toString()),
-        Zone: r.Zone
-      }
-    })
-  }, [residentsData])
+  const [selectedResident,] = useState<SelectedResident[]>([])
   // Simulate saving selected residents
   const handleSave = () => {
     console.log(selectedResident)
