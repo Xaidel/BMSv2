@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { View, Text, Image } from "@react-pdf/renderer";
 import getSettings from "@/service/api/settings/getSettings";
-import logoBarangay from "@/assets/logo_barangay.png";
-import logoMunicipality from "@/assets/logo_municipality.png";
 
 type Settings = {
   Barangay: string;
