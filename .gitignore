@@ -26,3 +26,6 @@ dist-ssr
 vite.config.ts
 .env
 src-tauri/tauri.conf.json
+.env
+src-tauri/tauri.conf.json
+vite.config.ts
