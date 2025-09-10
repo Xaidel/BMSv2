@@ -8,6 +8,15 @@ import type { LatLngExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from "@/components/ui/dialog";
 import type { Feature } from "geojson";
 import useMapping from "@/features/api/map/useMapping";
 import { Mapping } from "@/service/api/map/getMapping";
@@ -26,7 +35,7 @@ export default function Map() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { data: mappings } = useMapping();
   const [searchQuery, setSearchQuery] = useState("");
-  const [viewHousehold, setViewHousehold] = useState<Household | null>(null);
+  const [, setViewHousehold] = useState<Household | null>(null);
   const deleteMutation = useDeleteMapping()
 
   const building = useMemo(() => {
@@ -118,6 +127,7 @@ export default function Map() {
     });
   };
   const queryClient = useQueryClient()
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number, name: string } | null>(null);
   const onEachInfra = (infra, layer) => {
     const display = infra.properties?.mapping_name;
     let popupContent = String(display ?? "Not Assigned yet.");
@@ -166,16 +176,10 @@ export default function Map() {
     layer.on("click", async () => {
       const feature = building?.features.find((b) => b.properties?.id === infra?.properties?.id)
       if (feature?.properties?.mapping_name !== undefined) {
-        toast.promise(deleteMutation.mutateAsync(feature?.properties?.id), {
-          loading: "Deleting mapping",
-          success: () => {
-            queryClient.invalidateQueries({ queryKey: ['mappings'] })
-            return {
-              message: "Map deleted"
-            }
-          },
-          error: "Failed to delete mapping"
-        })
+        setDeleteTarget({
+          id: feature.properties?.id,
+          name: feature.properties?.mapping_name,
+        });
       }
 
       const householdId = infra.properties?.household_id;
@@ -320,6 +324,41 @@ export default function Map() {
       )}
       <h1 className="mt-2 text-end">Land Area
         : <span className="font-bold">294.754 Hectares</span></h1>
+      {deleteTarget && (
+        <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+          <DialogContent className="bg-white text-black">
+            <DialogHeader>
+              <DialogTitle>Delete Mapping?</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete mapping: "{deleteTarget.name}"?
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end gap-3 mt-4">
+              <DialogClose asChild>
+                <Button variant="ghost" className="text-black">
+                  Cancel
+                </Button>
+              </DialogClose>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  toast.promise(deleteMutation.mutateAsync(deleteTarget.id), {
+                    loading: "Deleting mapping...",
+                    success: () => {
+                      queryClient.invalidateQueries({ queryKey: ["mappings"] });
+                      setDeleteTarget(null);
+                      return { message: "Mapping deleted" };
+                    },
+                    error: "Failed to delete mapping",
+                  });
+                }}
+              >
+                Confirm
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
