@@ -97,7 +97,7 @@ export default function Map() {
 
   const updatedStyle: L.PathOptions = {
     color: "green",
-    weight: 2,
+    weight: 3,
     fillColor: "green",
     fillOpacity: 0.1,
     interactive: true,
@@ -153,7 +153,7 @@ export default function Map() {
       } else if (infra.properties?.type?.toLowerCase().includes("institutional")) {
         layer.setStyle({ color: "#b266ff", fillColor: "#b266ff" }); // lighter purple
       } else if (/Household #\s*\d+/.test(display)) {
-        layer.setStyle({ color: "#66cc66", fillColor: "#66cc66" }); // lighter green for household hover
+        layer.setStyle({ color: "#66cc66", fillColor: "#66cc66", weight: 3 }); // lighter green for household hover, weight 3
       } else {
         layer.setStyle({ color: "orange", fillColor: "#F59E0B" });
       }
