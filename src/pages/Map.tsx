@@ -106,18 +106,18 @@ export default function Map() {
   const onEachRoad = (road, layer) => {
     const roadName = road.properties.name;
 
-    layer.bindPopup(roadName, { autoPan: false });
+    layer.bindTooltip(roadName, { permanent: false, direction: "top", sticky: true });
     layer.on("mouseover", () => {
-      layer.openPopup();
+      layer.openTooltip();
       layer.setStyle({
-        color: "blue",
-        fillColor: "blue",
+        color: "gray",
+        fillColor: "gray",
         fillOpacity: 0.3,
       });
     });
 
     layer.on("mouseout", () => {
-      layer.closePopup();
+      layer.closeTooltip();
       layer.setStyle({
         color: "#333446",
         weight: 1,
@@ -139,10 +139,10 @@ export default function Map() {
         popupContent = `${commercial}<br/>${household}`;
       }
     }
-    layer.bindPopup(popupContent);
+    layer.bindTooltip(popupContent, { permanent: false, direction: "top", sticky: true });
 
     layer.on("mouseover", () => {
-      layer.openPopup();
+      layer.openTooltip();
       if (
         infra.properties?.type?.toLowerCase().includes("commercial") &&
         /Household #\s*\d+/.test(display)
@@ -160,7 +160,7 @@ export default function Map() {
     });
 
     layer.on("mouseout", () => {
-      layer.closePopup();
+      layer.closeTooltip();
       if (
         infra.properties?.type?.toLowerCase().includes("commercial") &&
         /Household #\s*\d+/.test(display)
