@@ -7,6 +7,8 @@ import { GeoJSON, MapContainer } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useMemo, useState } from "react";
+import { AddMappingModal } from "@/features/map/AddMappingModal";
+import { createPortal } from "react-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,8 +31,8 @@ import { useQueryClient } from "@tanstack/react-query";
 const center: LatLngExpression = [13.579126, 123.063078];
 
 export default function Map() {
-  const [, setSelectedFeature] = useState<Feature | null>(null);
-  const [, setDialogOpen] = useState(false);
+  const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const { data: mappings } = useMapping();
   const [searchQuery, setSearchQuery] = useState("");
   const [, setViewHousehold] = useState<Household | null>(null);
@@ -382,6 +384,18 @@ export default function Map() {
             </div>
           </DialogContent>
         </Dialog>
+      )}
+      {/* AddMappingModal Portal */}
+      {!selectedFeature?.properties?.mapping_name && createPortal(
+        <AddMappingModal
+          feature={selectedFeature}
+          dialogOpen={dialogOpen}
+          onOpenChange={() => {
+            setDialogOpen(false);
+            setSelectedFeature(null);
+          }}
+        />,
+        document.body
       )}
     </div>
   );
