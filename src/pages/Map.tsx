@@ -20,10 +20,8 @@ import {
 import type { Feature } from "geojson";
 import useMapping from "@/features/api/map/useMapping";
 import { Mapping } from "@/service/api/map/getMapping";
-import { AddMappingModal } from "@/features/map/AddMappingModal";
 import { api } from "@/service/api";
 import type { Household } from "@/types/apitypes";
-import { createPortal } from "react-dom";
 import useDeleteMapping from "@/features/api/map/useDeleteMapping";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -31,8 +29,8 @@ import { useQueryClient } from "@tanstack/react-query";
 const center: LatLngExpression = [13.579126, 123.063078];
 
 export default function Map() {
-  const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [, setSelectedFeature] = useState<Feature | null>(null);
+  const [, setDialogOpen] = useState(false);
   const { data: mappings } = useMapping();
   const [searchQuery, setSearchQuery] = useState("");
   const [, setViewHousehold] = useState<Household | null>(null);
@@ -97,7 +95,7 @@ export default function Map() {
 
   const updatedStyle: L.PathOptions = {
     color: "green",
-    weight: 1,
+    weight: 2,
     fillColor: "green",
     fillOpacity: 0.1,
     interactive: true,
@@ -143,18 +141,31 @@ export default function Map() {
 
     layer.on("mouseover", () => {
       layer.openPopup();
-      layer.setStyle({
-        color: "orange",
-        fillColor: "#F59E0B",
-      });
+      if (
+        infra.properties?.type?.toLowerCase().includes("commercial") &&
+        /Household #\s*\d+/.test(display)
+      ) {
+        layer.setStyle({ color: "blue", fillColor: "#66cc66" }); // commercial + household hover with light green fill
+      } else if (infra.properties?.type?.toLowerCase().includes("commercial")) {
+        layer.setStyle({ color: "#6699ff", fillColor: "#6699ff" }); // lighter blue
+      } else if (infra.properties?.type?.toLowerCase().includes("institutional")) {
+        layer.setStyle({ color: "#b266ff", fillColor: "#b266ff" }); // lighter purple
+      } else if (/Household #\s*\d+/.test(display)) {
+        layer.setStyle({ color: "#66cc66", fillColor: "#66cc66" }); // lighter green for household hover
+      } else {
+        layer.setStyle({ color: "orange", fillColor: "#F59E0B" });
+      }
     });
 
     layer.on("mouseout", () => {
       layer.closePopup();
-      if (infra.properties?.type?.includes("Commercial") || infra.properties?.type?.includes("commercial") && /Household #\s*\d+/.test(display)) {
+      if (
+        infra.properties?.type?.toLowerCase().includes("commercial") &&
+        /Household #\s*\d+/.test(display)
+      ) {
         layer.setStyle({
-          color: "red",
-          fillColor: "red",
+          color: "blue",
+          fillColor: "green",
         });
       } else if (infra.properties?.type?.includes("Commercial") || infra.properties?.type?.includes("commercial")) {
         layer.setStyle({
@@ -292,7 +303,7 @@ export default function Map() {
               (feature.properties?.type?.toLowerCase().includes("commercial")) &&
               /Household #\s*\d+/.test(feature?.properties?.mapping_name)
             ) {
-              return { color: "red", fillColor: "red" };
+              return { color: "blue", fillColor: "green" };
             }
             if (
               /Household #\s*\d+/.test(feature.properties?.mapping_name)
@@ -311,17 +322,30 @@ export default function Map() {
           onEachFeature={onEachInfra}
         />
       </MapContainer>
-      {!selectedFeature?.properties?.mapping_name && createPortal(
-        <AddMappingModal
-          feature={selectedFeature}
-          dialogOpen={dialogOpen}
-          onOpenChange={() => {
-            setDialogOpen(false);
-            setSelectedFeature(null);
-          }}
-        />,
-        document.body
-      )}
+        {/* Legend */}
+        <div className="absolute top-1 right-1 bg-white p-4 rounded shadow-md text-sm">
+          <h2 className="font-bold mb-2">Building Type</h2>
+          <div className="flex items-center mb-1">
+            <div className="w-6 h-6 border-2 mr-2" style={{ backgroundColor: 'lightgreen', borderColor: 'green' }}></div>
+            Household
+          </div>
+          <div className="flex items-center mb-1">
+            <div className="w-6 h-6 border-2 mr-2" style={{ backgroundColor: 'lightblue', borderColor: 'blue' }}></div>
+            Commercial
+          </div>
+          <div className="flex items-center mb-1">
+            <div className="w-6 h-6 border-2 mr-2" style={{ backgroundColor: 'lightgreen', borderColor: 'blue' }}></div>
+            Commercial + Household
+          </div>
+          <div className="flex items-center">
+            <div className="w-6 h-6 border-2 mr-2" style={{ backgroundColor: 'plum', borderColor: 'purple' }}></div>
+            Institutional
+          </div>
+          <div className="flex items-center mt-1">
+            <div className="w-6 h-6 border-2 mr-2" style={{ backgroundColor: 'lightgray', borderColor: 'gray' }}></div>
+            Unassigned
+          </div>
+        </div>
       <h1 className="mt-2 text-end">Land Area
         : <span className="font-bold">294.754 Hectares</span></h1>
       {deleteTarget && (
