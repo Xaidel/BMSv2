@@ -161,7 +161,7 @@ export default function AddBlotterModal() {
                             <Input
                               id="Involved"
                               type="text"
-                              placeholder="Enter middle name"
+                              placeholder="Enter name"
                               required
                               {...field}
                               className="text-black"

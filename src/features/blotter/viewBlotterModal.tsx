@@ -225,7 +225,7 @@ export default function ViewBlotterModal({
                               <Input
                                 id="Involved"
                                 type="text"
-                                placeholder="Enter full name"
+                                placeholder="Enter name"
                                 required
                                 {...field}
                                 className="text-black"

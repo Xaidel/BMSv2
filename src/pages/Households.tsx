@@ -5,7 +5,7 @@ import Filter from "@/components/ui/filter";
 import Searchbar from "@/components/ui/searchbar";
 import AddHouseholdModal from "@/features/households/addHouseholdModal";
 import { ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
+import { format, set } from "date-fns";
 import { Trash, Home, HomeIcon, UserCheck, Users, Eye } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -20,6 +20,7 @@ import { useHousehold } from "@/features/api/household/useHousehold";
 import ViewHouseholdModal from "@/features/households/viewHouseholdModal";
 import { useQueryClient } from "@tanstack/react-query";
 import { useDeleteHousehold } from "@/features/api/household/useDeleteHousehold";
+import { se } from "date-fns/locale";
 
 const filters = ["All Households", "Numerical", "Renter", "Owner"];
 
@@ -80,6 +81,7 @@ export default function Households() {
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedHousehold, setSelectedHousehold] = useState<number[]>([]);
   const { data: household, isFetching } = useHousehold()
   const [viewHouseholdId, setViewHouseholdId] = useState<number | null>(null)
   const deleteMutation = useDeleteHousehold()
@@ -246,14 +248,20 @@ export default function Households() {
           size="lg"
           disabled={Object.keys(rowSelection).length === 0}
           onClick={() => {
-            const ids = Object.keys(rowSelection).map(Number)
-            if (ids.length > 0) {
+            if (selectedHousehold) {
               toast.promise(
-                deleteMutation.mutateAsync(ids), {
+                deleteMutation.mutateAsync(selectedHousehold), {
                 loading: "Deleting household, Please wait...",
                 success: () => {
                   queryClient.invalidateQueries({ queryKey: ['household'] })
-                  setRowSelection({})
+                  setRowSelection((prevSelection) => {
+                    const newSelection = { ...prevSelection };
+                    selectedHousehold.forEach((_, i) => {
+                      delete newSelection[i];
+                    });
+                    return newSelection;
+                  });   
+                  setSelectedHousehold([])
                   return {
                     message: "Household successfully deleted"
                   }
@@ -292,6 +300,12 @@ export default function Households() {
                 }
                 onCheckedChange={(value) => {
                   table.toggleAllPageRowsSelected(!!value)
+                  if(value){
+                    const allVisibleRows = table.getRowModel().rows.map(row => row.original.id);
+                    setSelectedHousehold(allVisibleRows);
+                  } else {
+                    setSelectedHousehold([]);
+                  }
                 }}
                 aria-label="Select all"
                 className="flex items-center justify-center"
@@ -302,6 +316,13 @@ export default function Households() {
                 checked={row.getIsSelected()}
                 onCheckedChange={(value) => {
                   row.toggleSelected(!!value)
+                  if(value){
+                    setSelectedHousehold((prev) => [...prev, row.original.id]);
+                  }else {
+                    setSelectedHousehold((prev) =>
+                    prev.filter((id) => id !== row.original.id)
+                    );
+                  }
                 }}
                 aria-label="Select row"
                 className="flex items-center justify-center"

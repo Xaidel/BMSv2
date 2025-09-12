@@ -34,7 +34,6 @@ import { z } from "zod";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { useEffect, useState } from "react";
-
 import { useAddResident } from "../api/resident/useAddResident";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -43,7 +42,7 @@ import { residentSchema } from "@/types/formSchema";
 import getSettings from "@/service/api/settings/getSettings";
 import { Settings } from "@/types/apitypes";
 
-const civilStatusOptions = ["Single", "Married", "Widowed", "Separated"];
+const civilStatusOptions = ["Single", "Married", "Widowed", "Separated", "Lived-In"];
 const statusOption = ["Active", "Dead", "Missing", "Moved Out"];
 const genderOptions = ["Male", "Female"];
 const suffixOptions = ["Jr.", "Sr.", "II", "III"];
@@ -55,6 +54,14 @@ const educAttainment = [
   "College Graduate",
   "Masteral Degree",
   "Doctorate Degree",
+];
+const religionOptions = [
+  "Roman Catholic",
+  "Christian",
+  "Iglesia Ni Cristo",
+  "Muslim",
+  "Buddhist",
+  "Others",
 ];
 
 export default function AddResidentModal() {
@@ -427,14 +434,21 @@ export default function AddResidentModal() {
                         <FormItem>
                           <FormLabel>Religion</FormLabel>
                           <FormControl>
-                            <Input
-                              id="religion"
-                              type="text"
-                              placeholder="Enter Religion"
-                              required
-                              {...field}
-                              className="text-black"
-                            />
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select Religion" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {religionOptions.map((option) => (
+                                  <SelectItem key={option} value={option}>
+                                    {option}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </FormControl>
                         </FormItem>
                       )}
