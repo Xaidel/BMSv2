@@ -248,7 +248,7 @@ const onEachZone = (zone, layer) => {
     case 4: layer.setStyle({color: "purple", fillColor: "purple", fillOpacity: 0.1}); break;
     case 5: layer.setStyle({color: "orange", fillColor: "orange", fillOpacity: 0.1}); break;
     case 6: layer.setStyle({color: "brown", fillColor: "brown", fillOpacity: 0.1}); break;
-    case 7: layer.setStyle({color: "pink", fillColor: "pink", fillOpacity: 0.1}); break;
+    case 7: layer.setStyle({color: "brown", fillColor: "brown", fillOpacity: 0.1}); break;
     default: layer.setStyle({color: "gray", fillColor: "gray", fillOpacity: 0.1}); break;
   }
   layer.bindTooltip(`Zone ${id}`, { permanent: false, direction: "top", sticky: true });
