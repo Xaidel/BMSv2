@@ -1,6 +1,5 @@
 import { api } from "@/service/api"
 import { ErrorResponse } from "../auth/login"
-import { Expense } from "@/types/apitypes";
 
 export default async function deleteExpense(ids: number[]) {
   try {

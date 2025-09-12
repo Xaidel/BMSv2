@@ -97,7 +97,7 @@ export default function Map() {
 
   const updatedStyle: L.PathOptions = {
     color: "green",
-    weight: 2,
+    weight: 3,
     fillColor: "green",
     fillOpacity: 0.1,
     interactive: true,
@@ -106,18 +106,18 @@ export default function Map() {
   const onEachRoad = (road, layer) => {
     const roadName = road.properties.name;
 
-    layer.bindPopup(roadName, { autoPan: false });
+    layer.bindTooltip(roadName, { permanent: false, direction: "top", sticky: true });
     layer.on("mouseover", () => {
-      layer.openPopup();
+      layer.openTooltip();
       layer.setStyle({
-        color: "blue",
-        fillColor: "blue",
+        color: "gray",
+        fillColor: "gray",
         fillOpacity: 0.3,
       });
     });
 
     layer.on("mouseout", () => {
-      layer.closePopup();
+      layer.closeTooltip();
       layer.setStyle({
         color: "#333446",
         weight: 1,
@@ -139,10 +139,10 @@ export default function Map() {
         popupContent = `${commercial}<br/>${household}`;
       }
     }
-    layer.bindPopup(popupContent);
+    layer.bindTooltip(popupContent, { permanent: false, direction: "top", sticky: true });
 
     layer.on("mouseover", () => {
-      layer.openPopup();
+      layer.openTooltip();
       if (
         infra.properties?.type?.toLowerCase().includes("commercial") &&
         /Household #\s*\d+/.test(display)
@@ -153,14 +153,14 @@ export default function Map() {
       } else if (infra.properties?.type?.toLowerCase().includes("institutional")) {
         layer.setStyle({ color: "#b266ff", fillColor: "#b266ff" }); // lighter purple
       } else if (/Household #\s*\d+/.test(display)) {
-        layer.setStyle({ color: "#66cc66", fillColor: "#66cc66" }); // lighter green for household hover
+        layer.setStyle({ color: "#66cc66", fillColor: "#66cc66", weight: 3 }); // lighter green for household hover, weight 3
       } else {
         layer.setStyle({ color: "orange", fillColor: "#F59E0B" });
       }
     });
 
     layer.on("mouseout", () => {
-      layer.closePopup();
+      layer.closeTooltip();
       if (
         infra.properties?.type?.toLowerCase().includes("commercial") &&
         /Household #\s*\d+/.test(display)
@@ -348,7 +348,7 @@ export default function Map() {
             Unassigned
           </div>
         </div>
-      <h1 className="mt-2 text-end">Land Area
+      <h1 className="mt-2 text-end">Tambo Land Area
         : <span className="font-bold">294.754 Hectares</span></h1>
       {deleteTarget && (
         <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>

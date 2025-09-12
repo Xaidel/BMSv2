@@ -259,16 +259,18 @@ export default function AddHouseholdModal() {
       toast.error("Please add at least one family member")
       return
     }
+    const headMember = selectedMembers.find((m) => m.Role === "Head")
     const formData = {
-      householdNumber: householdNumber,
-      householdType: householdType,
-      zone: zone,
-      status: status,
-      dateOfResidency: dateOfResidency, // JSON.stringify will send ISO8601
-      members: selectedMembers.map((m) => ({
-        id: Number(m.ID),
-        role: m.Role,
+      HouseNumber: householdNumber,
+      Type: householdType,
+      Zone: zone,
+      Status: status,
+      Date: dateOfResidency.toISOString(),
+      Member: selectedMembers.map((m) => ({
+        ID: Number(m.ID),
+        Role: m.Role,
       })),
+      Head: headMember ? headMember.Name : "",
     }
     toast.promise(addMutation.mutateAsync(formData), {
       loading: "Inserting household",
