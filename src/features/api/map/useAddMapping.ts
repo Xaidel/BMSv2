@@ -1,4 +1,3 @@
-import { BuildingData } from "@/features/map/AddMappingModal";
 import postMapping from "@/service/api/map/postMapping";
 import { useMutation } from "@tanstack/react-query";
 

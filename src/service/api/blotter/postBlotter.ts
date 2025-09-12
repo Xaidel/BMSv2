@@ -3,7 +3,7 @@ import { Blotter } from "@/types/apitypes";
 import { ErrorResponse } from "../auth/login";
 
 export interface BlotterPostResponse {
-  blotters: Blotter []
+  blotter: Blotter;
 }
 
 export default async function postBlotter(blotter: Blotter): Promise<BlotterPostResponse> {

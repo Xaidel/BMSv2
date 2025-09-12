@@ -84,7 +84,7 @@ export default function OfficialsPage() {
   const viewMore = (official) => setSelectedOfficial(official);
 
   const ProfileCard = ({ person }) => {
-    const [logo, setLogo] = useState("/logo.png");
+    const [logo,] = useState("/logo.png");
     return (
       <div
         onClick={() => viewMore(person)}

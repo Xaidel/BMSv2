@@ -7,13 +7,15 @@ export type Member = {
 
 export type Household = {
   HouseNumber: string;
-  Date: Date;
+  Date: string;
   Type: "owner" | "renter" | string;
   Member: Member[];
   Head: string;
   Status: "active" | "inactive" | string;
   Zone: string;
 };
+
+export type HouseholdProps = Household;
 
 export default async function postHousehold(props: Household) {
   try {
