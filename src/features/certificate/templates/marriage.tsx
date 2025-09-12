@@ -386,7 +386,7 @@ export default function Marriage() {
                 try {
                   const cert: any = {
                     resident_id: selectedResident.ID,
-                    resident_name: `${selectedResident.Firstname} ${selectedResident.Lastname} & ${selectedResident2?.Firstname ?? ""} ${selectedResident2?.Lastname ?? ""}`,
+                    resident_name: `${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname} & ${selectedResident2?.Firstname ?? ""} ${selectedResident2?.Middlename ? selectedResident2.Middlename.charAt(0) + ". " : ""}${selectedResident2?.Lastname ?? ""}`,
                     type_: "Marriage Certificate",
                     amount: amount ? parseFloat(amount) : 0,
                     issued_date: new Date().toISOString().split("T")[0],
@@ -397,7 +397,7 @@ export default function Marriage() {
                   };
                   await addCertificate(cert);
                   toast.success("Certificate saved successfully!", {
-                    description: `${selectedResident.Firstname} ${selectedResident.Lastname}'s certificate was saved.`,
+                    description: `${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}'s certificate was saved.`,
                   });
                 } catch (error) {
                   console.error("Save certificate failed:", error);
@@ -420,10 +420,14 @@ export default function Marriage() {
                       <>
                         <Text style={[styles.bodyText, { textAlign: "justify", marginBottom: 8 }]}>
                           <Text style={{ fontWeight: "bold" }}>This is to certify that </Text>
-                          <Text style={{ fontWeight: "bold" }}>{`MR. ${selectedResident.Firstname} ${selectedResident.Middlename ?? ""} ${selectedResident.Lastname}`.toUpperCase()}</Text>, {ageMale || "___"} years old, {civilStatusMale || "___"}, a resident of zone {selectedResident.Zone}, at {settings ? settings.barangay : "________________"}
+                          <Text style={{ fontWeight: "bold" }}>
+                            {`MR. ${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}`.toUpperCase()}
+                          </Text>, {ageMale || "___"} years old, {civilStatusMale || "___"}, a resident of zone {selectedResident.Zone}, at {settings ? settings.barangay : "________________"}
                         ,{settings ? settings.municipality : "________________"}
                         ,{settings ? settings.province : "________________"} wishes to contract marriage with
-                          <Text style={{ fontWeight: "bold" }}> MS. {`${selectedResident2.Firstname} ${selectedResident2.Middlename ?? ""} ${selectedResident2.Lastname}`.toUpperCase()}</Text>, {ageFemale || "___"} years old, {civilStatusFemale || "___"}, no legal impediment to contract marriage.
+                          <Text style={{ fontWeight: "bold" }}>
+                            {`MS. ${selectedResident2.Firstname} ${selectedResident2.Middlename ? selectedResident2.Middlename.charAt(0) + ". " : ""}${selectedResident2.Lastname}`.toUpperCase()}
+                          </Text>, {ageFemale || "___"} years old, {civilStatusFemale || "___"}, no legal impediment to contract marriage.
                         </Text>
                       </>
                     ) : (
