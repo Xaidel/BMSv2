@@ -12,7 +12,7 @@ export interface LoginResponse {
 
 export default async function Login(role: string, username: string, password: string): Promise<LoginResponse | ErrorResponse> {
   try {
-
+console.log(api)
     const res = await fetch(`${api}/auth/login`, {
       method: "POST",
       headers: {
