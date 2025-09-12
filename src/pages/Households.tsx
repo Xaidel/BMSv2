@@ -5,7 +5,7 @@ import Filter from "@/components/ui/filter";
 import Searchbar from "@/components/ui/searchbar";
 import AddHouseholdModal from "@/features/households/addHouseholdModal";
 import { ColumnDef } from "@tanstack/react-table";
-import { format, set } from "date-fns";
+import { format } from "date-fns";
 import { Trash, Home, HomeIcon, UserCheck, Users, Eye } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -20,7 +20,6 @@ import { useHousehold } from "@/features/api/household/useHousehold";
 import ViewHouseholdModal from "@/features/households/viewHouseholdModal";
 import { useQueryClient } from "@tanstack/react-query";
 import { useDeleteHousehold } from "@/features/api/household/useDeleteHousehold";
-import { se } from "date-fns/locale";
 
 const filters = ["All Households", "Numerical", "Renter", "Owner"];
 
