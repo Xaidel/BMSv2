@@ -107,7 +107,7 @@ export const incomeSchema = z.object({
   Amount: z
     .number({ invalid_type_error: "Amount must be a number" })
     .min(0.01, { message: "Amount must be greater than zero" })
-    .max(1_000_000, { message: "Amount exceeds maximum allowed value" }),
+    .max(1_000_000_000, { message: "Amount exceeds maximum allowed value" }),
 
   OR: z
     .string()
@@ -142,7 +142,7 @@ export const expenseSchema = z.object({
     invalid_type_error: "Amount must be a number",
   }).min(0.01, {
     message: "Amount must be greater than zero",
-  }).max(1_000_000, {
+  }).max(1_000_000_000, {
     message: "Amount exceeds maximum allowed value",
   }),
 

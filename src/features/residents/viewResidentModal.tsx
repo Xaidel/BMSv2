@@ -40,7 +40,7 @@ import { useEditResident } from "../api/resident/useEditResident";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 
-const civilStatusOptions = ["Single", "Married", "Widowed", "Separated"];
+const civilStatusOptions = ["Single", "Married", "Widowed", "Separated", "Lived-In"];
 const statusOption = ["Active", "Dead", "Missing", "Moved Out"];
 const genderOptions = ["Male", "Female"];
 const suffixOptions = ["Jr.", "Sr.", "II", "III"];
@@ -52,6 +52,14 @@ const educAttainment = [
   "College Graduate",
   "Masteral Degree",
   "Doctorate Degree",
+];
+const religionOptions = [
+  "Roman Catholic",
+  "Christian",
+  "Iglesia Ni Cristo",
+  "Muslim",
+  "Buddhist",
+  "Others",
 ];
 
 export default function ViewResidentModal({
@@ -423,14 +431,21 @@ export default function ViewResidentModal({
                           <FormItem>
                             <FormLabel>Religion</FormLabel>
                             <FormControl>
-                              <Input
-                                id="religion"
-                                type="text"
-                                placeholder="Enter Religion"
-                                required
-                                {...field}
-                                className="text-black"
-                              />
+                              <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select Religion" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {religionOptions.map((option) => (
+                                    <SelectItem key={option} value={option}>
+                                      {option}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             </FormControl>
                           </FormItem>
                         )}
