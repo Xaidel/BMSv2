@@ -60,8 +60,8 @@ export default function Residency() {
   const [civilStatus, setCivilStatus] = useState("");
   const allResidents = useMemo(() => {
     return residents.map((res) => ({
-      value: `${res.Firstname} ${res.Lastname}`.toLowerCase(),
-      label: `${res.Firstname} ${res.Lastname}`,
+      value: `${res.Firstname} ${res.Middlename ? res.Middlename.charAt(0) + ". " : ""}${res.Lastname}`.toLowerCase(),
+      label: `${res.Firstname} ${res.Middlename ? res.Middlename.charAt(0) + ". " : ""}${res.Lastname}`,
       data: res,
     }));
   }, [residents]);
@@ -118,8 +118,8 @@ export default function Residency() {
         if (Array.isArray(res.residents)) {
           setResidents(res.residents);
           const allRes = res.residents.map((res) => ({
-            value: `${res.Firstname} ${res.Lastname}`.toLowerCase(),
-            label: `${res.Firstname} ${res.Lastname}`,
+            value: `${res.Firstname} ${res.Middlename ? res.Middlename.charAt(0) + ". " : ""}${res.Lastname}`.toLowerCase(),
+            label: `${res.Firstname} ${res.Middlename ? res.Middlename.charAt(0) + ". " : ""}${res.Lastname}`,
             data: res,
           }));
           const selected = allRes.find((r) => r.value === value)?.data;
@@ -352,7 +352,7 @@ export default function Residency() {
                 try {
                   const cert: any = {
                     resident_id: selectedResident.ID,
-                    resident_name: `${selectedResident.Firstname} ${selectedResident.Lastname}`,
+                    resident_name: `${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}`,
                     type_: "Residency Certificate",
                     amount: amount ? parseFloat(amount) : 0,
                     issued_date: new Date().toISOString().split("T")[0],
@@ -363,7 +363,7 @@ export default function Residency() {
                   };
                   await addCertificate.mutateAsync(cert);
                   toast.success("Certificate saved successfully!", {
-                    description: `${selectedResident.Firstname} ${selectedResident.Lastname}'s certificate was saved.`,
+                    description: `${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}'s certificate was saved.`,
                   });
                 } catch (error) {
                   console.error("Save certificate failed:", error);
@@ -401,7 +401,7 @@ export default function Residency() {
                             This is to certify that{" "}
                           </Text>
                           <Text style={{ fontWeight: "bold" }}>
-                            {`${selectedResident.Firstname} ${selectedResident.Lastname}`.toUpperCase()}
+                            {`${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}`.toUpperCase()}
                           </Text>
                           <Text>
                             , {age || "___"} years old, {civilStatus || "___"},

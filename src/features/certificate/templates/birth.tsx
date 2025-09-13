@@ -505,7 +505,7 @@ export default function Birth() {
                   const { mutateAsync: addCertificate } = useAddCertificate();
                   await addCertificate({
                     ResidentID: selectedResident.id,
-                    ResidentName: `${selectedResident.first_name} ${selectedResident.last_name}`,
+                    ResidentName: `${selectedResident.first_name} ${selectedResident.middle_name ? selectedResident.middle_name.charAt(0) + ". " : ""}${selectedResident.last_name}`,
                     Type: "Birth Certificate",
                     IssuedDate: new Date().toISOString().split("T")[0],
                     Age: selectedResident?.age ?? undefined,
@@ -514,7 +514,7 @@ export default function Birth() {
                     Amount: amount ? parseFloat(amount) : 0,
                   });
                   toast.success("Certificate saved successfully!", {
-                    description: `${selectedResident.first_name} ${selectedResident.last_name}'s certificate was saved.`
+                    description: `${selectedResident.first_name} ${selectedResident.middle_name ? selectedResident.middle_name.charAt(0) + ". " : ""}${selectedResident.last_name}'s certificate was saved.`
                   });
                 } catch (error) {
                   console.error("Save certificate failed:", error);

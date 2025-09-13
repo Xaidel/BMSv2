@@ -36,7 +36,7 @@ const data: Certificate[] = [
   { type: "Registration of Birth", path: "registration-birth" }, // done
   { type: "Solo Parent Certificate", path: "cert-solo" }, //done
   { type: "Unemployment Certificate", path: "cert-unemployment" }, //done
-  { type: "Certification of First Job Seeker", path: "cert-job" }, // done
+  { type: "First Job Seeker Certificate", path: "cert-job" }, // done
   // { type: "Certification of BARC", path: "cert-barc" },
   // { type: "Certification of Blood", path: "cert-blood" },
   // { type: "Certification of Cut Tree", path: "cert-cut" },
