@@ -46,40 +46,40 @@ export const eventSchema = z.object({
 })
 
 export const residentSchema = z.object({
-  Firstname: z.string().min(1),
+  Firstname: z.string().min(1).optional(),
   Middlename: z.string().nullable().optional(),
-  Lastname: z.string().min(1),
+  Lastname: z.string().min(1).optional(),
   Suffix: z.string().nullable().optional(),
-  CivilStatus: z.string().min(1),
-  Gender: z.union([z.enum(["Male", "Female"]), 
+  CivilStatus: z.string().min(1).optional(),
+  Gender: z.union([z.enum(["Male", "Female"]),
         z.literal("")
-  ]),
-  Nationality: z.string().min(1),
-  Occupation: z.string().min(1),
-  MobileNumber: z.string().regex(/^09\d{9}$/, "Invalid mobile number").optional(),
-  Birthday: z.coerce.date({ required_error: "Birthday required" }),
-  Birthplace: z.string().min(1),
-  Zone: z.coerce.number(),
-  EducationalAttainment: z.string().min(1),
-  Religion: z.string().min(1),
-  Barangay: z.string().min(1),
-  Town: z.string().min(1),
-  Province: z.string().min(1),
+  ]).optional(),
+  Nationality: z.string().min(1).optional(),
+  Occupation: z.string().min(1).optional(),
+  MobileNumber: z.string().regex(/^09\d{9}$/, "Invalid mobile number").nullable().optional(),
+  Birthday: z.coerce.date({ required_error: "Birthday required" }).optional(),
+  Birthplace: z.string().nullable().optional(),
+  Zone: z.coerce.number().optional(),
+  EducationalAttainment: z.string().min(1).optional(),
+  Religion: z.string().min(1).optional(),
+  Barangay: z.string().min(1).optional(),
+  Town: z.string().min(1).optional(),
+  Province: z.string().min(1).optional(),
   Status: z.union([
     z.enum(["Active", "Dead", "Missing", "Moved Out"]),
     z.literal("")
-  ]),
+  ]).optional(),
   Image: z.instanceof(File).optional().nullable(),
-  IsVoter: z.boolean().default(false),
-  IsPWD: z.boolean().default(false),
-  IsSolo: z.boolean().default(false),
-  IsSenior: z.boolean().default(false),
+  IsVoter: z.coerce.boolean().default(false),
+  IsPWD: z.coerce.boolean().default(false),
+  IsSolo: z.coerce.boolean().default(false),
+  IsSenior: z.coerce.boolean().default(false),
   AvgIncome: z.coerce.number()
-});
+}).optional();
 
 export const householdSchema = z.object({
   HouseholdNumber: z.string().min(1, { message: "Household number is required" }),
-  Type: z.string().min(2, { message: "Household type is too short" }).max(50, { message: "Household type is too long." }),
+  Type: z.string().min(2, { message: "Household type is too short" }).max(50, { message: "Household type is too long." }).optional(),
   Member: z.array(z.object({
     ID: z.number().optional(),
     Firstname: z.string(),
@@ -87,10 +87,10 @@ export const householdSchema = z.object({
     Lastname: z.string(),
     Suffix: z.string().optional().nullable()
   })).min(1, { message: "At least one member is required" }),
-  Head: z.string().min(2, { message: "Household head name is too short" }).max(50, { message: "Household head name is too long" }),
-  Zone: z.string().min(1, { message: "Zone is required" }),
-  Date: z.date({ required_error: "Please specify the registration date" }),
-  Status: z.enum(["Moved Out", "Active"]),
+  Head: z.string().min(2, { message: "Household head name is too short" }).max(50, { message: "Household head name is too long" }).optional(),
+  Zone: z.string().min(1, { message: "Zone is required" }).optional(),
+  Date: z.date({ required_error: "Please specify the registration date" }).optional(),
+  Status: z.enum(["Moved Out", "Active"]).optional(),
   SelectedResident: z.array(z.string()).optional()
 })
 

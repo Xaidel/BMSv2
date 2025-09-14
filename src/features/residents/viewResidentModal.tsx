@@ -414,7 +414,6 @@ export default function ViewResidentModal({
                                 id="mobileNumber"
                                 type="text"
                                 placeholder="Enter mobile number"
-                                required
                                 {...field}
                                 className="text-black"
                               />
@@ -555,7 +554,7 @@ export default function ViewResidentModal({
                           <FormControl>
                             <input
                               type="checkbox"
-                              checked={field.value}
+                              checked={field.value ?? false}
                               onChange={field.onChange}
                               className="mr-2"
                             />
@@ -572,7 +571,7 @@ export default function ViewResidentModal({
                           <FormControl>
                             <input
                               type="checkbox"
-                              checked={field.value}
+                              checked={field.value ?? false}
                               onChange={field.onChange}
                               className="mr-2"
                             />
@@ -589,7 +588,7 @@ export default function ViewResidentModal({
                           <FormControl>
                             <input
                               type="checkbox"
-                              checked={field.value}
+                              checked={field.value ?? false}
                               onChange={field.onChange}
                               className="mr-2"
                             />
@@ -606,7 +605,7 @@ export default function ViewResidentModal({
                           <FormControl>
                             <input
                               type="checkbox"
-                              checked={field.value}
+                              checked={field.value ?? false}
                               onChange={field.onChange}
                               className="mr-2"
                             />
@@ -645,7 +644,6 @@ export default function ViewResidentModal({
                                 id="townOfBirth"
                                 type="text"
                                 placeholder="Enter town/city of birth"
-                                required
                                 {...field}
                                 className="text-black"
                               />
