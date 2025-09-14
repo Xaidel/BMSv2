@@ -36,9 +36,8 @@ const columns: ColumnDef<Resident>[] = [
     header: "Full Name",
     cell: ({ row }) => {
       const r = row.original;
-
       const middleName = r.Middlename ? r.Middlename : "";
-      const fullName = `${r.Lastname}, ${r.Firstname} ${middleName}`;
+      const fullName = `${r.Lastname}, ${r.Firstname} ${middleName} ${r.Suffix || ""}`;
       return <div>{fullName}</div>;
     },
   },
