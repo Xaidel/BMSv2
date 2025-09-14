@@ -390,7 +390,7 @@ export default function Jobseeker() {
                 try {
                   const cert: any = {
                     resident_id: selectedResident.ID,
-                    resident_name: `${selectedResident.Firstname} ${selectedResident.Lastname}`,
+                    resident_name: `${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}`,
                     type_: "Jobseeker Certificate",
                     amount: amount ? parseFloat(amount) : 0,
                     issued_date: new Date().toISOString().split("T")[0],
@@ -401,7 +401,7 @@ export default function Jobseeker() {
                   };
                   await addCertificate(cert);
                   toast.success("Certificate saved successfully!", {
-                    description: `${selectedResident.Firstname} ${selectedResident.Lastname}'s certificate was saved.`,
+                    description: `${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}'s certificate was saved.`,
                   });
                 } catch (error) {
                   console.error("Save certificate failed:", error);
@@ -439,7 +439,7 @@ export default function Jobseeker() {
                           This is to certify that{" "}
                         </Text>
                         <Text style={{ fontWeight: "bold" }}>
-                          {`${selectedResident.Firstname} ${selectedResident.Lastname}`.toUpperCase()}
+                          {`${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}`.toUpperCase()}
                         </Text>
                         <Text>
                           , {age || "___"} years old, {civilStatus || "___"},

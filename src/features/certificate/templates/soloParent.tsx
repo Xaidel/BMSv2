@@ -406,7 +406,7 @@ export default function soloParent() {
                 try {
                   const cert: any = {
                     resident_id: selectedResident.id,
-                    resident_name: `${selectedResident.first_name} ${selectedResident.last_name}`,
+                    resident_name: `${selectedResident.first_name} ${selectedResident.middle_name ? selectedResident.middle_name.charAt(0) + ". " : ""}${selectedResident.last_name}`,
                     type_: "Solo Parent Certificate",
                     amount: amount ? parseFloat(amount) : 0,
                     issued_date: new Date().toISOString().split("T")[0],
@@ -419,7 +419,7 @@ export default function soloParent() {
                   await addCertificate(cert);
 
                   toast.success("Certificate saved successfully!", {
-                    description: `${selectedResident.first_name} ${selectedResident.last_name}'s certificate was saved.`,
+                    description: `${selectedResident.first_name} ${selectedResident.middle_name ? selectedResident.middle_name.charAt(0) + ". " : ""}${selectedResident.last_name}'s certificate was saved.`,
                   });
                 } catch (error) {
                   console.error("Save certificate failed:", error);
@@ -457,7 +457,7 @@ export default function soloParent() {
                           This is to certify that{" "}
                         </Text>
                         <Text style={{ fontWeight: "bold" }}>
-                          {`${selectedResident.first_name} ${selectedResident.last_name}`.toUpperCase()}
+                          {`${selectedResident.first_name} ${selectedResident.middle_name ? selectedResident.middle_name.charAt(0) + ". " : ""}${selectedResident.last_name}`.toUpperCase()}
                         </Text>
                         <Text>
                           , {age || "___"} years old, {civilStatus || "___"},

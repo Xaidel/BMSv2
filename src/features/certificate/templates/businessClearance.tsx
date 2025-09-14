@@ -372,7 +372,7 @@ export default function BusinessClearance() {
                 try {
                   const cert: any = {
                     resident_id: selectedResident.id,
-                    resident_name: `${selectedResident.first_name} ${selectedResident.last_name}`,
+                    resident_name: `${selectedResident.first_name} ${selectedResident.middle_name ? selectedResident.middle_name.charAt(0) + ". " : ""}${selectedResident.last_name}`,
                     type_: "Barangay Business Clearance",
                     amount: parseFloat(amount),
                     issued_date: new Date().toISOString().split("T")[0],
@@ -383,7 +383,7 @@ export default function BusinessClearance() {
                   };
                   await addCertificate(cert);
                   toast.success("Certificate saved successfully!", {
-                    description: `${selectedResident.first_name} ${selectedResident.last_name}'s certificate was saved.`,
+                    description: `${selectedResident.first_name} ${selectedResident.middle_name ? selectedResident.middle_name.charAt(0) + ". " : ""}${selectedResident.last_name}'s certificate was saved.`,
                   });
                 } catch (error) {
                   console.error("Save certificate failed:", error);

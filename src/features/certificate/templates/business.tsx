@@ -313,7 +313,7 @@ export default function BusinessPermit() {
               try {
                 const cert: any = {
                   resident_id: selectedResident.ID,
-                  resident_name: `${selectedResident.Firstname} ${selectedResident.Lastname}`,
+                  resident_name: `${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}`,
                   type_: "Barangay Business Permit",
                   amount: parseFloat(amount),
                   issued_date: new Date().toISOString().split("T")[0],
@@ -324,7 +324,7 @@ export default function BusinessPermit() {
                 };
                 await addCertificate(cert);
                 toast.success("Certificate saved successfully!", {
-                  description: `${selectedResident.Firstname} ${selectedResident.Lastname}'s certificate was saved.`,
+                  description: `${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}'s certificate was saved.`,
                 });
               } catch (error) {
                 console.error("Save certificate failed:", error);

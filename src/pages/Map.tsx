@@ -3,6 +3,7 @@ import Pasacao from "@/assets/geojson/Pasacao.json";
 import Street from "@/assets/geojson/Street.json";
 import Border from "@/assets/geojson/Border.json";
 import Building from "@/assets/geojson/Building.json";
+import Zone from "@/assets/geojson/Zone.json";
 import { GeoJSON, MapContainer } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -238,6 +239,21 @@ export default function Map() {
     });
   };
 
+const onEachZone = (zone, layer) => {
+  const id = zone.properties?.id || "Unknown";
+  switch(id){
+    case 1: layer.setStyle({color: "red", fillColor: "red", fillOpacity: 0.1}); break;
+    case 2: layer.setStyle({color: "blue", fillColor: "blue", fillOpacity: 0.1}); break;
+    case 3: layer.setStyle({color: "green", fillColor: "green", fillOpacity: 0.1}); break;
+    case 4: layer.setStyle({color: "purple", fillColor: "purple", fillOpacity: 0.1}); break;
+    case 5: layer.setStyle({color: "orange", fillColor: "orange", fillOpacity: 0.1}); break;
+    case 6: layer.setStyle({color: "brown", fillColor: "brown", fillOpacity: 0.1}); break;
+    case 7: layer.setStyle({color: "brown", fillColor: "brown", fillOpacity: 0.1}); break;
+    default: layer.setStyle({color: "gray", fillColor: "gray", fillOpacity: 0.1}); break;
+  }
+  layer.bindTooltip(`Zone ${id}`, { permanent: false, direction: "top", sticky: true });
+}
+
   return (
     <div className="relative w-[85vw] h-[80vh] border-1 p-10 rounded-2xl overflow-hidden shadow-md mx-auto">
       <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-[1000] w-[300px]">
@@ -281,6 +297,7 @@ export default function Map() {
         zoomSnap={0.3}
       >
         <GeoJSON data={Border.features as any} style={borderStyle} />
+        <GeoJSON data={Zone.features as any} onEachFeature={onEachZone}/>
         <GeoJSON
           data={Pasacao.features as any}
           style={roadStyle}
