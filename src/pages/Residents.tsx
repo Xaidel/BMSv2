@@ -6,7 +6,7 @@ import Searchbar from "@/components/ui/searchbar";
 import AddResidentModal from "@/features/residents/addResidentModal";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import {Trash, Users, UserCheck, UserMinus, Mars, Venus, User, Eye, Accessibility,} from "lucide-react";
+import { Trash, Users, UserCheck, UserMinus, Mars, Venus, User, Eye, Accessibility, } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { sort } from "@/service/resident/residentSort";
@@ -36,6 +36,7 @@ const columns: ColumnDef<Resident>[] = [
     header: "Full Name",
     cell: ({ row }) => {
       const r = row.original;
+
       const middleName = r.Middlename ? r.Middlename : "";
       const fullName = `${r.Lastname}, ${r.Firstname} ${middleName}`;
       return <div>{fullName}</div>;
@@ -442,8 +443,8 @@ export default function Residents() {
                   table.getIsAllPageRowsSelected()
                     ? true
                     : table.getIsSomePageRowsSelected()
-                    ? "indeterminate"
-                    : false
+                      ? "indeterminate"
+                      : false
                 }
                 onCheckedChange={(value) => {
                   table.toggleAllPageRowsSelected(!!value);
