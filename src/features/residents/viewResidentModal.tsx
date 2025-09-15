@@ -144,7 +144,7 @@ export default function ViewResidentModal({
       if (formValue !== residentValue) {
         // ✅ Special case for date_of_birth -> format as YYYY-MM-DD
         if (key === "Birthday" && formValue instanceof Date) {
-          updated[residentKey] = formValue.toISOString().split("T")[0]; // "2002-08-03"
+          updated[residentKey] = format(formValue, "yyyy-MM-dd"); // "2002-08-03"
         } else {
           updated[residentKey] = formValue as any;
         }
