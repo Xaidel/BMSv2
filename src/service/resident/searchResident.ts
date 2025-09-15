@@ -14,6 +14,7 @@ export default function searchResident(term: string, data: Resident[]) {
       resident.Status,
       resident.Zone,
       resident.CivilStatus,
+      resident.Suffix
     ];
 
     const fullName = `${resident.Firstname} ${resident.Middlename ?? ""} ${resident.Lastname}`.trim();

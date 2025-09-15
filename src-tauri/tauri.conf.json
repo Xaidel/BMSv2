@@ -5,7 +5,7 @@
   "identifier": "com.bms.app",
   "build": {
     "beforeDevCommand": "npm run dev",
-    "devUrl": "http://localhost:1420",
+    "devUrl": "http://192.168.123.36:1420",
     "beforeBuildCommand": "npm run build",
     "frontendDist": "../dist"
   },

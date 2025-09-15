@@ -248,7 +248,7 @@ const onEachZone = (zone, layer) => {
     case 4: layer.setStyle({color: "purple", fillColor: "purple", fillOpacity: 0.1}); break;
     case 5: layer.setStyle({color: "orange", fillColor: "orange", fillOpacity: 0.1}); break;
     case 6: layer.setStyle({color: "brown", fillColor: "brown", fillOpacity: 0.1}); break;
-    case 7: layer.setStyle({color: "brown", fillColor: "brown", fillOpacity: 0.1}); break;
+    case 7: layer.setStyle({color: "pink", fillColor: "pink", fillOpacity: 0.1}); break;
     default: layer.setStyle({color: "gray", fillColor: "gray", fillOpacity: 0.1}); break;
   }
   layer.bindTooltip(`Zone ${id}`, { permanent: false, direction: "top", sticky: true });
@@ -363,6 +363,36 @@ const onEachZone = (zone, layer) => {
           <div className="flex items-center mt-1">
             <div className="w-6 h-6 border-2 mr-2" style={{ backgroundColor: 'lightgray', borderColor: 'gray' }}></div>
             Unassigned
+          </div>
+          {/* Zones Legend */}
+          <h2 className="font-bold mt-4 mb-2">Zones</h2>
+          <div className="flex items-center mb-1">
+            <div className="w-6 h-6 border-2 mr-2" style={{ backgroundColor: 'red', borderColor: 'red' }}></div>
+            Zone 1
+          </div>
+          <div className="flex items-center mb-1">
+            <div className="w-6 h-6 border-2 mr-2" style={{ backgroundColor: 'blue', borderColor: 'blue' }}></div>
+            Zone 2
+          </div>
+          <div className="flex items-center mb-1">
+            <div className="w-6 h-6 border-2 mr-2" style={{ backgroundColor: 'green', borderColor: 'green' }}></div>
+            Zone 3
+          </div>
+          <div className="flex items-center mb-1">
+            <div className="w-6 h-6 border-2 mr-2" style={{ backgroundColor: 'purple', borderColor: 'purple' }}></div>
+            Zone 4
+          </div>
+          <div className="flex items-center mb-1">
+            <div className="w-6 h-6 border-2 mr-2" style={{ backgroundColor: 'orange', borderColor: 'orange' }}></div>
+            Zone 5
+          </div>
+          <div className="flex items-center mb-1">
+            <div className="w-6 h-6 border-2 mr-2" style={{ backgroundColor: 'brown', borderColor: 'brown' }}></div>
+            Zone 6
+          </div>
+          <div className="flex items-center">
+            <div className="w-6 h-6 border-2 mr-2" style={{ backgroundColor: 'pink', borderColor: 'pink' }}></div>
+            Zone 7
           </div>
         </div>
       <h1 className="mt-2 text-end">Tambo Land Area
