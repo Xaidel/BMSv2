@@ -35,7 +35,7 @@ const filters = [
 
 const columns: ColumnDef<Blotter>[] = [
   {
-    header: "Blotter ID",
+    header: "Case Number",
     accessorKey: "ID",
   },
   {
