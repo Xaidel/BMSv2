@@ -15,6 +15,7 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Popover,
   PopoverContent,
@@ -41,6 +42,7 @@ export default function AddBlotterModal() {
   const queryClient = useQueryClient();
 
   const [step, setStep] = useState(1);
+  const [customType, setCustomType] = useState("");
 
   const form = useForm<z.infer<typeof blotterSchema>>({
     resolver: zodResolver(blotterSchema),
@@ -114,14 +116,65 @@ export default function AddBlotterModal() {
                         <FormItem>
                           <FormLabel>Type</FormLabel>
                           <FormControl>
-                            <Input
-                              id="Type"
-                              type="text"
-                              placeholder="Enter crime type"
-                              required
-                              {...field}
-                              className="text-black"
-                            />
+                            <div className="flex gap-2">
+                              <Select
+                                value={[
+                                  "Theft",
+                                  "Assault",
+                                  "Vandalism",
+                                  "Robbery",
+                                  "Fraud",
+                                  "Assault with Injury",
+                                  "Drug Offense",
+                                  "Traffic Violation"
+                                ].includes(field.value) ? field.value : "Other"}
+                                onValueChange={(val) => {
+                                  if (val === "Other") {
+                                    field.onChange("");
+                                    setCustomType("");
+                                  } else {
+                                    field.onChange(val);
+                                    setCustomType("");
+                                  }
+                                }}
+                              >
+                                <SelectTrigger className="text-black flex-1">
+                                  <SelectValue placeholder="Select Type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Theft">Theft</SelectItem>
+                                  <SelectItem value="Assault">Assault</SelectItem>
+                                  <SelectItem value="Robbery">Robbery</SelectItem>
+                                  <SelectItem value="Fraud">Fraud</SelectItem>
+                                  <SelectItem value="Assault with Injury">Assault with Injury</SelectItem>
+                                  <SelectItem value="Vandalism">Vandalism</SelectItem>
+                                  <SelectItem value="Drug Offense">Drug Offense</SelectItem>
+                                  <SelectItem value="Traffic Violation">Traffic Violation</SelectItem>
+                                  <SelectItem value="Other">Other</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              {![
+                                "Theft",
+                                "Assault",
+                                "Vandalism",
+                                "Robbery",
+                                "Fraud",
+                                "Assault with Injury",
+                                "Drug Offense",
+                                "Traffic Violation"
+                              ].includes(field.value) && (
+                                <Input
+                                  type="text"
+                                  placeholder="Please specify type"
+                                  value={customType}
+                                  onChange={(e) => {
+                                    setCustomType(e.target.value);
+                                    field.onChange(e.target.value);
+                                  }}
+                                  className="text-black flex-1"
+                                />
+                              )}
+                            </div>
                           </FormControl>
                         </FormItem>
                       )}
