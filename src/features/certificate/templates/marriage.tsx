@@ -17,6 +17,13 @@ import getResident from "@/service/api/resident/getResident";
 import { useAddCertificate } from "@/features/api/certificate/useAddCertificate";
 import CertificateHeader from "../certificateHeader";
 import CertificateFooter from "../certificateFooter";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Buffer } from "buffer";
 
 if (!window.Buffer) {
@@ -41,6 +48,7 @@ export default function Marriage() {
   const [value2, setValue2] = useState("")
   const [residents, setResidents] = useState<Resident[]>([]);
   const [amount, setAmount] = useState("100.00");
+  const [assignedOfficial, setAssignedOfficial] = useState("");
   const [ageMale, setAgeMale] = useState("");
   const [civilStatusMale, setCivilStatusMale] = useState("");
   const [ageFemale, setAgeFemale] = useState("");
@@ -375,6 +383,31 @@ export default function Marriage() {
                 placeholder="Enter amount"
               />
             </div>
+            <div className="mt-4">
+              <label
+                htmlFor="assignedOfficial"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Assigned Official
+              </label>
+              <Select value={assignedOfficial} onValueChange={setAssignedOfficial}>
+                <SelectTrigger className="w-full border rounded px-3 py-2 text-sm">
+                  <SelectValue placeholder="-- Select Official --" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Array.isArray(officials) ? officials : officials?.officials || [])
+                    .filter((official: any) => {
+                      const role = (official.Role || "").toLowerCase();
+                      return !role.includes("sk") && !role.includes("tanod");
+                    })
+                    .map((official: any) => (
+                      <SelectItem key={official.ID} value={official.Name}>
+                        {official.Name} - {official.Role}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
           </CardContent>
           <CardFooter className="flex justify-between items-center gap-4">
             <Button
@@ -434,10 +467,11 @@ export default function Marriage() {
                       <Text style={styles.bodyText}>Please select a resident to view certificate.</Text>
                     )}
                       <CertificateFooter
-                      styles={styles}
-                      captainName={captainName}
-                      amount={amount}
-                    />
+                        styles={styles}
+                        captainName={captainName}
+                        amount={amount}
+                        assignedOfficial={assignedOfficial}
+                      />
                   </View>
               </Page>
             </Document>
