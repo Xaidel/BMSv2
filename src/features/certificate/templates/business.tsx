@@ -66,6 +66,7 @@ export default function BusinessPermit() {
   const [businessLocation, setBusinessLocation] = useState("");
   const [businessOwner, setBusinessOwner] = useState("");
   const [amount, setAmount] = useState("100.00");
+  const [assignedOfficial, setAssignedOfficial] = useState("");
   const [age, setAge] = useState("");
   const [civilStatus, setCivilStatus] = useState("");
   const [purpose, setPurpose] = useState("");
@@ -274,8 +275,7 @@ export default function BusinessPermit() {
                 placeholder="e.g., 150.00"
               />
             </div>
-          </div>
-          <div className="mt-1">
+            <div className="mt-1">
             <label htmlFor="purpose" className="block text-sm font-medium text-gray-700 mb-0.5">
               Purpose of Certificate
             </label>
@@ -301,6 +301,32 @@ export default function BusinessPermit() {
                 placeholder="Please specify the purpose"
               />
             )}
+          </div>
+            <div className="mt-1">
+              <label
+                htmlFor="assignedOfficial"
+                className="block text-sm font-medium text-gray-700 mb-0.5"
+              >
+                Assigned Official
+              </label>
+              <Select value={assignedOfficial} onValueChange={setAssignedOfficial}>
+                <SelectTrigger className="w-full border rounded px-3 py-2 text-sm">
+                  <SelectValue placeholder="-- Select Official --" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Array.isArray(officials) ? officials : officials?.officials || [])
+                    .filter((official: any) => {
+                      const role = (official.Role || "").toLowerCase();
+                      return !role.includes("sk") && !role.includes("tanod");
+                    })
+                    .map((official: any) => (
+                      <SelectItem key={official.ID} value={official.Name}>
+                        {official.Name} - {official.Role}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
         <CardFooter className="flex justify-between items-center gap-2">
@@ -402,7 +428,12 @@ export default function BusinessPermit() {
                   Given this{" "}
                   {new Date().toLocaleDateString("en-PH", { day: "numeric", month: "long", year: "numeric" })}, at {settings ? settings.Barangay : "________________"},{settings ? settings.Municipality : "________________"},{settings ? settings.Province : "________________"}
                 </Text>
-                <CertificateFooter styles={styles} captainName={captainName ?? ""} amount={amount} />
+                <CertificateFooter
+                  styles={styles}
+                  captainName={captainName ?? ""}
+                  amount={amount}
+                  assignedOfficial={assignedOfficial}
+                />
               </View>
             </Page>
           </Document>

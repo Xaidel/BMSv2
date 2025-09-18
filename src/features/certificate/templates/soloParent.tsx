@@ -72,6 +72,7 @@ export default function soloParent() {
   const [soloParentText, setSoloParentText] = useState("");
   const [purpose, setPurpose] = useState("");
   const [customPurpose, setCustomPurpose] = useState("");
+  const [assignedOfficial, setAssignedOfficial] = useState("");
 
   // logos are loaded like in Fourps, even if not used directly
   const [, setLogoDataUrl] = useState<string | null>(null);
@@ -394,6 +395,32 @@ export default function soloParent() {
                   placeholder="e.g., 10.00"
                 />
               </div>
+              {/* Assigned Official block */}
+              <div className="mt-4">
+                <label
+                  htmlFor="assignedOfficial"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Assigned Official
+                </label>
+                <Select value={assignedOfficial} onValueChange={setAssignedOfficial}>
+                  <SelectTrigger className="w-full border rounded px-3 py-2 text-sm">
+                    <SelectValue placeholder="-- Select Official --" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(Array.isArray(officials) ? officials : officials?.officials || [])
+                      .filter((official: any) => {
+                        const role = (official.Role || "").toLowerCase();
+                        return !role.includes("sk") && !role.includes("tanod");
+                      })
+                      .map((official: any) => (
+                        <SelectItem key={official.ID} value={official.Name}>
+                          {official.Name} - {official.Role}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardContent>
           <CardFooter className="flex justify-between items-center gap-4">
@@ -520,6 +547,7 @@ export default function soloParent() {
                     styles={styles}
                     captainName={captainName ?? ""}
                     amount={amount}
+                    assignedOfficial={assignedOfficial}
                   />
                 </View>
               </Page>

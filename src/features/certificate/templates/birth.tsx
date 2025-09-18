@@ -2,6 +2,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Command, CommandEmpty, CommandInput, CommandItem } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { PDFViewer } from "@react-pdf/renderer";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
@@ -76,6 +83,7 @@ export default function Birth() {
   const [placeOfMarriage, setPlaceOfMarriage] = useState("");
   const [attendantAtBirth, setAttendantAtBirth] = useState("");
   const [amount, setAmount] = useState("100.00");
+  const [assignedOfficial, setAssignedOfficial] = useState("");
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null)
   const [logoMunicipalityDataUrl, setLogoMunicipalityDataUrl] = useState<string | null>(null);
   const [, setSettings] = useState<{ barangay: string; municipality: string; province: string } | null>(null);
@@ -492,6 +500,31 @@ export default function Birth() {
                   placeholder="e.g. 10.00"
                 />
               </div>
+              <div className="mt-4">
+                <label
+                  htmlFor="assignedOfficial"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Assigned Official
+                </label>
+                <Select value={assignedOfficial} onValueChange={setAssignedOfficial}>
+                  <SelectTrigger className="w-full border rounded px-3 py-2 text-sm">
+                    <SelectValue placeholder="-- Select Official --" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(Array.isArray(officials) ? officials : officials?.officials || [])
+                      .filter((official: any) => {
+                        const role = (official.Role || "").toLowerCase();
+                        return !role.includes("sk") && !role.includes("tanod");
+                      })
+                      .map((official: any) => (
+                        <SelectItem key={official.ID} value={official.Name}>
+                          {official.Name} - {official.Role}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardContent>
           <CardFooter className="flex justify-between items-center">
@@ -629,6 +662,11 @@ export default function Birth() {
                           {preparedBy || "________________"}
                         </Text>
                         <Text style={styles.bodyText}>Barangay Secretary</Text>
+                        <View style={{ marginTop: 20 }}>
+                          <Text style={styles.bodyText}>O.R. No.: ____________________</Text>
+                          <Text style={styles.bodyText}>Date: _________________________</Text>
+                          <Text style={styles.bodyText}>Amount: PHP {amount}</Text>
+                        </View>
                       </View>
                       <View>
                         <Text style={[styles.bodyText, { fontWeight: "bold" }]}>Noted:</Text>
@@ -636,13 +674,15 @@ export default function Birth() {
                           HON. {captainName || "________________"}
                         </Text>
                         <Text style={styles.bodyText}>Barangay Captain</Text>
+                        {assignedOfficial && (
+                          <View style={{ marginTop: 20 }}>
+                            <Text style={[styles.bodyText, { marginBottom: 4, fontWeight: "bold" }]}>
+                              HON. {assignedOfficial}
+                            </Text>
+                            <Text style={styles.bodyText}>Officer in charge today</Text>
+                          </View>
+                        )}
                       </View>
-                    </View>
-
-                    <View style={{ marginTop: 20 }}>
-                      <Text style={styles.bodyText}>O.R. No.: ____________________</Text>
-                      <Text style={styles.bodyText}>Date: _________________________</Text>
-                      <Text style={styles.bodyText}>Amount: PHP {amount}</Text>
                     </View>
                   </View>
                 </View>

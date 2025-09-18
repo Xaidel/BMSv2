@@ -79,6 +79,7 @@ export default function Fourps() {
     return allResidents.find((res) => res.value === value)?.data;
   }, [allResidents, value]);
   const [amount, setAmount] = useState("100.00");
+  const [assignedOfficial, setAssignedOfficial] = useState("");
   const [ownershipText, setOwnershipText] = useState("");
   const [settings, setSettings] = useState<{
     barangay: string;
@@ -361,6 +362,31 @@ export default function Fourps() {
                   placeholder="e.g., 10.00"
                 />
               </div>
+              <div className="mt-4">
+                <label
+                  htmlFor="assignedOfficial"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Assigned Official
+                </label>
+                <Select value={assignedOfficial} onValueChange={setAssignedOfficial}>
+                  <SelectTrigger className="w-full border rounded px-3 py-2 text-sm">
+                    <SelectValue placeholder="-- Select Official --" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(Array.isArray(officials) ? officials : officials?.officials || [])
+                      .filter((official: any) => {
+                        const role = (official.Role || "").toLowerCase();
+                        return !role.includes("sk") && !role.includes("tanod");
+                      })
+                      .map((official: any) => (
+                        <SelectItem key={official.ID} value={official.Name}>
+                          {official.Name} - {official.Role}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardContent>
           <CardFooter className="flex justify-between items-center gap-4">
@@ -475,10 +501,11 @@ export default function Fourps() {
                       </Text>
                     )}
                       <CertificateFooter
-                      styles={styles}
-                      captainName={captainName}
-                      amount={amount}
-                    />
+                        styles={styles}
+                        captainName={captainName}
+                        amount={amount}
+                        assignedOfficial={assignedOfficial}
+                      />
                   </View>
               </Page>
             </Document>

@@ -74,6 +74,7 @@ export default function Unemployment() {
   const [purpose, setPurpose] = useState("");
   const [customPurpose, setCustomPurpose] = useState("");
   const [amount, setAmount] = useState("100.00");
+  const [assignedOfficial, setAssignedOfficial] = useState("");
 
   // Fetch officials and get captain name
   const { data: officials } = useOfficial();
@@ -337,6 +338,31 @@ export default function Unemployment() {
                   placeholder="e.g., 10.00"
                 />
               </div>
+              <div className="mt-4">
+                <label
+                  htmlFor="assignedOfficial"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Assigned Official
+                </label>
+                <Select value={assignedOfficial} onValueChange={setAssignedOfficial}>
+                  <SelectTrigger className="w-full border rounded px-3 py-2 text-sm">
+                    <SelectValue placeholder="-- Select Official --" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(Array.isArray(officials) ? officials : officials?.officials || [])
+                      .filter((official: any) => {
+                        const role = (official.Role || "").toLowerCase();
+                        return !role.includes("sk") && !role.includes("tanod");
+                      })
+                      .map((official: any) => (
+                        <SelectItem key={official.ID} value={official.Name}>
+                          {official.Name} - {official.Role}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardContent>
           <CardFooter className="flex justify-between items-center gap-4">
@@ -469,11 +495,11 @@ export default function Unemployment() {
                     </Text>
                   )}
                   <CertificateFooter
-                      styles={styles}
-                      captainName={captainName}
-                      amount={amount}
-                    />
-                    
+                    styles={styles}
+                    captainName={captainName}
+                    amount={amount}
+                    assignedOfficial={assignedOfficial}
+                  />
                 </View>
               </Page>
             </Document>

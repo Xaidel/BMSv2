@@ -53,6 +53,7 @@ export default function Clearance() {
   const [value, setValue] = useState("");
   const [residents, setResidents] = useState<Resident[]>([]);
   const [amount, setAmount] = useState("100.00");
+  const [assignedOfficial, setAssignedOfficial] = useState("");
   const [age, setAge] = useState("");
   const [civilStatus, setCivilStatus] = useState("");
   const [residencyYear, setResidencyYear] = useState(""); // Add state for residency year
@@ -374,6 +375,31 @@ export default function Clearance() {
                 placeholder="e.g. 10.00"
               />
             </div>
+            <div className="mt-4">
+              <label
+                htmlFor="assignedOfficial"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Assigned Official
+              </label>
+              <Select value={assignedOfficial} onValueChange={setAssignedOfficial}>
+                <SelectTrigger className="w-full border rounded px-3 py-2 text-sm">
+                  <SelectValue placeholder="-- Select Official --" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Array.isArray(officials) ? officials : officials?.officials || [])
+                    .filter((official: any) => {
+                      const role = (official.Role || "").toLowerCase();
+                      return !role.includes("sk") && !role.includes("tanod");
+                    })
+                    .map((official: any) => (
+                      <SelectItem key={official.ID} value={official.Name}>
+                        {official.Name} - {official.Role}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
           </CardContent>
           <CardFooter className="flex justify-between items-center gap-4">
             <Button
@@ -498,6 +524,7 @@ export default function Clearance() {
                       styles={styles}
                       captainName={captainName}
                       amount={amount}
+                      assignedOfficial={assignedOfficial}
                     />
                   </View>
               </Page>
