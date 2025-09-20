@@ -37,7 +37,6 @@ import {
 import CertificateHeader from "../certificateHeader";
 import CertificateFooter from "../certificateFooter";
 
-
 import { useOfficial } from "@/features/api/official/useOfficial";
 import getSettings from "@/service/api/settings/getSettings";
 import getResident from "@/service/api/resident/getResident";
@@ -182,8 +181,8 @@ export default function Fourps() {
               Certificate of Ownership
             </CardTitle>
             <CardDescription className="text-start">
-              Please fill out the necessary information needed for 
-              Certification of Ownership
+              Please fill out the necessary information needed for Certification
+              of Ownership
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -232,9 +231,15 @@ export default function Fourps() {
                                     if (selected.Birthday) {
                                       const dob = new Date(selected.Birthday);
                                       const today = new Date();
-                                      let calculatedAge = today.getFullYear() - dob.getFullYear();
-                                      const m = today.getMonth() - dob.getMonth();
-                                      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                                      let calculatedAge =
+                                        today.getFullYear() - dob.getFullYear();
+                                      const m =
+                                        today.getMonth() - dob.getMonth();
+                                      if (
+                                        m < 0 ||
+                                        (m === 0 &&
+                                          today.getDate() < dob.getDate())
+                                      ) {
                                         calculatedAge--;
                                       }
                                       setAge(calculatedAge.toString());
@@ -320,7 +325,10 @@ export default function Fourps() {
                 </Select>
               </div>
               <div className="mt-4">
-                <label htmlFor="purpose" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="purpose"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Purpose of Certificate
                 </label>
                 <Select value={purpose} onValueChange={setPurpose}>
@@ -333,7 +341,9 @@ export default function Fourps() {
                         {option}
                       </SelectItem>
                     ))}
-                    <SelectItem value="custom">Other (please specify)</SelectItem>
+                    <SelectItem value="custom">
+                      Other (please specify)
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 {purpose === "custom" && (
@@ -369,12 +379,18 @@ export default function Fourps() {
                 >
                   Assigned Official
                 </label>
-                <Select value={assignedOfficial} onValueChange={setAssignedOfficial}>
+                <Select
+                  value={assignedOfficial}
+                  onValueChange={setAssignedOfficial}
+                >
                   <SelectTrigger className="w-full border rounded px-3 py-2 text-sm">
                     <SelectValue placeholder="-- Select Official --" />
                   </SelectTrigger>
                   <SelectContent>
-                    {(Array.isArray(officials) ? officials : officials?.officials || [])
+                    {(Array.isArray(officials)
+                      ? officials
+                      : officials?.officials || []
+                    )
                       .filter((official: any) => {
                         const role = (official.Role || "").toLowerCase();
                         return !role.includes("sk") && !role.includes("tanod");
@@ -399,18 +415,27 @@ export default function Fourps() {
                 try {
                   const cert: any = {
                     resident_id: selectedResident.ID,
-                    resident_name: `${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}`,
+                    resident_name: `${selectedResident.Firstname} ${
+                      selectedResident.Middlename
+                        ? selectedResident.Middlename.charAt(0) + ". "
+                        : ""
+                    }${selectedResident.Lastname}`,
                     type_: "Ownership Certificate",
                     amount: amount ? parseFloat(amount) : 0,
                     issued_date: new Date().toISOString().split("T")[0],
                     ownership_text: ownershipText,
                     civil_status: civilStatus || "",
-                    purpose: purpose === "custom" ? customPurpose || "" : purpose,
+                    purpose:
+                      purpose === "custom" ? customPurpose || "" : purpose,
                     age: age ? parseInt(age) : undefined,
                   };
                   await addCertificate(cert);
                   toast.success("Certificate saved successfully!", {
-                    description: `${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}'s certificate was saved.`,
+                    description: `${selectedResident.Firstname} ${
+                      selectedResident.Middlename
+                        ? selectedResident.Middlename.charAt(0) + ". "
+                        : ""
+                    }${selectedResident.Lastname}'s certificate was saved.`,
                   });
                 } catch (error) {
                   console.error("Save certificate failed:", error);
@@ -428,85 +453,98 @@ export default function Fourps() {
               <Page size="A4" style={styles.page}>
                 <View style={{ position: "relative" }}>
                   <CertificateHeader />
-                    <Text
-                      style={[
-                        styles.bodyText,
-                        { marginBottom: 10, marginTop: 10 },
-                      ]}
-                    >
-                      TO WHOM IT MAY CONCERN:
-                    </Text>
-                    {selectedResident ? (
-                      <>
-                        <Text
-                          style={[
-                            styles.bodyText,
-                            { textAlign: "justify", marginBottom: 8 },
-                          ]}
-                        >
-                          <Text style={{ fontWeight: "bold" }}>
-                            This is to certify that{" "}
-                          </Text>
-                          <Text style={{ fontWeight: "bold" }}>
-                            {`${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}`.toUpperCase()}
-                          </Text>
-                          <Text>
-                            , {age || "___"} years old, {civilStatus || "___"},
-                            a resident of Barangay{" "}
-                            {settings ? settings.barangay : "________________"},{" "}
-                            {settings ? settings.municipality : "________________"},{" "}
-                            {settings ? settings.province : "________________"}{" "}
-                            is the owner of{ownershipText ? ` ` : ""}
-                            {ownershipText && (
-                              <Text style={{ fontWeight: "bold" }}>
-                                {ownershipText}
-                              </Text>
-                            )}
-                            .
-                          </Text>
+                  <Text
+                    style={{
+                      textAlign: "center",
+                      fontWeight: "bold",
+                      fontSize: 24,
+                      marginBottom: 10,
+                      fontFamily: "Times-Roman",
+                    }}
+                  >
+                    CERTIFICATE OF OWNERSHIP
+                  </Text>
+                  <Text
+                    style={[
+                      styles.bodyText,
+                      { marginBottom: 10, marginTop: 10 },
+                    ]}
+                  >
+                    TO WHOM IT MAY CONCERN:
+                  </Text>
+                  {selectedResident ? (
+                    <>
+                      <Text
+                        style={[
+                          styles.bodyText,
+                          { textAlign: "justify", marginBottom: 8 },
+                        ]}
+                      >
+                        <Text style={{ fontWeight: "bold" }}>
+                          This is to certify that{" "}
                         </Text>
-                        <Text
-                          style={[
-                            styles.bodyText,
-                            { textAlign: "justify", marginTop: 10 },
-                          ]}
-                        >
-                          This certification is being issued upon request of the
-                          interested party for record and reference purposes
-                          only.
+                        <Text style={{ fontWeight: "bold" }}>
+                          {`${selectedResident.Firstname} ${
+                            selectedResident.Middlename
+                              ? selectedResident.Middlename.charAt(0) + ". "
+                              : ""
+                          }${selectedResident.Lastname}`.toUpperCase()}
                         </Text>
-                        <Text
-                          style={[
-                            styles.bodyText,
-                            { textAlign: "justify", marginTop: 6 },
-                          ]}
-                        >
-                          Issued this{" "}
-                          {new Date().toLocaleDateString("en-PH", {
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                          })}
-                          , at{" "}
-                          {settings ? settings.barangay : "________________"},
+                        <Text>
+                          , {age || "___"} years old, {civilStatus || "___"}, a
+                          resident of Barangay{" "}
+                          {settings ? settings.barangay : "________________"},{" "}
                           {settings
                             ? settings.municipality
                             : "________________"}
-                          ,{settings ? settings.province : "________________"}
+                          , {settings ? settings.province : "________________"}{" "}
+                          is the owner of{ownershipText ? ` ` : ""}
+                          {ownershipText && (
+                            <Text style={{ fontWeight: "bold" }}>
+                              {ownershipText}
+                            </Text>
+                          )}
+                          .
                         </Text>
-                      </>
-                    ) : (
-                      <Text style={styles.bodyText}>
-                        Please select a resident to view certificate.
                       </Text>
-                    )}
-                      <CertificateFooter
-                        styles={styles}
-                        captainName={captainName}
-                        amount={amount}
-                        assignedOfficial={assignedOfficial}
-                      />
-                  </View>
+                      <Text
+                        style={[
+                          styles.bodyText,
+                          { textAlign: "justify", marginTop: 10 },
+                        ]}
+                      >
+                        This certification is being issued upon request of the
+                        interested party for record and reference purposes only.
+                      </Text>
+                      <Text
+                        style={[
+                          styles.bodyText,
+                          { textAlign: "justify", marginTop: 6 },
+                        ]}
+                      >
+                        Issued this{" "}
+                        {new Date().toLocaleDateString("en-PH", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })}
+                        , at {settings ? settings.barangay : "________________"}
+                        ,{settings ? settings.municipality : "________________"}
+                        ,{settings ? settings.province : "________________"}
+                      </Text>
+                    </>
+                  ) : (
+                    <Text style={styles.bodyText}>
+                      Please select a resident to view certificate.
+                    </Text>
+                  )}
+                  <CertificateFooter
+                    styles={styles}
+                    captainName={captainName}
+                    amount={amount}
+                    assignedOfficial={assignedOfficial}
+                  />
+                </View>
               </Page>
             </Document>
           </PDFViewer>

@@ -1,6 +1,5 @@
 import { Buffer } from "buffer";
 
-
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -72,7 +71,7 @@ export default function Indigency() {
   const [civilStatus, setCivilStatus] = useState("");
   const [assignedOfficial, setAssignedOfficial] = useState("");
   // const [logoMunicipalityDataUrl, setLogoMunicipalityDataUrl] = useState<string | null>(null);
-   const [settings, setSettings] = useState<{
+  const [settings, setSettings] = useState<{
     Barangay: string;
     Municipality: string;
     Province: string;
@@ -95,7 +94,9 @@ export default function Indigency() {
     return residents.map((res) => ({
       value: `${res.Firstname} ${res.Lastname}`.toLowerCase(),
       // Keep search value as before, but label should show middle initial
-      label: `${res.Firstname} ${res.Middlename ? res.Middlename.charAt(0) + ". " : ""}${res.Lastname}`,
+      label: `${res.Firstname} ${
+        res.Middlename ? res.Middlename.charAt(0) + ". " : ""
+      }${res.Lastname}`,
       data: res,
     }));
   }, [residents]);
@@ -128,46 +129,48 @@ export default function Indigency() {
   const captainName = getOfficialName("barangay captain", "barangay officials");
 
   useEffect(() => {
-      getSettings()
-        .then((res) => {
-          if (res.setting) {
-            setSettings({
-              Barangay: res.setting.Barangay || "",
-              Municipality: res.setting.Municipality || "",
-              Province: res.setting.Province || "",
-            });
-            // logoDataUrl and logoMunicipalityDataUrl handled by CertificateHeader
-          }
-        })
-        .catch(console.error);
-  
-      getResident()
-        .then((res) => {
-          if (Array.isArray(res.residents)) {
-            setResidents(res.residents);
-            const allRes = res.residents.map((res) => ({
-              value: `${res.Firstname} ${res.Lastname}`.toLowerCase(),
-              label: `${res.Firstname} ${res.Middlename ? res.Middlename.charAt(0) + ". " : ""}${res.Lastname}`,
-              data: res,
-            }));
-            const selected = allRes.find((r) => r.value === value)?.data;
-            if (selected) {
-              if (selected.Birthday) {
-                const dob = new Date(selected.Birthday);
-                const today = new Date();
-                let calculatedAge = today.getFullYear() - dob.getFullYear();
-                const m = today.getMonth() - dob.getMonth();
-                if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
-                  calculatedAge--;
-                }
-                setAge(calculatedAge.toString());
+    getSettings()
+      .then((res) => {
+        if (res.setting) {
+          setSettings({
+            Barangay: res.setting.Barangay || "",
+            Municipality: res.setting.Municipality || "",
+            Province: res.setting.Province || "",
+          });
+          // logoDataUrl and logoMunicipalityDataUrl handled by CertificateHeader
+        }
+      })
+      .catch(console.error);
+
+    getResident()
+      .then((res) => {
+        if (Array.isArray(res.residents)) {
+          setResidents(res.residents);
+          const allRes = res.residents.map((res) => ({
+            value: `${res.Firstname} ${res.Lastname}`.toLowerCase(),
+            label: `${res.Firstname} ${
+              res.Middlename ? res.Middlename.charAt(0) + ". " : ""
+            }${res.Lastname}`,
+            data: res,
+          }));
+          const selected = allRes.find((r) => r.value === value)?.data;
+          if (selected) {
+            if (selected.Birthday) {
+              const dob = new Date(selected.Birthday);
+              const today = new Date();
+              let calculatedAge = today.getFullYear() - dob.getFullYear();
+              const m = today.getMonth() - dob.getMonth();
+              if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                calculatedAge--;
               }
-              setCivilStatus(selected.CivilStatus || "");
+              setAge(calculatedAge.toString());
             }
+            setCivilStatus(selected.CivilStatus || "");
           }
-        })
-        .catch(console.error);
-    }, []);
+        }
+      })
+      .catch(console.error);
+  }, []);
   const styles = StyleSheet.create({
     page: { padding: 30 },
     section: { marginBottom: 10 },
@@ -238,9 +241,7 @@ export default function Indigency() {
                                   )?.data;
                                   if (selected) {
                                     if (selected.Birthday) {
-                                      const dob = new Date(
-                                        selected.Birthday
-                                      );
+                                      const dob = new Date(selected.Birthday);
                                       const today = new Date();
                                       let calculatedAge =
                                         today.getFullYear() - dob.getFullYear();
@@ -390,12 +391,18 @@ export default function Indigency() {
               >
                 Assigned Official
               </label>
-              <Select value={assignedOfficial} onValueChange={setAssignedOfficial}>
+              <Select
+                value={assignedOfficial}
+                onValueChange={setAssignedOfficial}
+              >
                 <SelectTrigger className="w-full border rounded px-3 py-2 text-sm">
                   <SelectValue placeholder="-- Select Official --" />
                 </SelectTrigger>
                 <SelectContent>
-                  {(Array.isArray(officials) ? officials : officials?.officials || [])
+                  {(Array.isArray(officials)
+                    ? officials
+                    : officials?.officials || []
+                  )
                     .filter((official: any) => {
                       const role = (official.Role || "").toLowerCase();
                       return !role.includes("sk") && !role.includes("tanod");
@@ -419,18 +426,27 @@ export default function Indigency() {
                 try {
                   const cert: any = {
                     resident_id: selectedResident.ID,
-                    resident_name: `${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}`,
+                    resident_name: `${selectedResident.Firstname} ${
+                      selectedResident.Middlename
+                        ? selectedResident.Middlename.charAt(0) + ". "
+                        : ""
+                    }${selectedResident.Lastname}`,
                     type_: "Indigency Certificate",
                     amount: amount ? parseFloat(amount) : 0,
                     issued_date: new Date().toISOString().split("T")[0],
                     ownership_text: "",
                     civil_status: civilStatus || "",
-                    purpose: purpose === "custom" ? customPurpose || "" : purpose,
+                    purpose:
+                      purpose === "custom" ? customPurpose || "" : purpose,
                     age: age ? parseInt(age) : undefined,
                   };
                   await addCertificate(cert);
                   toast.success("Certificate saved successfully!", {
-                    description: `${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}'s certificate was saved.`,
+                    description: `${selectedResident.Firstname} ${
+                      selectedResident.Middlename
+                        ? selectedResident.Middlename.charAt(0) + ". "
+                        : ""
+                    }${selectedResident.Lastname}'s certificate was saved.`,
                   });
                 } catch (error) {
                   console.error("Save certificate failed:", error);
@@ -447,6 +463,17 @@ export default function Indigency() {
             <Document>
               <Page size="A4" style={styles.page}>
                 <CertificateHeader />
+                <Text
+                  style={{
+                    textAlign: "center",
+                    fontWeight: "bold",
+                    fontSize: 24,
+                    marginBottom: 10,
+                    fontFamily: "Times-Roman",
+                  }}
+                >
+                  CERTIFICATE OF INDIGENCY
+                </Text>
                 <View style={styles.section}>
                   <Text
                     style={[
@@ -468,17 +495,20 @@ export default function Indigency() {
                           This is to certify that{" "}
                         </Text>
                         <Text style={{ fontWeight: "bold" }}>
-                          {`${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}`.toUpperCase()}
+                          {`${selectedResident.Firstname} ${
+                            selectedResident.Middlename
+                              ? selectedResident.Middlename.charAt(0) + ". "
+                              : ""
+                          }${selectedResident.Lastname}`.toUpperCase()}
                         </Text>
                         <Text>
-                          , {age || "___"} years old, {civilStatus || "___"},
-                          is a resident of Barangay{" "}
+                          , {age || "___"} years old, {civilStatus || "___"}, is
+                          a resident of Barangay{" "}
                           {settings ? settings.Barangay : "________________"},{" "}
                           {settings
                             ? settings.Municipality
                             : "________________"}
-                          ,{" "}
-                          {settings ? settings.Province : "________________"}{" "}
+                          , {settings ? settings.Province : "________________"}{" "}
                           since {residencyYear || "____"}.
                         </Text>
                       </Text>
@@ -530,11 +560,8 @@ export default function Indigency() {
                           month: "long",
                           year: "numeric",
                         })}
-                        , at{" "}
-                        {settings ? settings.Barangay : "________________"},
-                        {settings
-                          ? settings.Municipality
-                          : "________________"}
+                        , at {settings ? settings.Barangay : "________________"}
+                        ,{settings ? settings.Municipality : "________________"}
                         ,{settings ? settings.Province : "________________"}
                       </Text>
                     </>

@@ -134,7 +134,8 @@ export default function soloParent() {
             province: res.setting.Province || "",
           });
           if (res.setting.ImageB) setLogoDataUrl(res.setting.ImageB);
-          if (res.setting.ImageM) setLogoMunicipalityDataUrl(res.setting.ImageM);
+          if (res.setting.ImageM)
+            setLogoMunicipalityDataUrl(res.setting.ImageM);
         }
       })
       .catch(console.error);
@@ -199,8 +200,8 @@ export default function soloParent() {
               Certificate of Solo Parent
             </CardTitle>
             <CardDescription className="text-start">
-              Please fill out the necessary information needed for
-              the issuance of a Solo Parent Certification.
+              Please fill out the necessary information needed for the issuance
+              of a Solo Parent Certification.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -336,13 +337,18 @@ export default function soloParent() {
                     <SelectValue placeholder="-- Select Civil Status --" />
                   </SelectTrigger>
                   <SelectContent>
-                    {["Single", "Lived-in", "Cohabitation", "Married", "Widowed", "Separated"].map(
-                      (option) => (
-                        <SelectItem key={option} value={option}>
-                          {option}
-                        </SelectItem>
-                      )
-                    )}
+                    {[
+                      "Single",
+                      "Lived-in",
+                      "Cohabitation",
+                      "Married",
+                      "Widowed",
+                      "Separated",
+                    ].map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -359,14 +365,19 @@ export default function soloParent() {
                     <SelectValue placeholder="-- Select Purpose --" />
                   </SelectTrigger>
                   <SelectContent>
-                    {["Scholarship", "Employment", "Financial Assistance", "Identification"].map(
-                      (option) => (
-                        <SelectItem key={option} value={option}>
-                          {option}
-                        </SelectItem>
-                      )
-                    )}
-                    <SelectItem value="custom">Other (please specify)</SelectItem>
+                    {[
+                      "Scholarship",
+                      "Employment",
+                      "Financial Assistance",
+                      "Identification",
+                    ].map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="custom">
+                      Other (please specify)
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 {purpose === "custom" && (
@@ -403,12 +414,18 @@ export default function soloParent() {
                 >
                   Assigned Official
                 </label>
-                <Select value={assignedOfficial} onValueChange={setAssignedOfficial}>
+                <Select
+                  value={assignedOfficial}
+                  onValueChange={setAssignedOfficial}
+                >
                   <SelectTrigger className="w-full border rounded px-3 py-2 text-sm">
                     <SelectValue placeholder="-- Select Official --" />
                   </SelectTrigger>
                   <SelectContent>
-                    {(Array.isArray(officials) ? officials : officials?.officials || [])
+                    {(Array.isArray(officials)
+                      ? officials
+                      : officials?.officials || []
+                    )
                       .filter((official: any) => {
                         const role = (official.Role || "").toLowerCase();
                         return !role.includes("sk") && !role.includes("tanod");
@@ -433,20 +450,29 @@ export default function soloParent() {
                 try {
                   const cert: any = {
                     resident_id: selectedResident.id,
-                    resident_name: `${selectedResident.first_name} ${selectedResident.middle_name ? selectedResident.middle_name.charAt(0) + ". " : ""}${selectedResident.last_name}`,
+                    resident_name: `${selectedResident.first_name} ${
+                      selectedResident.middle_name
+                        ? selectedResident.middle_name.charAt(0) + ". "
+                        : ""
+                    }${selectedResident.last_name}`,
                     type_: "Solo Parent Certificate",
                     amount: amount ? parseFloat(amount) : 0,
                     issued_date: new Date().toISOString().split("T")[0],
                     ownership_text: "",
                     civil_status: civilStatus || "",
                     soloParent_text: soloParentText,
-                    purpose: purpose === "custom" ? customPurpose || "" : purpose,
+                    purpose:
+                      purpose === "custom" ? customPurpose || "" : purpose,
                     age: age ? parseInt(age) : undefined,
                   };
                   await addCertificate(cert);
 
                   toast.success("Certificate saved successfully!", {
-                    description: `${selectedResident.first_name} ${selectedResident.middle_name ? selectedResident.middle_name.charAt(0) + ". " : ""}${selectedResident.last_name}'s certificate was saved.`,
+                    description: `${selectedResident.first_name} ${
+                      selectedResident.middle_name
+                        ? selectedResident.middle_name.charAt(0) + ". "
+                        : ""
+                    }${selectedResident.last_name}'s certificate was saved.`,
                   });
                 } catch (error) {
                   console.error("Save certificate failed:", error);
@@ -464,6 +490,17 @@ export default function soloParent() {
               <Page size="A4" style={styles.page}>
                 <View style={{ position: "relative" }}>
                   <CertificateHeader />
+                  <Text
+                    style={{
+                      textAlign: "center",
+                      fontWeight: "bold",
+                      fontSize: 24,
+                      marginBottom: 10,
+                      fontFamily: "Times-Roman",
+                    }}
+                  >
+                    CERTIFICATE OF SOLO PARENT
+                  </Text>
                   <Text
                     style={[
                       styles.bodyText,
@@ -484,14 +521,26 @@ export default function soloParent() {
                           This is to certify that{" "}
                         </Text>
                         <Text style={{ fontWeight: "bold" }}>
-                          {`${selectedResident.first_name} ${selectedResident.middle_name ? selectedResident.middle_name.charAt(0) + ". " : ""}${selectedResident.last_name}`.toUpperCase()}
+                          {`${selectedResident.first_name} ${
+                            selectedResident.middle_name
+                              ? selectedResident.middle_name.charAt(0) + ". "
+                              : ""
+                          }${selectedResident.last_name}`.toUpperCase()}
                         </Text>
                         <Text>
-                          , {age || "___"} years old, {civilStatus || "___"},
-                          a resident of Barangay {settings ? settings.barangay : "________________"},{" "}
-                          {settings ? settings.municipality : "________________"},{" "}
-                          {settings ? settings.province : "________________"}
-                          , is hereby certified as a <Text style={{ fontWeight: "bold" }}>Solo Parent</Text> with {soloParentText || "___"} children in Barangay {settings ? settings.barangay : "________________"}.
+                          , {age || "___"} years old, {civilStatus || "___"}, a
+                          resident of Barangay{" "}
+                          {settings ? settings.barangay : "________________"},{" "}
+                          {settings
+                            ? settings.municipality
+                            : "________________"}
+                          , {settings ? settings.province : "________________"},
+                          is hereby certified as a{" "}
+                          <Text style={{ fontWeight: "bold" }}>
+                            Solo Parent
+                          </Text>{" "}
+                          with {soloParentText || "___"} children in Barangay{" "}
+                          {settings ? settings.barangay : "________________"}.
                         </Text>
                       </Text>
                       {/* Purpose in PDF */}
@@ -530,11 +579,8 @@ export default function soloParent() {
                           month: "long",
                           year: "numeric",
                         })}
-                        , at{" "}
-                        {settings ? settings.barangay : "________________"},
-                        {settings
-                          ? settings.municipality
-                          : "________________"}
+                        , at {settings ? settings.barangay : "________________"}
+                        ,{settings ? settings.municipality : "________________"}
                         ,{settings ? settings.province : "________________"}
                       </Text>
                     </>

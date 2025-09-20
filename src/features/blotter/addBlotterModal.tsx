@@ -192,7 +192,7 @@ export default function AddBlotterModal() {
                             <Input
                               id="ReportedBy"
                               type="text"
-                              placeholder="Enter middle name"
+                              placeholder="Enter full name"
                               required
                               {...field}
                               className="text-black"
@@ -440,32 +440,67 @@ export default function AddBlotterModal() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Date of Hearing</FormLabel>
-                          <Popover
-                            open={openCalendar}
-                            onOpenChange={setOpenCalendar}
-                          >
-                            <PopoverTrigger asChild>
-                              <Button variant="outline">
-                                {field.value
-                                  ? format(field.value, "PPP")
-                                  : "Pick a date"}
-                                <CalendarIcon className="ml-auto h-4 w-4" />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent
-                              className="w-auto p-0"
-                              align="center"
+                          <div className="flex flex-col gap-2">
+                            <Popover
+                              open={openCalendar}
+                              onOpenChange={setOpenCalendar}
                             >
-                              <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={field.onChange}
-                                captionLayout="dropdown"
-                                fromYear={1900}
-                                toYear={new Date().getFullYear()}
-                              />
-                            </PopoverContent>
-                          </Popover>
+                              <PopoverTrigger asChild>
+                                <Button variant="outline">
+                                  {field.value
+                                    ? format(field.value, "PPP")
+                                    : "Pick a date"}
+                                  <CalendarIcon className="ml-auto h-4 w-4" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent
+                                className="w-auto p-0"
+                                align="center"
+                              >
+                                <Calendar
+                                  mode="single"
+                                  selected={field.value}
+                                  onSelect={(date) => {
+                                    // preserve time component
+                                    if (date) {
+                                      const old = field.value instanceof Date ? field.value : new Date();
+                                      const newDate = new Date(date);
+                                      newDate.setHours(old.getHours(), old.getMinutes(), old.getSeconds(), old.getMilliseconds());
+                                      field.onChange(newDate);
+                                    }
+                                  }}
+                                  captionLayout="dropdown"
+                                  fromYear={1900}
+                                  toYear={new Date().getFullYear()}
+                                />
+                              </PopoverContent>
+                            </Popover>
+                            <Input
+                              type="time"
+                              value={
+                                field.value
+                                  ? field.value instanceof Date
+                                    ? field.value
+                                        .toLocaleTimeString("en-GB", {
+                                          hour12: false,
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        })
+                                    : ""
+                                  : ""
+                              }
+                              onChange={e => {
+                                const time = e.target.value;
+                                if (field.value instanceof Date && time) {
+                                  const [hours, minutes] = time.split(":").map(Number);
+                                  const newDate = new Date(field.value);
+                                  newDate.setHours(hours, minutes, 0, 0);
+                                  field.onChange(newDate);
+                                }
+                              }}
+                              className="text-black mt-2"
+                            />
+                          </div>
                         </FormItem>
                       )}
                     />

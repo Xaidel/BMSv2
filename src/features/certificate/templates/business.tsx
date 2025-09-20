@@ -20,7 +20,14 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { PDFViewer, Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import {
+  PDFViewer,
+  Document,
+  Page,
+  Text,
+  View,
+  StyleSheet,
+} from "@react-pdf/renderer";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
@@ -78,7 +85,11 @@ export default function BusinessPermit() {
     "Others",
   ];
 
-  const [settings, setSettings] = useState<{ Barangay: string; Municipality: string; Province: string; } | null>(null);
+  const [settings, setSettings] = useState<{
+    Barangay: string;
+    Municipality: string;
+    Province: string;
+  } | null>(null);
   const [, setLogoDataUrl] = useState<string | null>(null);
   const [, setLogoMunicipalityDataUrl] = useState<string | null>(null);
 
@@ -124,7 +135,8 @@ export default function BusinessPermit() {
             Province: res.setting.Province || "",
           });
           if (res.setting.ImageB) setLogoDataUrl(res.setting.ImageB);
-          if (res.setting.ImageM) setLogoMunicipalityDataUrl(res.setting.ImageM);
+          if (res.setting.ImageM)
+            setLogoMunicipalityDataUrl(res.setting.ImageM);
         }
       })
       .catch(console.error);
@@ -150,17 +162,26 @@ export default function BusinessPermit() {
       <Card className="flex-2 flex flex-col justify-between">
         <CardHeader>
           <CardTitle className="flex gap-2 items-center justify-start">
-            <ArrowLeftCircleIcon className="h-8 w-8" onClick={() => navigate(-1)} />
+            <ArrowLeftCircleIcon
+              className="h-8 w-8"
+              onClick={() => navigate(-1)}
+            />
             Barangay Business Permit
           </CardTitle>
           <CardDescription className="text-start">
-            Please fill out the necessary information needed for Barangay Business Permit
+            Please fill out the necessary information needed for Barangay
+            Business Permit
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
-              <Button variant="outline" role="combobox" aria-expanded={open} className="w-full flex justify-between">
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={open}
+                className="w-full flex justify-between"
+              >
                 {value
                   ? allResidents.find((res) => res.value === value)?.label
                   : "Select a Resident"}
@@ -169,7 +190,12 @@ export default function BusinessPermit() {
             </PopoverTrigger>
             <PopoverContent className="p-0 w-full">
               <Command>
-                <CommandInput placeholder="Search Resident..." className="h-9" value={search} onValueChange={setSearch} />
+                <CommandInput
+                  placeholder="Search Resident..."
+                  className="h-9"
+                  value={search}
+                  onValueChange={setSearch}
+                />
                 {allResidents.length === 0 ? (
                   <CommandEmpty>No Residents Found</CommandEmpty>
                 ) : (
@@ -192,9 +218,13 @@ export default function BusinessPermit() {
                                 if (selected.Birthday) {
                                   const dob = new Date(selected.Birthday);
                                   const today = new Date();
-                                  let calculatedAge = today.getFullYear() - dob.getFullYear();
+                                  let calculatedAge =
+                                    today.getFullYear() - dob.getFullYear();
                                   const m = today.getMonth() - dob.getMonth();
-                                  if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                                  if (
+                                    m < 0 ||
+                                    (m === 0 && today.getDate() < dob.getDate())
+                                  ) {
                                     calculatedAge--;
                                   }
                                   setAge(calculatedAge.toString());
@@ -202,13 +232,22 @@ export default function BusinessPermit() {
                                   setAge("");
                                 }
                                 setCivilStatus(selected.CivilStatus || "");
-                                setValue(currentValue === value ? "" : currentValue);
+                                setValue(
+                                  currentValue === value ? "" : currentValue
+                                );
                               }
                               setOpen(false);
                             }}
                           >
                             {res.label}
-                            <Check className={cn("ml-auto", value === res.value ? "opacity-100" : "opacity-0")} />
+                            <Check
+                              className={cn(
+                                "ml-auto",
+                                value === res.value
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              )}
+                            />
                           </CommandItem>
                         );
                       }}
@@ -221,7 +260,12 @@ export default function BusinessPermit() {
           <div className="my-2" />
           <div className="grid gap-4">
             <div className="mt-1">
-              <label htmlFor="businessName" className="block text-sm font-medium text-gray-700 mb-0.5">Business Name</label>
+              <label
+                htmlFor="businessName"
+                className="block text-sm font-medium text-gray-700 mb-0.5"
+              >
+                Business Name
+              </label>
               <input
                 id="businessName"
                 type="text"
@@ -232,7 +276,12 @@ export default function BusinessPermit() {
               />
             </div>
             <div className="mt-1">
-              <label htmlFor="businessType" className="block text-sm font-medium text-gray-700 mb-0.5">Type of Business</label>
+              <label
+                htmlFor="businessType"
+                className="block text-sm font-medium text-gray-700 mb-0.5"
+              >
+                Type of Business
+              </label>
               <input
                 id="businessType"
                 type="text"
@@ -243,7 +292,12 @@ export default function BusinessPermit() {
               />
             </div>
             <div className="mt-1">
-              <label htmlFor="businessLocation" className="block text-sm font-medium text-gray-700 mb-0.5">Business Location</label>
+              <label
+                htmlFor="businessLocation"
+                className="block text-sm font-medium text-gray-700 mb-0.5"
+              >
+                Business Location
+              </label>
               <input
                 id="businessLocation"
                 type="text"
@@ -254,7 +308,12 @@ export default function BusinessPermit() {
               />
             </div>
             <div className="mt-1">
-              <label htmlFor="businessOwner" className="block text-sm font-medium text-gray-700 mb-0.5">Owner</label>
+              <label
+                htmlFor="businessOwner"
+                className="block text-sm font-medium text-gray-700 mb-0.5"
+              >
+                Owner
+              </label>
               <input
                 id="businessOwner"
                 type="text"
@@ -265,7 +324,12 @@ export default function BusinessPermit() {
               />
             </div>
             <div className="mt-1">
-              <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-0.5">Amount (PHP)</label>
+              <label
+                htmlFor="amount"
+                className="block text-sm font-medium text-gray-700 mb-0.5"
+              >
+                Amount (PHP)
+              </label>
               <input
                 id="amount"
                 type="text"
@@ -276,32 +340,35 @@ export default function BusinessPermit() {
               />
             </div>
             <div className="mt-1">
-            <label htmlFor="purpose" className="block text-sm font-medium text-gray-700 mb-0.5">
-              Purpose of Certificate
-            </label>
-            <Select value={purpose} onValueChange={setPurpose}>
-              <SelectTrigger className="w-full border rounded px-3 py-2 text-sm">
-                <SelectValue placeholder="-- Select Purpose --" />
-              </SelectTrigger>
-              <SelectContent>
-                {purposeOptions.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-                <SelectItem value="custom">Other (please specify)</SelectItem>
-              </SelectContent>
-            </Select>
-            {purpose === "custom" && (
-              <input
-                type="text"
-                value={customPurpose}
-                onChange={(e) => setCustomPurpose(e.target.value)}
-                className="w-full border rounded px-3 py-2 text-sm mt-2"
-                placeholder="Please specify the purpose"
-              />
-            )}
-          </div>
+              <label
+                htmlFor="purpose"
+                className="block text-sm font-medium text-gray-700 mb-0.5"
+              >
+                Purpose of Certificate
+              </label>
+              <Select value={purpose} onValueChange={setPurpose}>
+                <SelectTrigger className="w-full border rounded px-3 py-2 text-sm">
+                  <SelectValue placeholder="-- Select Purpose --" />
+                </SelectTrigger>
+                <SelectContent>
+                  {purposeOptions.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="custom">Other (please specify)</SelectItem>
+                </SelectContent>
+              </Select>
+              {purpose === "custom" && (
+                <input
+                  type="text"
+                  value={customPurpose}
+                  onChange={(e) => setCustomPurpose(e.target.value)}
+                  className="w-full border rounded px-3 py-2 text-sm mt-2"
+                  placeholder="Please specify the purpose"
+                />
+              )}
+            </div>
             <div className="mt-1">
               <label
                 htmlFor="assignedOfficial"
@@ -309,12 +376,18 @@ export default function BusinessPermit() {
               >
                 Assigned Official
               </label>
-              <Select value={assignedOfficial} onValueChange={setAssignedOfficial}>
+              <Select
+                value={assignedOfficial}
+                onValueChange={setAssignedOfficial}
+              >
                 <SelectTrigger className="w-full border rounded px-3 py-2 text-sm">
                   <SelectValue placeholder="-- Select Official --" />
                 </SelectTrigger>
                 <SelectContent>
-                  {(Array.isArray(officials) ? officials : officials?.officials || [])
+                  {(Array.isArray(officials)
+                    ? officials
+                    : officials?.officials || []
+                  )
                     .filter((official: any) => {
                       const role = (official.Role || "").toLowerCase();
                       return !role.includes("sk") && !role.includes("tanod");
@@ -339,7 +412,11 @@ export default function BusinessPermit() {
               try {
                 const cert: any = {
                   resident_id: selectedResident.ID,
-                  resident_name: `${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}`,
+                  resident_name: `${selectedResident.Firstname} ${
+                    selectedResident.Middlename
+                      ? selectedResident.Middlename.charAt(0) + ". "
+                      : ""
+                  }${selectedResident.Lastname}`,
                   type_: "Barangay Business Permit",
                   amount: parseFloat(amount),
                   issued_date: new Date().toISOString().split("T")[0],
@@ -350,7 +427,11 @@ export default function BusinessPermit() {
                 };
                 await addCertificate(cert);
                 toast.success("Certificate saved successfully!", {
-                  description: `${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}'s certificate was saved.`,
+                  description: `${selectedResident.Firstname} ${
+                    selectedResident.Middlename
+                      ? selectedResident.Middlename.charAt(0) + ". "
+                      : ""
+                  }${selectedResident.Lastname}'s certificate was saved.`,
                 });
               } catch (error) {
                 console.error("Save certificate failed:", error);
@@ -372,8 +453,9 @@ export default function BusinessPermit() {
                   style={{
                     textAlign: "center",
                     fontWeight: "bold",
-                    fontSize: 18,
+                    fontSize: 24,
                     marginBottom: 10,
+                    fontFamily: "Times-Roman",
                   }}
                 >
                   BARANGAY BUSINESS PERMIT
@@ -387,34 +469,78 @@ export default function BusinessPermit() {
                     justifyContent: "center",
                   }}
                 >
-                  <Text style={{ fontSize: 19, fontWeight: "bold", marginBottom: 4 }}>
+                  <Text
+                    style={{
+                      fontSize: 19,
+                      fontWeight: "bold",
+                      marginBottom: 4,
+                    }}
+                  >
                     {businessName || "________________"}
                   </Text>
-                  <Text style={{ fontSize: 14, marginBottom: 10 }}>Business Name</Text>
-                  <Text style={{ fontSize: 19, fontWeight: "bold", marginBottom: 4 }}>
+                  <Text style={{ fontSize: 14, marginBottom: 10 }}>
+                    Business Name
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 19,
+                      fontWeight: "bold",
+                      marginBottom: 4,
+                    }}
+                  >
                     {businessType || "________________"}
                   </Text>
-                  <Text style={{ fontSize: 14, marginBottom: 10 }}>Type of Business</Text>
-                  <Text style={{ fontSize: 19, fontWeight: "bold", marginBottom: 4 }}>
+                  <Text style={{ fontSize: 14, marginBottom: 10 }}>
+                    Type of Business
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 19,
+                      fontWeight: "bold",
+                      marginBottom: 4,
+                    }}
+                  >
                     {businessLocation || "________________"}
                   </Text>
-                  <Text style={{ fontSize: 14, marginBottom: 10 }}>Location</Text>
-                  <Text style={{ fontSize: 19, fontWeight: "bold", marginBottom: 4 }}>
+                  <Text style={{ fontSize: 14, marginBottom: 10 }}>
+                    Location
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 19,
+                      fontWeight: "bold",
+                      marginBottom: 4,
+                    }}
+                  >
                     {businessOwner || "________________"}
                   </Text>
                   <Text style={{ fontSize: 14 }}>Owner</Text>
                 </View>
-                <Text style={[styles.bodyText, { textAlign: "justify", marginBottom: 8 }]}>
-                  And which said person had accomplish <Text style={{ fontWeight: "bold" }}>Barangay Ordinance No.14</Text>. This ordinance is imposing Barangay Permit fee and it is required for every business Trade or any transaction within the jurisdiction of this Barangay.
-                </Text>
-                <Text style={[styles.bodyText, { textAlign: "justify", marginBottom: 8 }]}>
-                  This Barangay permit on business indorsed to this Municipality for registration purposes only.
+                <Text
+                  style={[
+                    styles.bodyText,
+                    { textAlign: "justify", marginBottom: 8 },
+                  ]}
+                >
+                  And which said person had accomplish{" "}
+                  <Text style={{ fontWeight: "bold" }}>
+                    Barangay Ordinance No.14
+                  </Text>
+                  . This ordinance is imposing Barangay Permit fee and it is
+                  required for every business Trade or any transaction within
+                  the jurisdiction of this Barangay.
                 </Text>
                 <Text
                   style={[
                     styles.bodyText,
-                    { marginTop: 10, marginBottom: 8 },
+                    { textAlign: "justify", marginBottom: 8 },
                   ]}
+                >
+                  This Barangay permit on business indorsed to this Municipality
+                  for registration purposes only.
+                </Text>
+                <Text
+                  style={[styles.bodyText, { marginTop: 10, marginBottom: 8 }]}
                 >
                   {purpose || customPurpose
                     ? `Purpose: ${
@@ -424,9 +550,18 @@ export default function BusinessPermit() {
                       }`
                     : ""}
                 </Text>
-                <Text style={[styles.bodyText, { marginTop: 10, marginBottom: 8 }]}>
+                <Text
+                  style={[styles.bodyText, { marginTop: 10, marginBottom: 8 }]}
+                >
                   Given this{" "}
-                  {new Date().toLocaleDateString("en-PH", { day: "numeric", month: "long", year: "numeric" })}, at {settings ? settings.Barangay : "________________"},{settings ? settings.Municipality : "________________"},{settings ? settings.Province : "________________"}
+                  {new Date().toLocaleDateString("en-PH", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                  , at {settings ? settings.Barangay : "________________"},
+                  {settings ? settings.Municipality : "________________"},
+                  {settings ? settings.Province : "________________"}
                 </Text>
                 <CertificateFooter
                   styles={styles}
