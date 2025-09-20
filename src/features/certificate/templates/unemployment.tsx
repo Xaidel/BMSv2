@@ -83,8 +83,14 @@ export default function Unemployment() {
     const list = Array.isArray(officials) ? officials : officials.officials;
     const found = list?.find(
       (o) =>
-        (o.Section?.toLowerCase?.() || o.Section?.toLowerCase?.() || "").includes(section.toLowerCase()) &&
-        (o.Role?.toLowerCase?.() || o.Role?.toLowerCase?.() || "").includes(role.toLowerCase())
+        (
+          o.Section?.toLowerCase?.() ||
+          o.Section?.toLowerCase?.() ||
+          ""
+        ).includes(section.toLowerCase()) &&
+        (o.Role?.toLowerCase?.() || o.Role?.toLowerCase?.() || "").includes(
+          role.toLowerCase()
+        )
     );
     return found?.Name || found?.name || "";
   }
@@ -307,9 +313,15 @@ export default function Unemployment() {
                   <SelectContent>
                     <SelectItem value="Scholarship">Scholarship</SelectItem>
                     <SelectItem value="Employment">Employment</SelectItem>
-                    <SelectItem value="Financial Assistance">Financial Assistance</SelectItem>
-                    <SelectItem value="Identification">Identification</SelectItem>
-                    <SelectItem value="custom">Other (please specify)</SelectItem>
+                    <SelectItem value="Financial Assistance">
+                      Financial Assistance
+                    </SelectItem>
+                    <SelectItem value="Identification">
+                      Identification
+                    </SelectItem>
+                    <SelectItem value="custom">
+                      Other (please specify)
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 {purpose === "custom" && (
@@ -345,12 +357,18 @@ export default function Unemployment() {
                 >
                   Assigned Official
                 </label>
-                <Select value={assignedOfficial} onValueChange={setAssignedOfficial}>
+                <Select
+                  value={assignedOfficial}
+                  onValueChange={setAssignedOfficial}
+                >
                   <SelectTrigger className="w-full border rounded px-3 py-2 text-sm">
                     <SelectValue placeholder="-- Select Official --" />
                   </SelectTrigger>
                   <SelectContent>
-                    {(Array.isArray(officials) ? officials : officials?.officials || [])
+                    {(Array.isArray(officials)
+                      ? officials
+                      : officials?.officials || []
+                    )
                       .filter((official: any) => {
                         const role = (official.Role || "").toLowerCase();
                         return !role.includes("sk") && !role.includes("tanod");
@@ -375,18 +393,27 @@ export default function Unemployment() {
                 try {
                   const cert: any = {
                     resident_id: selectedResident.ID,
-                    resident_name: `${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}`,
+                    resident_name: `${selectedResident.Firstname} ${
+                      selectedResident.Middlename
+                        ? selectedResident.Middlename.charAt(0) + ". "
+                        : ""
+                    }${selectedResident.Lastname}`,
                     type_: "Unemployment Certificate",
                     amount: amount ? parseFloat(amount) : 0,
                     issued_date: new Date().toISOString().split("T")[0],
                     ownership_text: "",
                     civil_status: civilStatus || "",
-                    purpose: purpose === "custom" ? customPurpose || "" : purpose,
+                    purpose:
+                      purpose === "custom" ? customPurpose || "" : purpose,
                     age: age ? parseInt(age) : undefined,
                   };
                   await addCertificate(cert);
                   toast.success("Certificate saved successfully!", {
-                    description: `${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}'s certificate was saved.`,
+                    description: `${selectedResident.Firstname} ${
+                      selectedResident.Middlename
+                        ? selectedResident.Middlename.charAt(0) + ". "
+                        : ""
+                    }${selectedResident.Lastname}'s certificate was saved.`,
                   });
                 } catch (error) {
                   console.error("Save certificate failed:", error);
@@ -404,6 +431,17 @@ export default function Unemployment() {
               <Page size="A4" style={styles.page}>
                 <View style={{ position: "relative" }}>
                   <CertificateHeader />
+                  <Text
+                    style={{
+                      textAlign: "center",
+                      fontWeight: "bold",
+                      fontSize: 24,
+                      marginBottom: 10,
+                      fontFamily: "Times-Roman",
+                    }}
+                  >
+                    CERTIFICATE OF UNEMPLOYMENT
+                  </Text>
                   <Text
                     style={[
                       styles.bodyText,
@@ -424,7 +462,11 @@ export default function Unemployment() {
                           This is to certify that{" "}
                         </Text>
                         <Text style={{ fontWeight: "bold" }}>
-                          {`${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}`.toUpperCase()}
+                          {`${selectedResident.Firstname} ${
+                            selectedResident.Middlename
+                              ? selectedResident.Middlename.charAt(0) + ". "
+                              : ""
+                          }${selectedResident.Lastname}`.toUpperCase()}
                         </Text>
                         <Text>
                           , {age}, {civilStatus.toLowerCase() || "civil status"}

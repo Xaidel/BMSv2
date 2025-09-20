@@ -61,8 +61,12 @@ export default function Residency() {
   const [assignedOfficial, setAssignedOfficial] = useState("");
   const allResidents = useMemo(() => {
     return residents.map((res) => ({
-      value: `${res.Firstname} ${res.Middlename ? res.Middlename.charAt(0) + ". " : ""}${res.Lastname}`.toLowerCase(),
-      label: `${res.Firstname} ${res.Middlename ? res.Middlename.charAt(0) + ". " : ""}${res.Lastname}`,
+      value: `${res.Firstname} ${
+        res.Middlename ? res.Middlename.charAt(0) + ". " : ""
+      }${res.Lastname}`.toLowerCase(),
+      label: `${res.Firstname} ${
+        res.Middlename ? res.Middlename.charAt(0) + ". " : ""
+      }${res.Lastname}`,
       data: res,
     }));
   }, [residents]);
@@ -119,8 +123,12 @@ export default function Residency() {
         if (Array.isArray(res.residents)) {
           setResidents(res.residents);
           const allRes = res.residents.map((res) => ({
-            value: `${res.Firstname} ${res.Middlename ? res.Middlename.charAt(0) + ". " : ""}${res.Lastname}`.toLowerCase(),
-            label: `${res.Firstname} ${res.Middlename ? res.Middlename.charAt(0) + ". " : ""}${res.Lastname}`,
+            value: `${res.Firstname} ${
+              res.Middlename ? res.Middlename.charAt(0) + ". " : ""
+            }${res.Lastname}`.toLowerCase(),
+            label: `${res.Firstname} ${
+              res.Middlename ? res.Middlename.charAt(0) + ". " : ""
+            }${res.Lastname}`,
             data: res,
           }));
           const selected = allRes.find((r) => r.value === value)?.data;
@@ -349,12 +357,18 @@ export default function Residency() {
               >
                 Assigned Official
               </label>
-              <Select value={assignedOfficial} onValueChange={setAssignedOfficial}>
+              <Select
+                value={assignedOfficial}
+                onValueChange={setAssignedOfficial}
+              >
                 <SelectTrigger className="w-full border rounded px-3 py-2 text-sm">
                   <SelectValue placeholder="-- Select Official --" />
                 </SelectTrigger>
                 <SelectContent>
-                  {(Array.isArray(officials) ? officials : officials?.officials || [])
+                  {(Array.isArray(officials)
+                    ? officials
+                    : officials?.officials || []
+                  )
                     .filter((official: any) => {
                       const role = (official.Role || "").toLowerCase();
                       return !role.includes("sk") && !role.includes("tanod");
@@ -378,18 +392,27 @@ export default function Residency() {
                 try {
                   const cert: any = {
                     resident_id: selectedResident.ID,
-                    resident_name: `${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}`,
+                    resident_name: `${selectedResident.Firstname} ${
+                      selectedResident.Middlename
+                        ? selectedResident.Middlename.charAt(0) + ". "
+                        : ""
+                    }${selectedResident.Lastname}`,
                     type_: "Residency Certificate",
                     amount: amount ? parseFloat(amount) : 0,
                     issued_date: new Date().toISOString().split("T")[0],
                     ownership_text: "",
                     civil_status: civilStatus || "",
-                    purpose: purpose === "custom" ? customPurpose || "" : purpose,
+                    purpose:
+                      purpose === "custom" ? customPurpose || "" : purpose,
                     age: age ? parseInt(age) : undefined,
                   };
                   await addCertificate.mutateAsync(cert);
                   toast.success("Certificate saved successfully!", {
-                    description: `${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}'s certificate was saved.`,
+                    description: `${selectedResident.Firstname} ${
+                      selectedResident.Middlename
+                        ? selectedResident.Middlename.charAt(0) + ". "
+                        : ""
+                    }${selectedResident.Lastname}'s certificate was saved.`,
                   });
                 } catch (error) {
                   console.error("Save certificate failed:", error);
@@ -407,78 +430,97 @@ export default function Residency() {
               <Page size="A4" style={styles.page}>
                 <View style={{ position: "relative" }}>
                   <CertificateHeader />
-                    <Text
-                      style={[
-                        styles.bodyText,
-                        { marginBottom: 10, marginTop: 10 },
-                      ]}
-                    >
-                      TO WHOM IT MAY CONCERN:
-                    </Text>
-                    {selectedResident ? (
-                      <>
-                        <Text
-                          style={[
-                            styles.bodyText,
-                            { textAlign: "justify", marginBottom: 8 },
-                          ]}
-                        >
-                          <Text style={{ fontWeight: "bold" }}>
-                            This is to certify that{" "}
-                          </Text>
-                          <Text style={{ fontWeight: "bold" }}>
-                            {`${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}`.toUpperCase()}
-                          </Text>
-                          <Text>
-                            , {age || "___"} years old, {civilStatus || "___"},
-                            is a bonafide resident of{" "}
-                            {settings ? settings.Barangay : "________________"},{" "}
-                            {settings ? settings.Municipality : "________________"},{" "}
-                            {settings ? settings.Province : "________________"} since {residencyYear || "____"}. 
-                          </Text>
+                  <Text
+                    style={{
+                      textAlign: "center",
+                      fontWeight: "bold",
+                      fontSize: 24,
+                      marginBottom: 10,
+                      fontFamily: "Times-Roman",
+                    }}
+                  >
+                    CERTIFICATE OF RESIDENCY
+                  </Text>
+                  <Text
+                    style={[
+                      styles.bodyText,
+                      { marginBottom: 10, marginTop: 10 },
+                    ]}
+                  >
+                    TO WHOM IT MAY CONCERN:
+                  </Text>
+                  {selectedResident ? (
+                    <>
+                      <Text
+                        style={[
+                          styles.bodyText,
+                          { textAlign: "justify", marginBottom: 8 },
+                        ]}
+                      >
+                        <Text style={{ fontWeight: "bold" }}>
+                          This is to certify that{" "}
                         </Text>
-                        <Text
-                          style={[
-                            styles.bodyText,
-                            { textAlign: "justify", marginBottom: 8 },
-                          ]}
-                        >
-                          This certification is being issued upon the request of
-                          the aforementioned person for residency verification
-                          and for the following purpose: {purpose === "custom" ? (customPurpose || "________________") : (purpose || "________________")}.
+                        <Text style={{ fontWeight: "bold" }}>
+                          {`${selectedResident.Firstname} ${
+                            selectedResident.Middlename
+                              ? selectedResident.Middlename.charAt(0) + ". "
+                              : ""
+                          }${selectedResident.Lastname}`.toUpperCase()}
                         </Text>
-                        <Text
-                          style={[
-                            styles.bodyText,
-                            { marginTop: 10, marginBottom: 8 },
-                          ]}
-                        >
-                          Given this{" "}
-                          {new Date().toLocaleDateString("en-PH", {
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                          })}
-                          , at{" "}
-                          {settings ? settings.Barangay : "________________"},
+                        <Text>
+                          , {age || "___"} years old, {civilStatus || "___"}, is
+                          a bonafide resident of{" "}
+                          {settings ? settings.Barangay : "________________"},{" "}
                           {settings
                             ? settings.Municipality
                             : "________________"}
-                          ,{settings ? settings.Province : "________________"}
+                          , {settings ? settings.Province : "________________"}{" "}
+                          since {residencyYear || "____"}.
                         </Text>
-                      </>
-                    ) : (
-                      <Text style={styles.bodyText}>
-                        Please select a resident to view certificate.
                       </Text>
-                    )}
-                      <CertificateFooter
-                        styles={styles}
-                        captainName={captainName ?? ""}
-                        amount={amount}
-                        assignedOfficial={assignedOfficial}
-                      />
-                  </View>
+                      <Text
+                        style={[
+                          styles.bodyText,
+                          { textAlign: "justify", marginBottom: 8 },
+                        ]}
+                      >
+                        This certification is being issued upon the request of
+                        the aforementioned person for residency verification and
+                        for the following purpose:{" "}
+                        {purpose === "custom"
+                          ? customPurpose || "________________"
+                          : purpose || "________________"}
+                        .
+                      </Text>
+                      <Text
+                        style={[
+                          styles.bodyText,
+                          { marginTop: 10, marginBottom: 8 },
+                        ]}
+                      >
+                        Given this{" "}
+                        {new Date().toLocaleDateString("en-PH", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })}
+                        , at {settings ? settings.Barangay : "________________"}
+                        ,{settings ? settings.Municipality : "________________"}
+                        ,{settings ? settings.Province : "________________"}
+                      </Text>
+                    </>
+                  ) : (
+                    <Text style={styles.bodyText}>
+                      Please select a resident to view certificate.
+                    </Text>
+                  )}
+                  <CertificateFooter
+                    styles={styles}
+                    captainName={captainName ?? ""}
+                    amount={amount}
+                    assignedOfficial={assignedOfficial}
+                  />
+                </View>
               </Page>
             </Document>
           </PDFViewer>

@@ -1,7 +1,23 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Command, CommandEmpty, CommandInput, CommandItem } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Command,
+  CommandEmpty,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { PDFViewer } from "@react-pdf/renderer";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
@@ -41,11 +57,11 @@ type Resident = {
 };
 
 export default function Marriage() {
-  const navigate = useNavigate()
-  const [openMale, setOpenMale] = useState(false)
-  const [openFemale, setOpenFemale] = useState(false)
-  const [value, setValue] = useState("")
-  const [value2, setValue2] = useState("")
+  const navigate = useNavigate();
+  const [openMale, setOpenMale] = useState(false);
+  const [openFemale, setOpenFemale] = useState(false);
+  const [value, setValue] = useState("");
+  const [value2, setValue2] = useState("");
   const [residents, setResidents] = useState<Resident[]>([]);
   const [amount, setAmount] = useState("100.00");
   const [assignedOfficial, setAssignedOfficial] = useState("");
@@ -60,19 +76,23 @@ export default function Marriage() {
       data: res,
     }));
   }, [residents]);
-  const [search, setSearch] = useState("")
+  const [search, setSearch] = useState("");
   const filteredResidents = useMemo(() => {
     return allResidents.filter((res) =>
       res.label.toLowerCase().includes(search.toLowerCase())
-    )
-  }, [allResidents, search])
+    );
+  }, [allResidents, search]);
   const selectedResident = useMemo(() => {
     return allResidents.find((res) => res.value === value)?.data;
-  }, [allResidents, value])
+  }, [allResidents, value]);
   const selectedResident2 = useMemo(() => {
     return allResidents.find((res) => res.value === value2)?.data;
-  }, [allResidents, value2])
-  const [settings, setSettings] = useState<{ barangay: string; municipality: string; province: string } | null>(null);
+  }, [allResidents, value2]);
+  const [settings, setSettings] = useState<{
+    barangay: string;
+    municipality: string;
+    province: string;
+  } | null>(null);
 
   const { data: officials } = useOfficial();
   const { mutateAsync: addCertificate } = useAddCertificate();
@@ -154,11 +174,15 @@ export default function Marriage() {
         <Card className="flex-2 flex flex-col justify-between">
           <CardHeader>
             <CardTitle className="flex gap-2 items-center justify-start">
-              <ArrowLeftCircleIcon className="h-8 w-8" onClick={() => navigate(-1)} />
+              <ArrowLeftCircleIcon
+                className="h-8 w-8"
+                onClick={() => navigate(-1)}
+              />
               Marriage Certificate
             </CardTitle>
             <CardDescription className="text-start">
-              Please fill out the necessary information needed for Marriage Certification
+              Please fill out the necessary information needed for Marriage
+              Certification
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -173,8 +197,7 @@ export default function Marriage() {
                   >
                     {value
                       ? allResidents.find((res) => res.value === value)?.label
-                      : "Select Male Resident"
-                    }
+                      : "Select Male Resident"}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
@@ -188,61 +211,75 @@ export default function Marriage() {
                     />
                     {allResidents.length === 0 ? (
                       <CommandEmpty>No Residents Found</CommandEmpty>
-                    )
-                      :
-                      (
-                        <div className="h-60 overflow-hidden">
-                          <Virtuoso
-                            style={{ height: "100%" }}
-                            totalCount={filteredResidents.length}
-                            itemContent={(index) => {
-                              const res = filteredResidents[index]
-                              return (
-                                <CommandItem
-                                  key={res.value}
-                                  value={res.value}
-                                  className="text-black"
-                                  onSelect={(currentValue) => {
-                                    const selected = allResidents.find((r) => r.value === currentValue)?.data;
-                                    if (selected) {
-                                      if (selected.Birthday) {
-                                        const dob = new Date(selected.Birthday);
-                                        const today = new Date();
-                                        let calculatedAge = today.getFullYear() - dob.getFullYear();
-                                        const m = today.getMonth() - dob.getMonth();
-                                        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
-                                          calculatedAge--;
-                                        }
-                                        setAgeMale(calculatedAge.toString());
-                                      } else {
-                                        setAgeMale("");
+                    ) : (
+                      <div className="h-60 overflow-hidden">
+                        <Virtuoso
+                          style={{ height: "100%" }}
+                          totalCount={filteredResidents.length}
+                          itemContent={(index) => {
+                            const res = filteredResidents[index];
+                            return (
+                              <CommandItem
+                                key={res.value}
+                                value={res.value}
+                                className="text-black"
+                                onSelect={(currentValue) => {
+                                  const selected = allResidents.find(
+                                    (r) => r.value === currentValue
+                                  )?.data;
+                                  if (selected) {
+                                    if (selected.Birthday) {
+                                      const dob = new Date(selected.Birthday);
+                                      const today = new Date();
+                                      let calculatedAge =
+                                        today.getFullYear() - dob.getFullYear();
+                                      const m =
+                                        today.getMonth() - dob.getMonth();
+                                      if (
+                                        m < 0 ||
+                                        (m === 0 &&
+                                          today.getDate() < dob.getDate())
+                                      ) {
+                                        calculatedAge--;
                                       }
-                                      setCivilStatusMale(selected.CivilStatus || "");
+                                      setAgeMale(calculatedAge.toString());
+                                    } else {
+                                      setAgeMale("");
                                     }
-                                    setValue(currentValue === value ? "" : currentValue);
-                                    setOpenMale(false);
-                                  }}
-                                >
-                                  {res.label}
-                                  <Check
-                                    className={cn(
-                                      "ml-auto",
-                                      value === res.value ? "opacity-100" : "opacity-0"
-                                    )}
-                                  />
-                                </CommandItem>
-                              )
-                            }}
-                          />
-                        </div>
-                      )
-                    }
+                                    setCivilStatusMale(
+                                      selected.CivilStatus || ""
+                                    );
+                                  }
+                                  setValue(
+                                    currentValue === value ? "" : currentValue
+                                  );
+                                  setOpenMale(false);
+                                }}
+                              >
+                                {res.label}
+                                <Check
+                                  className={cn(
+                                    "ml-auto",
+                                    value === res.value
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                              </CommandItem>
+                            );
+                          }}
+                        />
+                      </div>
+                    )}
                   </Command>
                 </PopoverContent>
               </Popover>
               {/* Civil Status (Male) input field */}
               <div className="mt-4">
-                <label htmlFor="civilStatusMale" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="civilStatusMale"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Civil Status (Male)
                 </label>
                 <input
@@ -256,7 +293,10 @@ export default function Marriage() {
               </div>
               {/* Age (Male) input field */}
               <div className="mt-4">
-                <label htmlFor="ageMale" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="ageMale"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Age (Male)
                 </label>
                 <input
@@ -300,30 +340,42 @@ export default function Marriage() {
                           style={{ height: "100%" }}
                           totalCount={filteredResidents.length}
                           itemContent={(index) => {
-                            const res = filteredResidents[index]
+                            const res = filteredResidents[index];
                             return (
                               <CommandItem
                                 key={res.value}
                                 value={res.value}
                                 className="text-black"
                                 onSelect={(currentValue) => {
-                                  const selected = allResidents.find((r) => r.value === currentValue)?.data;
+                                  const selected = allResidents.find(
+                                    (r) => r.value === currentValue
+                                  )?.data;
                                   if (selected) {
                                     if (selected.Birthday) {
                                       const dob = new Date(selected.Birthday);
                                       const today = new Date();
-                                      let calculatedAge = today.getFullYear() - dob.getFullYear();
-                                      const m = today.getMonth() - dob.getMonth();
-                                      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                                      let calculatedAge =
+                                        today.getFullYear() - dob.getFullYear();
+                                      const m =
+                                        today.getMonth() - dob.getMonth();
+                                      if (
+                                        m < 0 ||
+                                        (m === 0 &&
+                                          today.getDate() < dob.getDate())
+                                      ) {
                                         calculatedAge--;
                                       }
                                       setAgeFemale(calculatedAge.toString());
                                     } else {
                                       setAgeFemale("");
                                     }
-                                    setCivilStatusFemale(selected.CivilStatus || "");
+                                    setCivilStatusFemale(
+                                      selected.CivilStatus || ""
+                                    );
                                   }
-                                  setValue2(currentValue === value2 ? "" : currentValue);
+                                  setValue2(
+                                    currentValue === value2 ? "" : currentValue
+                                  );
                                   setOpenFemale(false);
                                 }}
                               >
@@ -331,11 +383,13 @@ export default function Marriage() {
                                 <Check
                                   className={cn(
                                     "ml-auto",
-                                    value2 === res.value ? "opacity-100" : "opacity-0"
+                                    value2 === res.value
+                                      ? "opacity-100"
+                                      : "opacity-0"
                                   )}
                                 />
                               </CommandItem>
-                            )
+                            );
                           }}
                         />
                       </div>
@@ -345,7 +399,10 @@ export default function Marriage() {
               </Popover>
               {/* Civil Status (Female) input field */}
               <div className="mt-4">
-                <label htmlFor="civilStatusFemale" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="civilStatusFemale"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Civil Status (Female)
                 </label>
                 <input
@@ -359,7 +416,10 @@ export default function Marriage() {
               </div>
               {/* Age (Female) input field */}
               <div className="mt-4">
-                <label htmlFor="ageFemale" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="ageFemale"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Age (Female)
                 </label>
                 <input
@@ -373,7 +433,9 @@ export default function Marriage() {
               </div>
             </div>
             <div className="mt-4">
-              <label className="block mb-1 text-sm font-medium text-gray-700">Amount (PHP)</label>
+              <label className="block mb-1 text-sm font-medium text-gray-700">
+                Amount (PHP)
+              </label>
               <input
                 type="number"
                 step="0.01"
@@ -390,12 +452,18 @@ export default function Marriage() {
               >
                 Assigned Official
               </label>
-              <Select value={assignedOfficial} onValueChange={setAssignedOfficial}>
+              <Select
+                value={assignedOfficial}
+                onValueChange={setAssignedOfficial}
+              >
                 <SelectTrigger className="w-full border rounded px-3 py-2 text-sm">
                   <SelectValue placeholder="-- Select Official --" />
                 </SelectTrigger>
                 <SelectContent>
-                  {(Array.isArray(officials) ? officials : officials?.officials || [])
+                  {(Array.isArray(officials)
+                    ? officials
+                    : officials?.officials || []
+                  )
                     .filter((official: any) => {
                       const role = (official.Role || "").toLowerCase();
                       return !role.includes("sk") && !role.includes("tanod");
@@ -419,7 +487,17 @@ export default function Marriage() {
                 try {
                   const cert: any = {
                     resident_id: selectedResident.ID,
-                    resident_name: `${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname} & ${selectedResident2?.Firstname ?? ""} ${selectedResident2?.Middlename ? selectedResident2.Middlename.charAt(0) + ". " : ""}${selectedResident2?.Lastname ?? ""}`,
+                    resident_name: `${selectedResident.Firstname} ${
+                      selectedResident.Middlename
+                        ? selectedResident.Middlename.charAt(0) + ". "
+                        : ""
+                    }${selectedResident.Lastname} & ${
+                      selectedResident2?.Firstname ?? ""
+                    } ${
+                      selectedResident2?.Middlename
+                        ? selectedResident2.Middlename.charAt(0) + ". "
+                        : ""
+                    }${selectedResident2?.Lastname ?? ""}`,
                     type_: "Marriage Certificate",
                     amount: amount ? parseFloat(amount) : 0,
                     issued_date: new Date().toISOString().split("T")[0],
@@ -430,7 +508,11 @@ export default function Marriage() {
                   };
                   await addCertificate(cert);
                   toast.success("Certificate saved successfully!", {
-                    description: `${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}'s certificate was saved.`,
+                    description: `${selectedResident.Firstname} ${
+                      selectedResident.Middlename
+                        ? selectedResident.Middlename.charAt(0) + ". "
+                        : ""
+                    }${selectedResident.Lastname}'s certificate was saved.`,
                   });
                 } catch (error) {
                   console.error("Save certificate failed:", error);
@@ -448,36 +530,79 @@ export default function Marriage() {
               <Page size="A4" style={styles.page}>
                 <View style={{ position: "relative" }}>
                   <CertificateHeader />
-                    <Text style={[styles.bodyText, { marginBottom: 10, marginTop: 10 }]}>TO WHOM IT MAY CONCERN:</Text>
-                    {selectedResident && selectedResident2 ? (
-                      <>
-                        <Text style={[styles.bodyText, { textAlign: "justify", marginBottom: 8 }]}>
-                          <Text style={{ fontWeight: "bold" }}>This is to certify that </Text>
-                          <Text style={{ fontWeight: "bold" }}>
-                            {`MR. ${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}`.toUpperCase()}
-                          </Text>, {ageMale || "___"} years old, {civilStatusMale || "___"}, a resident of zone {selectedResident.Zone}, at {settings ? settings.barangay : "________________"}
-                        ,{settings ? settings.municipality : "________________"}
-                        ,{settings ? settings.province : "________________"} wishes to contract marriage with
-                          <Text style={{ fontWeight: "bold" }}>
-                            {`MS. ${selectedResident2.Firstname} ${selectedResident2.Middlename ? selectedResident2.Middlename.charAt(0) + ". " : ""}${selectedResident2.Lastname}`.toUpperCase()}
-                          </Text>, {ageFemale || "___"} years old, {civilStatusFemale || "___"}, no legal impediment to contract marriage.
+                  <Text
+                    style={{
+                      textAlign: "center",
+                      fontWeight: "bold",
+                      fontSize: 24,
+                      marginBottom: 10,
+                      fontFamily: "Times-Roman",
+                    }}
+                  >
+                    CERTIFICATE OF MARRIAGE
+                  </Text>
+                  <Text
+                    style={[
+                      styles.bodyText,
+                      { marginBottom: 10, marginTop: 10 },
+                    ]}
+                  >
+                    TO WHOM IT MAY CONCERN:
+                  </Text>
+                  {selectedResident && selectedResident2 ? (
+                    <>
+                      <Text
+                        style={[
+                          styles.bodyText,
+                          { textAlign: "justify", marginBottom: 8 },
+                        ]}
+                      >
+                        <Text style={{ fontWeight: "bold" }}>
+                          This is to certify that{" "}
                         </Text>
-                      </>
-                    ) : (
-                      <Text style={styles.bodyText}>Please select a resident to view certificate.</Text>
-                    )}
-                      <CertificateFooter
-                        styles={styles}
-                        captainName={captainName}
-                        amount={amount}
-                        assignedOfficial={assignedOfficial}
-                      />
-                  </View>
+                        <Text style={{ fontWeight: "bold" }}>
+                          {`MR. ${selectedResident.Firstname} ${
+                            selectedResident.Middlename
+                              ? selectedResident.Middlename.charAt(0) + ". "
+                              : ""
+                          }${selectedResident.Lastname}`.toUpperCase()}
+                        </Text>
+                        , {ageMale || "___"} years old,{" "}
+                        {civilStatusMale || "___"}, a resident of zone{" "}
+                        {selectedResident.Zone}, at{" "}
+                        {settings ? settings.barangay : "________________"},
+                        {settings ? settings.municipality : "________________"},
+                        {settings ? settings.province : "________________"}{" "}
+                        wishes to contract marriage with
+                        <Text style={{ fontWeight: "bold" }}>
+                          {`MS. ${selectedResident2.Firstname} ${
+                            selectedResident2.Middlename
+                              ? selectedResident2.Middlename.charAt(0) + ". "
+                              : ""
+                          }${selectedResident2.Lastname}`.toUpperCase()}
+                        </Text>
+                        , {ageFemale || "___"} years old,{" "}
+                        {civilStatusFemale || "___"}, no legal impediment to
+                        contract marriage.
+                      </Text>
+                    </>
+                  ) : (
+                    <Text style={styles.bodyText}>
+                      Please select a resident to view certificate.
+                    </Text>
+                  )}
+                  <CertificateFooter
+                    styles={styles}
+                    captainName={captainName}
+                    amount={amount}
+                    assignedOfficial={assignedOfficial}
+                  />
+                </View>
               </Page>
             </Document>
           </PDFViewer>
         </div>
       </div>
     </>
-  )
+  );
 }
