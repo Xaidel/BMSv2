@@ -1,7 +1,30 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Command, CommandEmpty, CommandInput, CommandItem } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Command,
+  CommandEmpty,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { PDFViewer } from "@react-pdf/renderer";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
@@ -46,7 +69,7 @@ export default function Birth() {
   };
   const captainName = getOfficialName("barangay captain", "barangay officials");
   const preparedBy = getOfficialName("secretary", "barangay officials");
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   // Birth certificate form fields
   const [registryNo, setRegistryNo] = useState("");
   const [birthDate, setBirthDate] = useState("");
@@ -76,10 +99,17 @@ export default function Birth() {
   const [placeOfMarriage, setPlaceOfMarriage] = useState("");
   const [attendantAtBirth, setAttendantAtBirth] = useState("");
   const [amount, setAmount] = useState("100.00");
-  const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null)
-  const [logoMunicipalityDataUrl, setLogoMunicipalityDataUrl] = useState<string | null>(null);
-  const [, setSettings] = useState<{ barangay: string; municipality: string; province: string } | null>(null);
-  console.log(age)
+  const [assignedOfficial, setAssignedOfficial] = useState("");
+  const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
+  const [logoMunicipalityDataUrl, setLogoMunicipalityDataUrl] = useState<
+    string | null
+  >(null);
+  const [, setSettings] = useState<{
+    barangay: string;
+    municipality: string;
+    province: string;
+  } | null>(null);
+  console.log(age);
   // Resident selector state for Select Resident dropdown
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
@@ -123,15 +153,19 @@ export default function Birth() {
     getResident()
       .then((res) => {
         if (Array.isArray(res.residents)) {
-          setResidents(res.residents.map((r) => ({
-            id: r.ID,
-            first_name: r.Firstname,
-            middle_name: r.Middlename,
-            last_name: r.Lastname,
-            suffix: r.Suffix,
-            age: r.Birthday ? (new Date().getFullYear() - new Date(r.Birthday).getFullYear()) : undefined,
-            civil_status: r.CivilStatus,
-          })));
+          setResidents(
+            res.residents.map((r) => ({
+              id: r.ID,
+              first_name: r.Firstname,
+              middle_name: r.Middlename,
+              last_name: r.Lastname,
+              suffix: r.Suffix,
+              age: r.Birthday
+                ? new Date().getFullYear() - new Date(r.Birthday).getFullYear()
+                : undefined,
+              civil_status: r.CivilStatus,
+            }))
+          );
         }
       })
       .catch(console.error);
@@ -140,8 +174,9 @@ export default function Birth() {
   // Populate related fields when a resident is selected
   useEffect(() => {
     if (selectedResident) {
-      if ('age' in selectedResident) setAge(String(selectedResident.age ?? ""));
-      if ('civil_status' in selectedResident) setCivilStatus(selectedResident.civil_status ?? "");
+      if ("age" in selectedResident) setAge(String(selectedResident.age ?? ""));
+      if ("civil_status" in selectedResident)
+        setCivilStatus(selectedResident.civil_status ?? "");
     }
   }, [selectedResident]);
   const styles = StyleSheet.create({
@@ -156,18 +191,24 @@ export default function Birth() {
         <Card className="flex-2 flex flex-col justify-between">
           <CardHeader>
             <CardTitle className="flex gap-2 items-center justify-start">
-              <ArrowLeftCircleIcon className="h-8 w-8" onClick={() => navigate(-1)} />
+              <ArrowLeftCircleIcon
+                className="h-8 w-8"
+                onClick={() => navigate(-1)}
+              />
               Birth Certificate
             </CardTitle>
             <CardDescription className="text-start">
-              Please fill out the necessary information needed for Birth Registration
+              Please fill out the necessary information needed for Birth
+              Registration
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div>
               {/* Resident Selector */}
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Select Resident</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Select Resident
+                </label>
                 <Popover open={open} onOpenChange={setOpen}>
                   <PopoverTrigger asChild>
                     <Button
@@ -205,7 +246,9 @@ export default function Birth() {
                                   value={res.value}
                                   className="text-black"
                                   onSelect={(currentValue) => {
-                                    setValue(currentValue === value ? "" : currentValue);
+                                    setValue(
+                                      currentValue === value ? "" : currentValue
+                                    );
                                     setOpen(false);
                                   }}
                                 >
@@ -213,7 +256,9 @@ export default function Birth() {
                                   <Check
                                     className={cn(
                                       "ml-auto",
-                                      value === res.value ? "opacity-100" : "opacity-0"
+                                      value === res.value
+                                        ? "opacity-100"
+                                        : "opacity-0"
                                     )}
                                   />
                                 </CommandItem>
@@ -229,7 +274,9 @@ export default function Birth() {
               {/* Birth Certificate Fields */}
               <div className="mt-4 grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Registry No.</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Registry No.
+                  </label>
                   <input
                     type="text"
                     value={registryNo || ""}
@@ -239,7 +286,9 @@ export default function Birth() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Date
+                  </label>
                   <input
                     type="date"
                     value={birthDate || ""}
@@ -249,7 +298,9 @@ export default function Birth() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Name of child (First)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Name of child (First)
+                  </label>
                   <input
                     type="text"
                     value={childFirstName || ""}
@@ -259,7 +310,9 @@ export default function Birth() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Name of child (Middle)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Name of child (Middle)
+                  </label>
                   <input
                     type="text"
                     value={childMiddleName || ""}
@@ -269,7 +322,9 @@ export default function Birth() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Name of child (Last)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Name of child (Last)
+                  </label>
                   <input
                     type="text"
                     value={childLastName || ""}
@@ -279,7 +334,9 @@ export default function Birth() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Gender
+                  </label>
                   <input
                     type="text"
                     value={childGender || ""}
@@ -289,7 +346,9 @@ export default function Birth() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Date of Birth
+                  </label>
                   <input
                     type="date"
                     value={childDateOfBirth || ""}
@@ -299,7 +358,9 @@ export default function Birth() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Weight at Birth</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Weight at Birth
+                  </label>
                   <input
                     type="text"
                     value={childWeight || ""}
@@ -309,7 +370,9 @@ export default function Birth() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Type of Birth</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Type of Birth
+                  </label>
                   <input
                     type="text"
                     value={typeOfBirth || ""}
@@ -319,7 +382,9 @@ export default function Birth() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Total Number of Child</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Total Number of Child
+                  </label>
                   <input
                     type="number"
                     value={totalNumberOfChild || ""}
@@ -329,7 +394,9 @@ export default function Birth() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Time at Birth</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Time at Birth
+                  </label>
                   <input
                     type="text"
                     value={timeAtBirth || ""}
@@ -339,7 +406,9 @@ export default function Birth() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Place of Birth</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Place of Birth
+                  </label>
                   <input
                     type="text"
                     value={placeOfBirth || ""}
@@ -349,7 +418,9 @@ export default function Birth() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Mother Maiden Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Mother Maiden Name
+                  </label>
                   <input
                     type="text"
                     value={motherMaidenName || ""}
@@ -359,7 +430,9 @@ export default function Birth() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Mother Occupation</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Mother Occupation
+                  </label>
                   <input
                     type="text"
                     value={motherOccupation || ""}
@@ -369,7 +442,9 @@ export default function Birth() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Mother Age</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Mother Age
+                  </label>
                   <input
                     type="number"
                     value={motherAge || ""}
@@ -379,7 +454,9 @@ export default function Birth() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Mother Residence</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Mother Residence
+                  </label>
                   <input
                     type="text"
                     value={motherResidence || ""}
@@ -389,7 +466,9 @@ export default function Birth() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Mother Religion</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Mother Religion
+                  </label>
                   <input
                     type="text"
                     value={motherReligion || ""}
@@ -399,7 +478,9 @@ export default function Birth() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Father Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Father Name
+                  </label>
                   <input
                     type="text"
                     value={fatherName || ""}
@@ -409,7 +490,9 @@ export default function Birth() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Father Occupation</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Father Occupation
+                  </label>
                   <input
                     type="text"
                     value={fatherOccupation || ""}
@@ -419,7 +502,9 @@ export default function Birth() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Father Age</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Father Age
+                  </label>
                   <input
                     type="number"
                     value={fatherAge || ""}
@@ -429,7 +514,9 @@ export default function Birth() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Father Residence</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Father Residence
+                  </label>
                   <input
                     type="text"
                     value={fatherResidence || ""}
@@ -439,7 +526,9 @@ export default function Birth() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Father Religion</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Father Religion
+                  </label>
                   <input
                     type="text"
                     value={fatherReligion || ""}
@@ -449,7 +538,9 @@ export default function Birth() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date of Marriage</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Date of Marriage
+                  </label>
                   <input
                     type="date"
                     value={dateOfMarriage || ""}
@@ -459,7 +550,9 @@ export default function Birth() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Place of Marriage</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Place of Marriage
+                  </label>
                   <input
                     type="text"
                     value={placeOfMarriage || ""}
@@ -469,7 +562,9 @@ export default function Birth() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Attendant at Birth</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Attendant at Birth
+                  </label>
                   <input
                     type="text"
                     value={attendantAtBirth || ""}
@@ -480,7 +575,10 @@ export default function Birth() {
                 </div>
               </div>
               <div className="mt-4">
-                <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="amount"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Enter Amount (PHP)
                 </label>
                 <input
@@ -491,6 +589,37 @@ export default function Birth() {
                   className="w-full border rounded px-3 py-2 text-sm"
                   placeholder="e.g. 10.00"
                 />
+              </div>
+              <div className="mt-4">
+                <label
+                  htmlFor="assignedOfficial"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Assigned Official
+                </label>
+                <Select
+                  value={assignedOfficial}
+                  onValueChange={setAssignedOfficial}
+                >
+                  <SelectTrigger className="w-full border rounded px-3 py-2 text-sm">
+                    <SelectValue placeholder="-- Select Official --" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(Array.isArray(officials)
+                      ? officials
+                      : officials?.officials || []
+                    )
+                      .filter((official: any) => {
+                        const role = (official.Role || "").toLowerCase();
+                        return !role.includes("sk") && !role.includes("tanod");
+                      })
+                      .map((official: any) => (
+                        <SelectItem key={official.ID} value={official.Name}>
+                          {official.Name} - {official.Role}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </CardContent>
@@ -505,7 +634,11 @@ export default function Birth() {
                   const { mutateAsync: addCertificate } = useAddCertificate();
                   await addCertificate({
                     ResidentID: selectedResident.id,
-                    ResidentName: `${selectedResident.first_name} ${selectedResident.middle_name ? selectedResident.middle_name.charAt(0) + ". " : ""}${selectedResident.last_name}`,
+                    ResidentName: `${selectedResident.first_name} ${
+                      selectedResident.middle_name
+                        ? selectedResident.middle_name.charAt(0) + ". "
+                        : ""
+                    }${selectedResident.last_name}`,
                     Type: "Birth Certificate",
                     IssuedDate: new Date().toISOString().split("T")[0],
                     Age: selectedResident?.age ?? undefined,
@@ -514,7 +647,11 @@ export default function Birth() {
                     Amount: amount ? parseFloat(amount) : 0,
                   });
                   toast.success("Certificate saved successfully!", {
-                    description: `${selectedResident.first_name} ${selectedResident.middle_name ? selectedResident.middle_name.charAt(0) + ". " : ""}${selectedResident.last_name}'s certificate was saved.`
+                    description: `${selectedResident.first_name} ${
+                      selectedResident.middle_name
+                        ? selectedResident.middle_name.charAt(0) + ". "
+                        : ""
+                    }${selectedResident.last_name}'s certificate was saved.`,
                   });
                 } catch (error) {
                   console.error("Save certificate failed:", error);
@@ -539,7 +676,7 @@ export default function Birth() {
                         top: 10,
                         left: 30,
                         width: 90,
-                        height: 90
+                        height: 90,
                       }}
                     />
                   )}
@@ -571,39 +708,102 @@ export default function Birth() {
                   )}
                   <View style={styles.section}>
                     <CertificateHeader />
+                    <Text
+                      style={{
+                        textAlign: "center",
+                        fontWeight: "bold",
+                        fontSize: 24,
+                        marginBottom: 10,
+                        fontFamily: "Times-Roman",
+                      }}
+                    >
+                      CERTIFICATE OF BIRTH
+                    </Text>
 
                     <View style={{ flexDirection: "row", gap: 12 }}>
                       <View style={{ flex: 1 }}>
-                        <Text style={styles.bodyText}>Registry No.: {registryNo}</Text>
+                        <Text style={styles.bodyText}>
+                          Registry No.: {registryNo}
+                        </Text>
                         <Text style={styles.bodyText}>Date: {birthDate}</Text>
-                        <Text style={styles.bodyText}>Name of Child: {childFirstName} {childMiddleName} {childLastName}</Text>
-                        <Text style={styles.bodyText}>Gender: {childGender}</Text>
-                        <Text style={styles.bodyText}>Date of Birth: {childDateOfBirth}</Text>
-                        <Text style={styles.bodyText}>Weight at Birth: {childWeight}</Text>
-                        <Text style={styles.bodyText}>Type of Birth: {typeOfBirth}</Text>
-                        <Text style={styles.bodyText}>Total Number of Child: {totalNumberOfChild}</Text>
-                        <Text style={styles.bodyText}>Time at Birth: {timeAtBirth}</Text>
-                        <Text style={styles.bodyText}>Place of Birth: {placeOfBirth}</Text>
-                        <Text style={styles.bodyText}>Attendant at Birth: {attendantAtBirth}</Text>
+                        <Text style={styles.bodyText}>
+                          Name of Child: {childFirstName} {childMiddleName}{" "}
+                          {childLastName}
+                        </Text>
+                        <Text style={styles.bodyText}>
+                          Gender: {childGender}
+                        </Text>
+                        <Text style={styles.bodyText}>
+                          Date of Birth: {childDateOfBirth}
+                        </Text>
+                        <Text style={styles.bodyText}>
+                          Weight at Birth: {childWeight}
+                        </Text>
+                        <Text style={styles.bodyText}>
+                          Type of Birth: {typeOfBirth}
+                        </Text>
+                        <Text style={styles.bodyText}>
+                          Total Number of Child: {totalNumberOfChild}
+                        </Text>
+                        <Text style={styles.bodyText}>
+                          Time at Birth: {timeAtBirth}
+                        </Text>
+                        <Text style={styles.bodyText}>
+                          Place of Birth: {placeOfBirth}
+                        </Text>
+                        <Text style={styles.bodyText}>
+                          Attendant at Birth: {attendantAtBirth}
+                        </Text>
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text style={styles.bodyText}>Mother Maiden Name: {motherMaidenName}</Text>
-                        <Text style={styles.bodyText}>Occupation: {motherOccupation}</Text>
-                        <Text style={styles.bodyText}>Age at Time of Birth: {motherAge}</Text>
-                        <Text style={styles.bodyText}>Residence: {motherResidence}</Text>
-                        <Text style={styles.bodyText}>Religion: {motherReligion}</Text>
-                        <Text style={styles.bodyText}>Name of Father: {fatherName}</Text>
-                        <Text style={styles.bodyText}>Occupation: {fatherOccupation}</Text>
-                        <Text style={styles.bodyText}>Age at Time of Birth: {fatherAge}</Text>
-                        <Text style={styles.bodyText}>Residence: {fatherResidence}</Text>
-                        <Text style={styles.bodyText}>Religion: {fatherReligion}</Text>
-                        <Text style={styles.bodyText}>Date of Marriage: {dateOfMarriage}</Text>
-                        <Text style={styles.bodyText}>Place of Marriage: {placeOfMarriage}</Text>
+                        <Text style={styles.bodyText}>
+                          Mother Maiden Name: {motherMaidenName}
+                        </Text>
+                        <Text style={styles.bodyText}>
+                          Occupation: {motherOccupation}
+                        </Text>
+                        <Text style={styles.bodyText}>
+                          Age at Time of Birth: {motherAge}
+                        </Text>
+                        <Text style={styles.bodyText}>
+                          Residence: {motherResidence}
+                        </Text>
+                        <Text style={styles.bodyText}>
+                          Religion: {motherReligion}
+                        </Text>
+                        <Text style={styles.bodyText}>
+                          Name of Father: {fatherName}
+                        </Text>
+                        <Text style={styles.bodyText}>
+                          Occupation: {fatherOccupation}
+                        </Text>
+                        <Text style={styles.bodyText}>
+                          Age at Time of Birth: {fatherAge}
+                        </Text>
+                        <Text style={styles.bodyText}>
+                          Residence: {fatherResidence}
+                        </Text>
+                        <Text style={styles.bodyText}>
+                          Religion: {fatherReligion}
+                        </Text>
+                        <Text style={styles.bodyText}>
+                          Date of Marriage: {dateOfMarriage}
+                        </Text>
+                        <Text style={styles.bodyText}>
+                          Place of Marriage: {placeOfMarriage}
+                        </Text>
                       </View>
                     </View>
 
                     <View style={{ marginTop: 20 }}>
-                      <Text style={[styles.bodyText, { fontWeight: "bold", marginBottom: 6 }]}>REQUIREMENTS:</Text>
+                      <Text
+                        style={[
+                          styles.bodyText,
+                          { fontWeight: "bold", marginBottom: 6 },
+                        ]}
+                      >
+                        REQUIREMENTS:
+                      </Text>
                       {[
                         "Negative Certification of Birth issued by National Statistics Office.",
                         "Voters Certification issued by COMELEC.",
@@ -616,33 +816,83 @@ export default function Birth() {
                         "Marriage Certificate of Parents",
                         "Cenomar of Parents",
                         "Affidavit of Legitimation.",
-                        "Affidavit to use surname of the Father/Affidavit of Acknowledgement of Paternity (not married parent)"
-                      ].map(req => (
-                        <Text key={req} style={styles.bodyText}>• {req}</Text>
+                        "Affidavit to use surname of the Father/Affidavit of Acknowledgement of Paternity (not married parent)",
+                      ].map((req) => (
+                        <Text key={req} style={styles.bodyText}>
+                          • {req}
+                        </Text>
                       ))}
                     </View>
 
-                    <View style={{ marginTop: 30, flexDirection: "row", justifyContent: "space-between" }}>
+                    <View
+                      style={{
+                        marginTop: 30,
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                      }}
+                    >
                       <View>
-                        <Text style={[styles.bodyText, { fontWeight: "bold" }]}>Prepared by:</Text>
-                        <Text style={[styles.bodyText, { marginTop: 20, marginBottom: 4, fontWeight: "bold" }]}>
+                        <Text style={[styles.bodyText, { fontWeight: "bold" }]}>
+                          Prepared by:
+                        </Text>
+                        <Text
+                          style={[
+                            styles.bodyText,
+                            {
+                              marginTop: 20,
+                              marginBottom: 4,
+                              fontWeight: "bold",
+                            },
+                          ]}
+                        >
                           {preparedBy || "________________"}
                         </Text>
                         <Text style={styles.bodyText}>Barangay Secretary</Text>
+                        <View style={{ marginTop: 20 }}>
+                          <Text style={styles.bodyText}>
+                            O.R. No.: ____________________
+                          </Text>
+                          <Text style={styles.bodyText}>
+                            Date: _________________________
+                          </Text>
+                          <Text style={styles.bodyText}>
+                            Amount: PHP {amount}
+                          </Text>
+                        </View>
                       </View>
                       <View>
-                        <Text style={[styles.bodyText, { fontWeight: "bold" }]}>Noted:</Text>
-                        <Text style={[styles.bodyText, { marginTop: 20, marginBottom: 4, fontWeight: "bold" }]}>
+                        <Text style={[styles.bodyText, { fontWeight: "bold" }]}>
+                          Noted:
+                        </Text>
+                        <Text
+                          style={[
+                            styles.bodyText,
+                            {
+                              marginTop: 20,
+                              marginBottom: 4,
+                              fontWeight: "bold",
+                            },
+                          ]}
+                        >
                           HON. {captainName || "________________"}
                         </Text>
                         <Text style={styles.bodyText}>Barangay Captain</Text>
+                        {assignedOfficial && (
+                          <View style={{ marginTop: 20 }}>
+                            <Text
+                              style={[
+                                styles.bodyText,
+                                { marginBottom: 4, fontWeight: "bold" },
+                              ]}
+                            >
+                              HON. {assignedOfficial}
+                            </Text>
+                            <Text style={styles.bodyText}>
+                              Officer in charge today
+                            </Text>
+                          </View>
+                        )}
                       </View>
-                    </View>
-
-                    <View style={{ marginTop: 20 }}>
-                      <Text style={styles.bodyText}>O.R. No.: ____________________</Text>
-                      <Text style={styles.bodyText}>Date: _________________________</Text>
-                      <Text style={styles.bodyText}>Amount: PHP {amount}</Text>
                     </View>
                   </View>
                 </View>
@@ -652,5 +902,5 @@ export default function Birth() {
         </div>
       </div>
     </>
-  )
+  );
 }

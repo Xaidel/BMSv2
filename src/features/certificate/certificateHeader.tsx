@@ -101,17 +101,6 @@ export default function CertificateHeader() {
       >
         OFFICE OF THE PUNONG BARANGAY
       </Text>
-      <Text
-        style={{
-          textAlign: "center",
-          fontWeight: "bold",
-          fontSize: 32,
-          marginBottom: 10,
-          fontFamily: "Times-Roman",
-        }}
-      >
-        CERTIFICATION
-      </Text>
     </View>
   );
 }

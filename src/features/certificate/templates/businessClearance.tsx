@@ -86,6 +86,7 @@ export default function BusinessClearance() {
   const [businessLocation, setBusinessLocation] = useState("");
   const [businessOwner, setBusinessOwner] = useState("");
   const [amount, setAmount] = useState("100.00");
+  const [assignedOfficial, setAssignedOfficial] = useState("");
   // Resident selection state
   const [age, setAge] = useState("");
   const [civilStatus, setCivilStatus] = useState("");
@@ -96,7 +97,7 @@ export default function BusinessClearance() {
     "Business Permit",
     "Renewal",
     "Loan Requirement",
-    "Others"
+    "Others",
   ];
 
   useEffect(() => {
@@ -266,7 +267,10 @@ export default function BusinessClearance() {
             {/* End Select Resident Dropdown */}
             <div>
               <div className="mt-4">
-                <label htmlFor="businessName" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="businessName"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Business Name
                 </label>
                 <input
@@ -279,7 +283,10 @@ export default function BusinessClearance() {
                 />
               </div>
               <div className="mt-4">
-                <label htmlFor="businessType" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="businessType"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Type of Business
                 </label>
                 <input
@@ -292,7 +299,10 @@ export default function BusinessClearance() {
                 />
               </div>
               <div className="mt-4">
-                <label htmlFor="businessLocation" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="businessLocation"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Business Location
                 </label>
                 <input
@@ -305,7 +315,10 @@ export default function BusinessClearance() {
                 />
               </div>
               <div className="mt-4">
-                <label htmlFor="businessOwner" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="businessOwner"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Owner
                 </label>
                 <input
@@ -318,7 +331,10 @@ export default function BusinessClearance() {
                 />
               </div>
               <div className="mt-4">
-                <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="amount"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Amount (PHP)
                 </label>
                 <input
@@ -331,7 +347,41 @@ export default function BusinessClearance() {
                 />
               </div>
               <div className="mt-4">
-                <label htmlFor="purpose" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="assignedOfficial"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Assigned Official
+                </label>
+                <Select
+                  value={assignedOfficial}
+                  onValueChange={setAssignedOfficial}
+                >
+                  <SelectTrigger className="w-full border rounded px-3 py-2 text-sm">
+                    <SelectValue placeholder="-- Select Official --" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(Array.isArray(officials)
+                      ? officials
+                      : officials?.officials || []
+                    )
+                      .filter((official: any) => {
+                        const role = (official.Role || "").toLowerCase();
+                        return !role.includes("sk") && !role.includes("tanod");
+                      })
+                      .map((official: any) => (
+                        <SelectItem key={official.ID} value={official.Name}>
+                          {official.Name} - {official.Role}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="mt-4">
+                <label
+                  htmlFor="purpose"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Purpose of Certificate
                 </label>
                 <Select value={purpose} onValueChange={setPurpose}>
@@ -344,7 +394,9 @@ export default function BusinessClearance() {
                         {option}
                       </SelectItem>
                     ))}
-                    <SelectItem value="custom">Other (please specify)</SelectItem>
+                    <SelectItem value="custom">
+                      Other (please specify)
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 {purpose === "custom" && (
@@ -372,18 +424,27 @@ export default function BusinessClearance() {
                 try {
                   const cert: any = {
                     resident_id: selectedResident.id,
-                    resident_name: `${selectedResident.first_name} ${selectedResident.middle_name ? selectedResident.middle_name.charAt(0) + ". " : ""}${selectedResident.last_name}`,
+                    resident_name: `${selectedResident.first_name} ${
+                      selectedResident.middle_name
+                        ? selectedResident.middle_name.charAt(0) + ". "
+                        : ""
+                    }${selectedResident.last_name}`,
                     type_: "Barangay Business Clearance",
                     amount: parseFloat(amount),
                     issued_date: new Date().toISOString().split("T")[0],
                     ownership_text: businessOwner || "",
                     civil_status: civilStatus || "",
-                    purpose: purpose === "custom" ? customPurpose || "" : purpose,
+                    purpose:
+                      purpose === "custom" ? customPurpose || "" : purpose,
                     age: age ? parseInt(age) : undefined,
                   };
                   await addCertificate(cert);
                   toast.success("Certificate saved successfully!", {
-                    description: `${selectedResident.first_name} ${selectedResident.middle_name ? selectedResident.middle_name.charAt(0) + ". " : ""}${selectedResident.last_name}'s certificate was saved.`,
+                    description: `${selectedResident.first_name} ${
+                      selectedResident.middle_name
+                        ? selectedResident.middle_name.charAt(0) + ". "
+                        : ""
+                    }${selectedResident.last_name}'s certificate was saved.`,
                   });
                 } catch (error) {
                   console.error("Save certificate failed:", error);
@@ -401,17 +462,18 @@ export default function BusinessClearance() {
               <Page size="A4" style={styles.page}>
                 <View style={{ position: "relative" }}>
                   <CertificateHeader />
+                  <Text
+                    style={{
+                      textAlign: "center",
+                      fontWeight: "bold",
+                      fontSize: 24,
+                      marginBottom: 10,
+                      fontFamily: "Times-Roman",
+                    }}
+                  >
+                    BARANGAY BUSINESS CLEARANCE
+                  </Text>
                   <View style={styles.section}>
-                    <Text
-                      style={{
-                        textAlign: "center",
-                        fontWeight: "bold",
-                        fontSize: 18,
-                        marginBottom: 10,
-                      }}
-                    >
-                      BARANGAY BUSINESS CLEARANCE
-                    </Text>
                     <View
                       style={{
                         border: "2pt solid black",
@@ -529,6 +591,7 @@ export default function BusinessClearance() {
                       styles={styles}
                       captainName={captainName}
                       amount={amount}
+                      assignedOfficial={assignedOfficial}
                     />
                   </View>
                 </View>
