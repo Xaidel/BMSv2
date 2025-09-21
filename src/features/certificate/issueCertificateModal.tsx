@@ -37,6 +37,7 @@ const data: Certificate[] = [
   { type: "Solo Parent Certificate", path: "cert-solo" }, //done
   { type: "Unemployment Certificate", path: "cert-unemployment" }, //done
   { type: "First Job Seeker Certificate", path: "cert-job" }, // done
+  { type: "Completion Certificate", path: "cert-completion" }, // done
   // { type: "Certification of BARC", path: "cert-barc" },
   // { type: "Certification of Blood", path: "cert-blood" },
   // { type: "Certification of Cut Tree", path: "cert-cut" },

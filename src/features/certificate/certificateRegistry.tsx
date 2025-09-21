@@ -10,6 +10,7 @@ import Marriage from "./templates/marriage";
 import Ownership from "./templates/ownership";
 import SoloParent from "./templates/soloParent";
 import Jobseeker from "./templates/jobseeker";
+import Completion from "./templates/completion";
 
 export const CertificateRegistry: Record<string, React.ComponentType<any>> = {
   "fourps": Fourps,
@@ -24,4 +25,5 @@ export const CertificateRegistry: Record<string, React.ComponentType<any>> = {
   "cert-ownership": Ownership,
   "cert-solo": SoloParent,
   "cert-job": Jobseeker,
+  "cert-completion": Completion,
 };

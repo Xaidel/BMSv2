@@ -656,14 +656,6 @@ export default function ViewBlotterModal({
                 {/* Next + Save on Right */}
                 <div className="flex gap-2">
                   {step < 2 && (
-                    <Button
-                      type="button"
-                      onClick={() => setStep((prev) => prev + 1)}
-                    >
-                      Next
-                    </Button>
-                  )}
-                  {step === 2 && (
                     <>
                       <Button
                         type="button"
@@ -700,6 +692,16 @@ export default function ViewBlotterModal({
                       >
                         Download Summon
                       </Button>
+                      <Button
+                        type="button"
+                        onClick={() => setStep((prev) => prev + 1)}
+                      >
+                        Next
+                      </Button>
+                    </>
+                  )}
+                  {step === 2 && (
+                    <>
                       <Button type="submit">Save Blotter</Button>
                     </>
                   )}
