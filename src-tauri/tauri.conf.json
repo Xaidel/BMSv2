@@ -1,11 +1,11 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "bms",
+  "productName": "BMS",
   "version": "0.1.0",
   "identifier": "com.bms.app",
   "build": {
     "beforeDevCommand": "npm run dev",
-    "devUrl": "http://192.168.1.18:1420",
+    "devUrl": "http://192.168.1.2:1420",
     "beforeBuildCommand": "npm run build",
     "frontendDist": "../dist"
   },
@@ -30,5 +30,10 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "shell": {
+      "open": true
+    }
   }
 }
