@@ -31,6 +31,7 @@ const data: Certificate[] = [
   { type: "Barangay Indigency Certificate", path: "brgy-indigency" }, // done
   { type: "Barangay Business Permit", path: "brgy-business-permit" }, // done
   { type: "Barangay Business Clearance", path: "brgy-business-clearance" }, // done
+  { type: "Barangay Protection Order", path: "cert-protection" }, // done
   { type: "Marriage Certificate", path: "cert-marriage" }, // done
   { type: "Ownership Certificate", path: "cert-ownership" }, // done
   { type: "Registration of Birth", path: "registration-birth" }, // done

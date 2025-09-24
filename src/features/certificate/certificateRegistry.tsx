@@ -11,6 +11,7 @@ import Ownership from "./templates/ownership";
 import SoloParent from "./templates/soloParent";
 import Jobseeker from "./templates/jobseeker";
 import Completion from "./templates/completion";
+import Protection from "./templates/protection";
 
 export const CertificateRegistry: Record<string, React.ComponentType<any>> = {
   "fourps": Fourps,
@@ -26,4 +27,5 @@ export const CertificateRegistry: Record<string, React.ComponentType<any>> = {
   "cert-solo": SoloParent,
   "cert-job": Jobseeker,
   "cert-completion": Completion,
+  "cert-protection": Protection,
 };
