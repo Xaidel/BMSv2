@@ -690,7 +690,7 @@ export default function ViewBlotterModal({
                           }
                         }}
                       >
-                        Download Summon
+                        Download Blotter
                       </Button>
                       <Button
                         type="button"
