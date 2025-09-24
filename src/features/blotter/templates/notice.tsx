@@ -143,10 +143,10 @@ export default function NoticePDF() {
                 className="h-8 w-8"
                 onClick={() => navigate(-1)}
               />
-              Summons Letter
+              Notice of Hearing Letter
             </CardTitle>
             <CardDescription className="text-start">
-              Please fill out the necessary information needed for the Summons of Hearing Letter
+              Please fill out the necessary information needed for the Notice of Hearing Letter
             </CardDescription>
           </CardHeader>
           <CardContent>

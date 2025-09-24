@@ -147,7 +147,7 @@ export default function SummonPDF() {
               Summons Letter
             </CardTitle>
             <CardDescription className="text-start">
-              Please fill out the necessary information needed for the Summons of Hearing Letter
+              Please fill out the necessary information needed for the Summons Letter
             </CardDescription>
           </CardHeader>
           <CardContent>
