@@ -18,6 +18,7 @@ import IssueCertificate from "./pages/IssueCertificate";
 import Map from "./pages/Map";
 import LoginPage from "./pages/Login";
 import LogbookPage from "./pages/Logbook";
+import IssueBlotter from "./pages/IssueBlotter";
 
 function App() {
   const queryClient: QueryClient = new QueryClient({
@@ -48,6 +49,10 @@ function App() {
             <Route path="income" element={<Income />} />
             <Route path="expense" element={<Expense />} />
             <Route path="blotter" element={<BlotterRecord />} />
+            <Route
+              path="/blotter/template/:template"
+              element={<IssueBlotter />}
+            />
             <Route path="officials" element={<Official />} />
             <Route path="settings" element={<Settings />} />
           </Route>

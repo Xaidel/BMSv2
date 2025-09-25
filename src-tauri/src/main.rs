@@ -18,6 +18,7 @@ use commands::logbook::{fetch_all_logbook_entries_command, insert_logbook_entry_
 use database::connection::establish_connection;
 use database::migration::migrate;
 use tauri::command;
+use tauri_plugin_shell;
 
 
 #[command]
@@ -47,6 +48,7 @@ fn main() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
             greet,
             test_db_connection,
@@ -117,4 +119,3 @@ fn main() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
-

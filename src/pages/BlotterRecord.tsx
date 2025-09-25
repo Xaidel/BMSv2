@@ -21,6 +21,8 @@ import { pdf } from "@react-pdf/renderer";
 import { writeFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 import SummaryCardBlotter from "@/components/summary-card/blotter";
 import { BlotterPDF } from "@/components/pdf/blotterpdf";
+import IssueBlotterModal from "@/features/blotter/issueTemplateModal";
+
 
 const filters = [
   "All Blotter Records",
@@ -333,6 +335,7 @@ export default function BlotterRecordPage() {
           <Trash />
           Delete Selected
         </Button>
+        <IssueBlotterModal />
         <AddBlotterModal />
       </div>
 

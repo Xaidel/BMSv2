@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export const SummonPDF = ({ filter, blotters }: Props) => {
+export const SummonPDF = ({ blotters }: Props) => {
   const todayDate = format(new Date(), "MMMM do, yyyy");
 
   return (
@@ -36,102 +36,111 @@ export const SummonPDF = ({ filter, blotters }: Props) => {
       <Page orientation="portrait" size="LETTER" style={styles.page}>
         <PDFHeader />
         <Text
-            style={{
-              textAlign: "center",
-              fontWeight: "bold",
-              fontSize: 26,
-              marginBottom: 18,
-              fontFamily: "Times-Roman",
-              letterSpacing: 1.5,
-              textTransform: "uppercase",
-            }}
-          >
-            SUMMONS
-          </Text>
-        <View
           style={{
-            alignItems: "flex-start",
-            marginBottom: 24,
-            paddingBottom: 4,
-            borderBottomWidth: 1,
-            borderBottomColor: "#eee",
+            textAlign: "center",
+            fontWeight: "bold",
+            fontSize: 26,
+            marginBottom: 18,
+            fontFamily: "Times-Roman",
+            letterSpacing: 1.5,
+            textTransform: "uppercase",
           }}
         >
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6, width: "100%" }}>
-            {/* Complainant Section */}
-            <View>
-              <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "left", marginBottom: 1 }}>
-                {blotters[0]?.ReportedBy || "________________"}
-              </Text>
-              <Text
-                style={{
-                  fontSize: 11,
-                  color: "#444",
-                  textAlign: "left",
-                  marginBottom: 1,
-                }}
-              >
-                {blotters[0]
-                  ? `${blotters[0].Zone}, ${blotters[0].Location}`
-                  : "________________"}, Camarines Sur
-              </Text>
-              <Text style={{ fontSize: 11, fontWeight: "bold", marginBottom: 0.5 }}>
-                Complainant/s
-              </Text>
-            </View>
-            {/* Case Number */}
-            <View style={{ alignItems: "flex-end" }}>
-              <Text
-                style={{ fontSize: 13, fontWeight: "bold", textAlign: "right" }}
-              >
-                Barangay case #{blotters[0]?.ID || "____"}
-              </Text>
-            </View>
-          </View>
-          {/* Against separator */}
-          <View style={{ marginBottom: 6 }}>
-            <Text
-              style={{ fontSize: 11, textAlign: "left", fontStyle: "italic" }}
-            >
-              -against-
-            </Text>
-          </View>
-          {/* Respondent Section */}
-          <View>
-            <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "left", marginBottom: 1 }}>
-              {blotters[0]?.Involved || "________________"}
-            </Text>
-            <Text style={{ fontSize: 11, fontWeight: "bold" }}>
-              Respondent/s
-            </Text>
-          </View>
+          BLOTTER INFORMATION
+        </Text>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "flex-end",
+            marginBottom: 8,
+            width: "100%",
+          }}
+        >
+          <Text style={{ fontSize: 13, fontWeight: "bold", textAlign: "right" }}>
+            Case No.: {blotters[0]?.ID || "____"}
+          </Text>
         </View>
         {blotters.map((blotter) => {
           const formattedHearing = blotter.HearingDate
             ? format(new Date(blotter.HearingDate), "MMMM d, yyyy 'at' h:mm a")
-            : "________________";
+            : "";
           return (
             <View key={blotter.ID} style={{ marginBottom: 10 }}>
-              {/* Body text with bolded key info */}
-              <Text style={styles.bodyText}>
-                You are hereby summoned to appear before me in person, on{" "}
-                <Text style={{ fontWeight: "bold" }}>{formattedHearing}</Text>
-                {", then and there to answer to a complaint made before me, copy of which is attached to mediation/ conciliation of your dispute with "}
-                <Text style={{ fontWeight: "bold" }}>complainant/s</Text>
-                {"."}
-              </Text>
-              <Text style={styles.bodyText}>
-                <Text style={{ fontWeight: "bold" }}>You are hereby warned</Text>
-                {" that if you refuse or willfully fail to appear in obedience to this summons, you may be barred from filling any "}
-                <Text style={{ fontWeight: "bold" }}>counterclaim</Text>
-                {" arising from the said complaint"}
-              </Text>
-              <Text style={styles.bodyText}>
-                <Text style={{ fontWeight: "bold" }}>FAIL NOT</Text>
-                {" or else face the punishment as for contempt of the court."}
-              </Text>
-              <Text style={styles.bodyText}>
-                Given this <Text style={{ fontWeight: "bold" }}>{todayDate}</Text>, at Barangay Tambo, Pamplona, Camarines Sur.
+              {/* Complainant */}
+              <View style={{ flexDirection: "row", marginBottom: 3 }}>
+                <Text style={{ fontWeight: "bold", width: 120 }}>Complainant:</Text>
+                <Text>
+                  {blotter.ReportedBy || "________________"}
+                </Text>
+              </View>
+              {/* Complainant Address/Zone */}
+              <View style={{ flexDirection: "row", marginBottom: 3 }}>
+                <Text style={{ fontWeight: "bold", width: 120 }}>Address/Zone:</Text>
+                <Text>
+                  {(blotter.Zone && blotter.Location)
+                    ? `${blotter.Zone}, ${blotter.Location}, Camarines Sur`
+                    : "________________"}
+                </Text>
+              </View>
+              {/* Respondent */}
+              <View style={{ flexDirection: "row", marginBottom: 3 }}>
+                <Text style={{ fontWeight: "bold", width: 120 }}>Respondent:</Text>
+                <Text>
+                  {blotter.Involved || "________________"}
+                </Text>
+              </View>
+              {/* Type of blotter */}
+              <View style={{ flexDirection: "row", marginBottom: 3 }}>
+                <Text style={{ fontWeight: "bold", width: 120 }}>Type:</Text>
+                <Text>
+                  {blotter.Type || "________________"}
+                </Text>
+              </View>
+              {/* Narrative */}
+              <View style={{ flexDirection: "row", marginBottom: 3, alignItems: "flex-start" }}>
+                <Text style={{ fontWeight: "bold", width: 120 }}>Narrative:</Text>
+                <Text>
+                  {blotter.Narrative || "________________"}
+                </Text>
+              </View>
+              {/* Action Taken */}
+              <View style={{ flexDirection: "row", marginBottom: 3, alignItems: "flex-start" }}>
+                <Text style={{ fontWeight: "bold", width: 120 }}>Action Taken:</Text>
+                <Text>
+                  {blotter.Action || "________________"}
+                </Text>
+              </View>
+              {/* Witnesses */}
+              <View style={{ flexDirection: "row", marginBottom: 3, alignItems: "flex-start" }}>
+                <Text style={{ fontWeight: "bold", width: 120 }}>Witnesses:</Text>
+                <Text>
+                  {blotter.Witnesses || "________________"}
+                </Text>
+              </View>
+              {/* Evidence */}
+              <View style={{ flexDirection: "row", marginBottom: 3, alignItems: "flex-start" }}>
+                <Text style={{ fontWeight: "bold", width: 120 }}>Evidence:</Text>
+                <Text>
+                  {blotter.Evidence || "________________"}
+                </Text>
+              </View>
+              {/* Resolution */}
+              <View style={{ flexDirection: "row", marginBottom: 3, alignItems: "flex-start" }}>
+                <Text style={{ fontWeight: "bold", width: 120 }}>Resolution:</Text>
+                <Text>
+                  {blotter.Resolution || "________________"}
+                </Text>
+              </View>
+              {/* Hearing Date */}
+              <View style={{ flexDirection: "row", marginBottom: 3, alignItems: "flex-start" }}>
+                <Text style={{ fontWeight: "bold", width: 120 }}>Hearing Date:</Text>
+                <Text>
+                  {formattedHearing || "________________"}
+                </Text>
+              </View>
+              {/* Footer */}
+              <Text style={{ marginTop: 30, marginBottom: 10 }}>
+                Prepared this <Text style={{ fontWeight: "bold" }}>{todayDate}</Text>, at Barangay Tambo, Pamplona, Camarines Sur.
               </Text>
               <View style={{ marginTop: 40, alignItems: "flex-end" }}>
                 <Text style={{ fontWeight: "bold", textDecoration: "underline" }}>
