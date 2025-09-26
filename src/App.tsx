@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import AppLayout from "./components/ui/applayout";
 import Dashboard from "./pages/Dashboard";
 import Event from "./pages/Event";
+import ProgramProject from "./pages/ProgramProject";
 import Residents from "./pages/Residents";
 import Households from "./pages/Households";
 import Certificate from "./pages/Certificate";
@@ -38,6 +39,7 @@ function App() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="logbook" element={<LogbookPage />} />
             <Route path="event" element={<Event />} />
+            <Route path="program-projects" element={<ProgramProject />} />
             <Route path="residents" element={<Residents />} />
             <Route path="households" element={<Households />} />
             <Route path="map" element={<Map />} />

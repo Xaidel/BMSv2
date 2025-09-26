@@ -67,6 +67,26 @@ export type Event = {
   ID: number
 }
 
+export type ProgramProject = {
+  Name: string
+  Type: "Program" | "Project"
+  Venue: string
+  Audience: string
+  Notes: string
+  Status: "Planned" | "Ongoing" | "Completed" | "Cancelled"
+  Date: Date
+  ID: number
+  Budget: number
+  SourceOfFunds: string
+  ProjectManager: string
+  StartDate: Date
+  EndDate: Date
+  Duration: number
+  Beneficiaries: string
+  Location: string
+  Description?: string
+}
+
 export type Certificate = {
   ID?: number;
   ResidentID?: number;

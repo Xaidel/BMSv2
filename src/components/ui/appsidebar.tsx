@@ -19,11 +19,15 @@ const items = [
     icon: ClipboardCheck
   },
   {
-    title: "Event",
+    title: "Events",
     url: "/event",
     icon: Calendar
   },
-  
+  {
+    title: "Programs & Projects",
+    url: "/program-projects",
+    icon: Calendar
+  },
   {
     title: "Residents",
     url: "/residents",
@@ -87,7 +91,7 @@ export default function AppSidebar({ onHover, onOut }: SidebarProps) {
             {items.map((item) => (
               <SidebarMenuItem
                 key={item.title}
-                className=" font-redhat text-black max-w-[10rem] hover:max-w-[10rem]">
+                className=" font-redhat text-black max-w-[14rem] hover:max-w-[14rem]">
                 <SidebarMenuButton
                   asChild
                   className="hover:bg-primary hover:text-foreground "
@@ -106,7 +110,7 @@ export default function AppSidebar({ onHover, onOut }: SidebarProps) {
         </SidebarGroup >
       </SidebarContent >
       <SidebarFooter className="mb-3">
-        <SidebarMenuItem className="font-redhat text-black max-w-[10rem]"
+        <SidebarMenuItem className="font-redhat text-black max-w-[14rem]"
         >
           <SidebarMenuButton asChild
             className="hover:bg-primary hover:text-foreground "

@@ -13,7 +13,11 @@ export const loginSchema = z.object({
   })
 })
 
+
 const statusOption = ["Upcoming", "Ongoing", "Finished", "Cancelled"] as const;
+
+// Program/Project status options
+const programProjectStatusOption = ["Planned", "Ongoing", "Completed", "Cancelled"] as const;
 
 export const eventSchema = z.object({
   Name: z.string().min(2, {
@@ -43,6 +47,21 @@ export const eventSchema = z.object({
     message: "Important notes is too long"
   }),
   Status: z.enum(statusOption)
+})
+
+export const programProjectSchema = z.object({
+  Name: z.string().min(2, { message: "Name is too short" }).max(100, { message: "Name is too long" }),
+  Type: z.enum(["Program", "Project"]),
+  Description: z.string().max(1000).optional(),
+  StartDate: z.date({ required_error: "Start date is required" }),
+  EndDate: z.date().optional(),
+  Duration: z.number().optional(),
+  Location: z.string().min(2, { message: "Location is too short" }).max(100, { message: "Location is too long" }),
+  Beneficiaries: z.string().max(255).optional(),
+  Budget: z.number().min(0).max(1_000_000_000_000),
+  SourceOfFunds: z.string().max(100).optional(),
+  ProjectManager: z.string().max(100).optional(),
+  Status: z.enum(programProjectStatusOption)
 })
 
 export const residentSchema = z.object({
