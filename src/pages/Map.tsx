@@ -73,7 +73,7 @@ export default function Map() {
         const typeStr = (feature.properties?.type ?? "").toLowerCase();
         if (filterType === "Household") {
           if (!typeStr.includes("household")) return false;
-        } else if (filterType === "Business") {
+        } else if (filterType === "Commercial") {
           if (!typeStr.includes("commercial")) return false;
         } else if (filterType === "Institution") {
           if (!typeStr.includes("institutional")) return false;
@@ -278,7 +278,7 @@ const onEachZone = (zone, layer) => {
           />
           <Filter
             initial="All Buildings"
-            filters={["All Buildings", "Household", "Business", "Institution"]}
+            filters={["All Buildings", "Household", "Commercial", "Institution"]}
             onChange={(value) => setFilterType(value === "All Buildings" ? "All" : value)}
             classname="flex-1"
           />
