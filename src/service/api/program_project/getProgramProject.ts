@@ -3,7 +3,7 @@ import { ErrorResponse } from "../auth/login";
 import { ProgramProject } from "@/types/apitypes";
 
 export interface ProgramProjectResponse {
-  programProjects: ProgramProject[]
+  program_projects: ProgramProject[]
 }
 
 export default async function getProgramProject(ID?: number): Promise<ProgramProjectResponse> {

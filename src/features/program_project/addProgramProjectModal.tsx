@@ -58,7 +58,8 @@ export default function AddProgramProjectModal() {
     toast.promise(addMutation.mutateAsync(values as ProgramProject), {
       loading: "Adding Program/Project please wait...",
       success: (data) => {
-        const e = data.programProject;
+        console.log(data)
+        const e = data.program_project;
         setOpenModal(false);
         queryClient.invalidateQueries({ queryKey: ["program-projects"] });
         return {
@@ -67,6 +68,7 @@ export default function AddProgramProjectModal() {
         };
       },
       error: (error: ErrorResponse) => {
+        console.log(error)
         return {
           message: "Adding Program/Project failed",
           description: `${error.error}`,

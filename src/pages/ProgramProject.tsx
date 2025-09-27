@@ -9,7 +9,7 @@ import { sort } from "@/service/program_project/programProjectSort";
 import searchProgramProject from "@/service/program_project/searchProgramProject";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import {Trash, CalendarPlus, CalendarCheck, CalendarX2, CalendarClock, Eye,} from "lucide-react";
+import { Trash, CalendarPlus, CalendarCheck, CalendarX2, CalendarClock, Eye, } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ProgramProject } from "@/types/apitypes";
@@ -71,7 +71,7 @@ const columns: ColumnDef<ProgramProject>[] = [
     header: "Budget",
     accessorKey: "Budget",
     cell: ({ row }) => {
-      return <div>${row.original.Budget.toLocaleString()}</div>;
+      return <div>₱{row.original.Budget.toLocaleString()}</div>;
     },
   },
   {
@@ -116,9 +116,8 @@ export default function ProgramProjects() {
   const { data: programProjectResponse } = useProgramProject();
   const queryClient = useQueryClient();
   const deleteMutation = useDeleteProgramProject();
-
   const programProjects = useMemo(() => {
-    return programProjectResponse?.programProjects ?? [];
+    return programProjectResponse?.program_projects ?? [];
   }, [programProjectResponse]);
 
   const handleSortChange = (sortValue: string) => {
@@ -313,8 +312,8 @@ export default function ProgramProjects() {
                   table.getIsAllPageRowsSelected()
                     ? true
                     : table.getIsSomePageRowsSelected()
-                    ? "indeterminate"
-                    : false
+                      ? "indeterminate"
+                      : false
                 }
                 onCheckedChange={(value) => {
                   table.toggleAllPageRowsSelected(!!value);
