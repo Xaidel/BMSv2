@@ -20,6 +20,7 @@ import searchExpense from "@/service/expense/searchExpense";
 import { useExpense } from "@/features/api/expense/useExpense";
 import { useDeleteExpense } from "@/features/api/expense/useDeleteExpense";
 import { Expense } from "@/types/apitypes";
+import FormsModal from "@/features/expense/formsModal";
 
 const filters = [
   "All Expense",
@@ -372,6 +373,7 @@ export default function ExpenseNewPage() {
           <Trash />
           Delete Selected
         </Button>
+        <FormsModal />
         <AddExpenseModal />
       </div>
 

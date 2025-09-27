@@ -10,7 +10,7 @@ import "leaflet/dist/leaflet.css";
 import { useMemo, useState } from "react";
 import { AddMappingModal } from "@/features/map/AddMappingModal";
 import { createPortal } from "react-dom";
-import { Input } from "@/components/ui/input";
+import Searchbar from "@/components/ui/searchbar";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -28,6 +28,7 @@ import type { Household } from "@/types/apitypes";
 import useDeleteMapping from "@/features/api/map/useDeleteMapping";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import Filter from "@/components/ui/filter";
 
 const center: LatLngExpression = [13.579126, 123.063078];
 
@@ -36,6 +37,7 @@ export default function Map() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { data: mappings } = useMapping();
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState<string>(""); // filter type state
   const [, setViewHousehold] = useState<Household | null>(null);
   const deleteMutation = useDeleteMapping()
 
@@ -51,27 +53,38 @@ export default function Map() {
             ...feature.properties,
             ...(mapping
               ? {
-                type: mapping.Type,
-                mapping_name: mapping.MappingName,
-                household_id: mapping.HouseholdID,
-                mapping_id: mapping.ID,
-              }
+                  type: mapping.Type,
+                  mapping_name: mapping.MappingName,
+                  household_id: mapping.HouseholdID,
+                  mapping_id: mapping.ID,
+                }
               : {}),
           },
         };
       })
-      .filter((feature: any) =>
-        searchQuery
+      .filter((feature: any) => {
+        // filter by search query
+        const matchesSearch = searchQuery
           ? (feature.properties?.mapping_name ?? "")
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase())
-          : true
-      );
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase())
+          : true;
+        // filter by filterType
+        const typeStr = (feature.properties?.type ?? "").toLowerCase();
+        if (filterType === "Household") {
+          if (!typeStr.includes("household")) return false;
+        } else if (filterType === "Business") {
+          if (!typeStr.includes("commercial")) return false;
+        } else if (filterType === "Institution") {
+          if (!typeStr.includes("institutional")) return false;
+        }
+        return matchesSearch;
+      });
     return {
       ...Building,
       features: filteredFeatures,
     };
-  }, [mappings, searchQuery]);
+  }, [mappings, searchQuery, filterType]);
 
   const roadStyle: L.PathOptions = {
     color: "#333446",
@@ -256,16 +269,22 @@ const onEachZone = (zone, layer) => {
 
   return (
     <div className="relative w-[85vw] h-[80vh] border-1 p-10 rounded-2xl overflow-hidden shadow-md mx-auto">
-      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-[1000] w-[300px]">
-        <Input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search mapping name..."
-          className="border rounded px-3 py-2 w-full shadow-lg bg-white"
-        />
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-[1000] w-3xl flex flex-col items-center">
+        <div className="flex gap-5 w-full items-center justify-center">
+          <Searchbar
+            onChange={setSearchQuery}
+            placeholder="Search mapping name..."
+            classname="flex flex-5"
+          />
+          <Filter
+            initial="All Buildings"
+            filters={["All Buildings", "Household", "Business", "Institution"]}
+            onChange={(value) => setFilterType(value === "All Buildings" ? "All" : value)}
+            classname="flex-1"
+          />
+        </div>
         {searchQuery && (
-          <div className="mt-1 border bg-white shadow rounded">
+          <div className="mt-1 border bg-white shadow rounded w-[350px]">
             {mappings?.mappings
               .filter((m: Mapping) =>
                 m.MappingName.toLowerCase().includes(searchQuery.toLowerCase())

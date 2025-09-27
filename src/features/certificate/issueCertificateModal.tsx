@@ -31,12 +31,14 @@ const data: Certificate[] = [
   { type: "Barangay Indigency Certificate", path: "brgy-indigency" }, // done
   { type: "Barangay Business Permit", path: "brgy-business-permit" }, // done
   { type: "Barangay Business Clearance", path: "brgy-business-clearance" }, // done
+  { type: "Barangay Protection Order", path: "cert-protection" }, // done
   { type: "Marriage Certificate", path: "cert-marriage" }, // done
   { type: "Ownership Certificate", path: "cert-ownership" }, // done
   { type: "Registration of Birth", path: "registration-birth" }, // done
   { type: "Solo Parent Certificate", path: "cert-solo" }, //done
   { type: "Unemployment Certificate", path: "cert-unemployment" }, //done
   { type: "First Job Seeker Certificate", path: "cert-job" }, // done
+  { type: "Completion Certificate", path: "cert-completion" }, // done
   // { type: "Certification of BARC", path: "cert-barc" },
   // { type: "Certification of Blood", path: "cert-blood" },
   // { type: "Certification of Cut Tree", path: "cert-cut" },
