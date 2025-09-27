@@ -1,4 +1,7 @@
 import { Button } from "@/components/ui/button";
+import { pdf } from "@react-pdf/renderer";
+import { writeFile, BaseDirectory } from "@tauri-apps/plugin-fs";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { blotterSchema } from "@/types/formSchema";
 import { CalendarIcon } from "lucide-react";
@@ -39,6 +42,7 @@ import { toast } from "sonner";
 import { Blotter } from "@/types/apitypes";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEditBlotter } from "../api/blotter/useEditBlotter";
+import { SummonPDF } from "@/components/pdf/summonpdf";
 
 const selectStatus: string[] = [
   "On Going",
@@ -521,49 +525,116 @@ export default function ViewBlotterModal({
                       <FormField
                         control={form.control}
                         name="HearingDate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel
-                              htmlFor="HearingDate"
-                              className="text-black font-bold text-xs"
-                            >
-                              Hearing Date
-                            </FormLabel>
-                            <Popover
-                              open={openCalendar}
-                              onOpenChange={setOpenCalendar}
-                            >
-                              <FormControl>
-                                <PopoverTrigger
-                                  asChild
-                                  className="w-full text-black hover:bg-primary hover:text-white"
-                                >
-                                  <Button variant="outline">
-                                    {field.value ? (
-                                      format(field.value, "PPP")
-                                    ) : (
-                                      <span>Date of Hearing</span>
-                                    )}
-                                    <CalendarIcon className="ml-auto h-4 w-4  hover:text-white" />
-                                  </Button>
-                                </PopoverTrigger>
-                              </FormControl>
-                              <PopoverContent
-                                className="w-auto p-0"
-                                align="center"
+                        render={({ field }) => {
+                          // Helper: extract time string "HH:mm" from Date
+                          const getTimeString = (
+                            date: Date | null | undefined
+                          ) =>
+                            date
+                              ? `${date
+                                  .getHours()
+                                  .toString()
+                                  .padStart(2, "0")}:${date
+                                  .getMinutes()
+                                  .toString()
+                                  .padStart(2, "0")}`
+                              : "";
+                          // Helper: update field.value with new date, preserving time
+                          const handleDateChange = (date: Date | undefined) => {
+                            if (!date) {
+                              field.onChange(undefined);
+                              return;
+                            }
+                            const prev = field.value;
+                            let hours = 0,
+                              minutes = 0;
+                            if (prev instanceof Date) {
+                              hours = prev.getHours();
+                              minutes = prev.getMinutes();
+                            }
+                            const newDate = new Date(date);
+                            newDate.setHours(hours, minutes, 0, 0);
+                            field.onChange(newDate);
+                          };
+                          // Helper: update field.value with new time, preserving date
+                          const handleTimeChange = (
+                            e: React.ChangeEvent<HTMLInputElement>
+                          ) => {
+                            const value = e.target.value;
+                            if (!value) {
+                              // Don't update if blank
+                              return;
+                            }
+                            const [hoursStr, minutesStr] = value.split(":");
+                            let hours = Number(hoursStr),
+                              minutes = Number(minutesStr);
+                            let date: Date;
+                            if (field.value instanceof Date) {
+                              date = new Date(field.value);
+                            } else {
+                              // Default to today if no date set
+                              date = new Date();
+                              date.setSeconds(0, 0);
+                            }
+                            date.setHours(hours, minutes, 0, 0);
+                            field.onChange(date);
+                          };
+                          return (
+                            <FormItem>
+                              <FormLabel
+                                htmlFor="HearingDate"
+                                className="text-black font-bold text-xs"
                               >
-                                <Calendar
-                                  mode="single"
-                                  selected={field.value}
-                                  onSelect={field.onChange}
-                                  captionLayout="dropdown"
-                                  onDayClick={() => setOpenCalendar(false)}
+                                Hearing Date
+                              </FormLabel>
+                              <Popover
+                                open={openCalendar}
+                                onOpenChange={setOpenCalendar}
+                              >
+                                <FormControl>
+                                  <PopoverTrigger
+                                    asChild
+                                    className="w-full text-black hover:bg-primary hover:text-white"
+                                  >
+                                    <Button variant="outline">
+                                      {field.value ? (
+                                        format(field.value, "PPP")
+                                      ) : (
+                                        <span>Date of Hearing</span>
+                                      )}
+                                      <CalendarIcon className="ml-auto h-4 w-4  hover:text-white" />
+                                    </Button>
+                                  </PopoverTrigger>
+                                </FormControl>
+                                <PopoverContent
+                                  className="w-auto p-0"
+                                  align="center"
+                                >
+                                  <Calendar
+                                    mode="single"
+                                    selected={field.value}
+                                    onSelect={handleDateChange}
+                                    captionLayout="dropdown"
+                                    onDayClick={() => setOpenCalendar(false)}
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                              <div className="mt-2">
+                                <FormLabel className="text-black text-xs">
+                                  Time
+                                </FormLabel>
+                                <Input
+                                  type="time"
+                                  value={getTimeString(field.value)}
+                                  onChange={handleTimeChange}
+                                  className="text-black"
+                                  step={60}
                                 />
-                              </PopoverContent>
-                            </Popover>
-                            <FormMessage />
-                          </FormItem>
-                        )}
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          );
+                        }}
                       />
                     </div>
                   </>
@@ -592,7 +663,46 @@ export default function ViewBlotterModal({
                       Next
                     </Button>
                   )}
-                  {step === 2 && <Button type="submit">Save Blotter</Button>}
+                  {step === 2 && (
+                    <>
+                      <Button
+                        type="button"
+                        onClick={async () => {
+                          const blob = await pdf(
+                            <SummonPDF
+                              filter="Blotter Report"
+                              blotters={[blotter]}
+                            />
+                          ).toBlob();
+                          const buffer = await blob.arrayBuffer();
+                          const contents = new Uint8Array(buffer);
+                          try {
+                            await writeFile(
+                              `Blotter_${blotter.ID}.pdf`,
+                              contents,
+                              {
+                                baseDir: BaseDirectory.Document,
+                              }
+                            );
+                            toast.success(
+                              "Blotter PDF successfully downloaded",
+                              {
+                                description:
+                                  "The blotter report is saved in Documents folder",
+                              }
+                            );
+                          } catch (e) {
+                            toast.error("Error", {
+                              description: "Failed to save the blotter PDF",
+                            });
+                          }
+                        }}
+                      >
+                        Download Summon
+                      </Button>
+                      <Button type="submit">Save Blotter</Button>
+                    </>
+                  )}
                 </div>
               </div>
             </form>

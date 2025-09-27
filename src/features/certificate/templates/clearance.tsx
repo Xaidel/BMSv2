@@ -53,6 +53,7 @@ export default function Clearance() {
   const [value, setValue] = useState("");
   const [residents, setResidents] = useState<Resident[]>([]);
   const [amount, setAmount] = useState("100.00");
+  const [assignedOfficial, setAssignedOfficial] = useState("");
   const [age, setAge] = useState("");
   const [civilStatus, setCivilStatus] = useState("");
   const [residencyYear, setResidencyYear] = useState(""); // Add state for residency year
@@ -127,7 +128,8 @@ export default function Clearance() {
             province: res.setting.Province || "",
           });
           if (res.setting.ImageB) setLogoDataUrl(res.setting.ImageB);
-          if (res.setting.ImageM) setLogoMunicipalityDataUrl(res.setting.ImageM);
+          if (res.setting.ImageM)
+            setLogoMunicipalityDataUrl(res.setting.ImageM);
         }
       })
       .catch(console.error);
@@ -228,8 +230,10 @@ export default function Clearance() {
                                     if (selected.Birthday) {
                                       const dob = new Date(selected.Birthday);
                                       const today = new Date();
-                                      let calculatedAge = today.getFullYear() - dob.getFullYear();
-                                      const m = today.getMonth() - dob.getMonth();
+                                      let calculatedAge =
+                                        today.getFullYear() - dob.getFullYear();
+                                      const m =
+                                        today.getMonth() - dob.getMonth();
                                       if (
                                         m < 0 ||
                                         (m === 0 &&
@@ -374,6 +378,37 @@ export default function Clearance() {
                 placeholder="e.g. 10.00"
               />
             </div>
+            <div className="mt-4">
+              <label
+                htmlFor="assignedOfficial"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Assigned Official
+              </label>
+              <Select
+                value={assignedOfficial}
+                onValueChange={setAssignedOfficial}
+              >
+                <SelectTrigger className="w-full border rounded px-3 py-2 text-sm">
+                  <SelectValue placeholder="-- Select Official --" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Array.isArray(officials)
+                    ? officials
+                    : officials?.officials || []
+                  )
+                    .filter((official: any) => {
+                      const role = (official.Role || "").toLowerCase();
+                      return !role.includes("sk") && !role.includes("tanod");
+                    })
+                    .map((official: any) => (
+                      <SelectItem key={official.ID} value={official.Name}>
+                        {official.Name} - {official.Role}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
           </CardContent>
           <CardFooter className="flex justify-between items-center gap-4">
             <Button
@@ -385,18 +420,27 @@ export default function Clearance() {
                 try {
                   const cert: any = {
                     resident_id: selectedResident.ID,
-                    resident_name: `${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}`,
+                    resident_name: `${selectedResident.Firstname} ${
+                      selectedResident.Middlename
+                        ? selectedResident.Middlename.charAt(0) + ". "
+                        : ""
+                    }${selectedResident.Lastname}`,
                     type_: "Barangay Clearance",
                     amount: amount ? parseFloat(amount) : 0,
                     issued_date: new Date().toISOString().split("T")[0],
                     ownership_text: "",
                     civil_status: civilStatus || "",
-                    purpose: purpose === "custom" ? customPurpose || "" : purpose,
+                    purpose:
+                      purpose === "custom" ? customPurpose || "" : purpose,
                     age: age ? parseInt(age) : undefined,
                   };
                   await addCertificate(cert);
                   toast.success("Certificate saved successfully!", {
-                    description: `${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}'s certificate was saved.`,
+                    description: `${selectedResident.Firstname} ${
+                      selectedResident.Middlename
+                        ? selectedResident.Middlename.charAt(0) + ". "
+                        : ""
+                    }${selectedResident.Lastname}'s certificate was saved.`,
                   });
                 } catch (error) {
                   console.error("Save certificate failed:", error);
@@ -414,92 +458,105 @@ export default function Clearance() {
               <Page size="A4" style={styles.page}>
                 <View style={{ position: "relative" }}>
                   <CertificateHeader />
-                    {selectedResident ? (
-                      <>
-                        <Text
-                          style={[
-                            styles.bodyText,
-                            { textAlign: "justify", marginBottom: 8 },
-                          ]}
-                        >
-                          TO WHOM IT MAY CONCERN:
-                        </Text>
-                        <Text
-                          style={[
-                            styles.bodyText,
-                            { textAlign: "justify", marginBottom: 8 },
-                          ]}
-                        >
-                          This is to certify that{" "}
-                          <Text style={{ fontWeight: "bold" }}>
-                            {`${selectedResident.Firstname} ${selectedResident.Middlename ? selectedResident.Middlename.charAt(0) + ". " : ""}${selectedResident.Lastname}`.toUpperCase()}
-                          </Text>
-                          {`, ${age || "___"} years old, ${
-                            civilStatus || "___"
-                          }, and a resident of zone ${
-                            selectedResident.Zone
-                          }, Barangay ${
-                            settings?.barangay || "________________"
-                          }, ${settings?.municipality || "________________"}, ${
-                            settings?.province || "________________"
-                          } since ${residencyYear || "____"}. `}
-                          He/She is known to me of good moral character and at
-                          present has no any criminal records and/or any case in
-                          this Barangay.
-                        </Text>
-                        {/* Purpose line */}
-                        <Text
-                          style={[
-                            styles.bodyText,
-                            { textAlign: "justify", marginBottom: 8 },
-                          ]}
-                        >
-                          Purpose of Certificate:{" "}
-                          {purpose === "custom"
-                            ? customPurpose || "________________"
-                            : purpose || "________________"}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.bodyText,
-                            { textAlign: "justify", marginBottom: 8 },
-                          ]}
-                        >
-                          This certification is being issued upon request of the
-                          above named-person for record, reference and other
-                          legal matters this may serve.
-                        </Text>
-                        <Text
-                          style={[
-                            styles.bodyText,
-                            { marginTop: 10, marginBottom: 8 },
-                          ]}
-                        >
-                          Given this{" "}
-                          {new Date().toLocaleDateString("en-PH", {
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                          })}
-                          , at{" "}
-                          {settings ? settings.barangay : "________________"},
-                          {settings
-                            ? settings.municipality
-                            : "________________"}
-                          ,{settings ? settings.province : "________________"}
-                        </Text>
-                      </>
-                    ) : (
-                      <Text style={styles.bodyText}>
-                        Please select a resident to view certificate.
+                  <Text
+                    style={{
+                      textAlign: "center",
+                      fontWeight: "bold",
+                      fontSize: 24,
+                      marginBottom: 10,
+                      fontFamily: "Times-Roman",
+                    }}
+                  >
+                    BARANGAY CLEARANCE
+                  </Text>
+                  {selectedResident ? (
+                    <>
+                      <Text
+                        style={[
+                          styles.bodyText,
+                          { textAlign: "justify", marginBottom: 8 },
+                        ]}
+                      >
+                        TO WHOM IT MAY CONCERN:
                       </Text>
-                    )}
-                    <CertificateFooter
-                      styles={styles}
-                      captainName={captainName}
-                      amount={amount}
-                    />
-                  </View>
+                      <Text
+                        style={[
+                          styles.bodyText,
+                          { textAlign: "justify", marginBottom: 8 },
+                        ]}
+                      >
+                        This is to certify that{" "}
+                        <Text style={{ fontWeight: "bold" }}>
+                          {`${selectedResident.Firstname} ${
+                            selectedResident.Middlename
+                              ? selectedResident.Middlename.charAt(0) + ". "
+                              : ""
+                          }${selectedResident.Lastname}`.toUpperCase()}
+                        </Text>
+                        {`, ${age || "___"} years old, ${
+                          civilStatus || "___"
+                        }, and a resident of zone ${
+                          selectedResident.Zone
+                        }, Barangay ${
+                          settings?.barangay || "________________"
+                        }, ${settings?.municipality || "________________"}, ${
+                          settings?.province || "________________"
+                        } since ${residencyYear || "____"}. `}
+                        He/She is known to me of good moral character and at
+                        present has no any criminal records and/or any case in
+                        this Barangay.
+                      </Text>
+                      {/* Purpose line */}
+                      <Text
+                        style={[
+                          styles.bodyText,
+                          { textAlign: "justify", marginBottom: 8 },
+                        ]}
+                      >
+                        Purpose of Certificate:{" "}
+                        {purpose === "custom"
+                          ? customPurpose || "________________"
+                          : purpose || "________________"}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.bodyText,
+                          { textAlign: "justify", marginBottom: 8 },
+                        ]}
+                      >
+                        This certification is being issued upon request of the
+                        above named-person for record, reference and other legal
+                        matters this may serve.
+                      </Text>
+                      <Text
+                        style={[
+                          styles.bodyText,
+                          { marginTop: 10, marginBottom: 8 },
+                        ]}
+                      >
+                        Given this{" "}
+                        {new Date().toLocaleDateString("en-PH", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })}
+                        , at {settings ? settings.barangay : "________________"}
+                        ,{settings ? settings.municipality : "________________"}
+                        ,{settings ? settings.province : "________________"}
+                      </Text>
+                    </>
+                  ) : (
+                    <Text style={styles.bodyText}>
+                      Please select a resident to view certificate.
+                    </Text>
+                  )}
+                  <CertificateFooter
+                    styles={styles}
+                    captainName={captainName}
+                    amount={amount}
+                    assignedOfficial={assignedOfficial}
+                  />
+                </View>
               </Page>
             </Document>
           </PDFViewer>

@@ -15,6 +15,7 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Popover,
   PopoverContent,
@@ -41,6 +42,7 @@ export default function AddBlotterModal() {
   const queryClient = useQueryClient();
 
   const [step, setStep] = useState(1);
+  const [customType, setCustomType] = useState("");
 
   const form = useForm<z.infer<typeof blotterSchema>>({
     resolver: zodResolver(blotterSchema),
@@ -114,14 +116,65 @@ export default function AddBlotterModal() {
                         <FormItem>
                           <FormLabel>Type</FormLabel>
                           <FormControl>
-                            <Input
-                              id="Type"
-                              type="text"
-                              placeholder="Enter crime type"
-                              required
-                              {...field}
-                              className="text-black"
-                            />
+                            <div className="flex gap-2">
+                              <Select
+                                value={[
+                                  "Theft",
+                                  "Assault",
+                                  "Vandalism",
+                                  "Robbery",
+                                  "Fraud",
+                                  "Assault with Injury",
+                                  "Drug Offense",
+                                  "Traffic Violation"
+                                ].includes(field.value) ? field.value : "Other"}
+                                onValueChange={(val) => {
+                                  if (val === "Other") {
+                                    field.onChange("");
+                                    setCustomType("");
+                                  } else {
+                                    field.onChange(val);
+                                    setCustomType("");
+                                  }
+                                }}
+                              >
+                                <SelectTrigger className="text-black flex-1">
+                                  <SelectValue placeholder="Select Type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Theft">Theft</SelectItem>
+                                  <SelectItem value="Assault">Assault</SelectItem>
+                                  <SelectItem value="Robbery">Robbery</SelectItem>
+                                  <SelectItem value="Fraud">Fraud</SelectItem>
+                                  <SelectItem value="Assault with Injury">Assault with Injury</SelectItem>
+                                  <SelectItem value="Vandalism">Vandalism</SelectItem>
+                                  <SelectItem value="Drug Offense">Drug Offense</SelectItem>
+                                  <SelectItem value="Traffic Violation">Traffic Violation</SelectItem>
+                                  <SelectItem value="Other">Other</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              {![
+                                "Theft",
+                                "Assault",
+                                "Vandalism",
+                                "Robbery",
+                                "Fraud",
+                                "Assault with Injury",
+                                "Drug Offense",
+                                "Traffic Violation"
+                              ].includes(field.value) && (
+                                <Input
+                                  type="text"
+                                  placeholder="Please specify type"
+                                  value={customType}
+                                  onChange={(e) => {
+                                    setCustomType(e.target.value);
+                                    field.onChange(e.target.value);
+                                  }}
+                                  className="text-black flex-1"
+                                />
+                              )}
+                            </div>
                           </FormControl>
                         </FormItem>
                       )}
@@ -139,7 +192,7 @@ export default function AddBlotterModal() {
                             <Input
                               id="ReportedBy"
                               type="text"
-                              placeholder="Enter middle name"
+                              placeholder="Enter full name"
                               required
                               {...field}
                               className="text-black"
@@ -387,32 +440,67 @@ export default function AddBlotterModal() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Date of Hearing</FormLabel>
-                          <Popover
-                            open={openCalendar}
-                            onOpenChange={setOpenCalendar}
-                          >
-                            <PopoverTrigger asChild>
-                              <Button variant="outline">
-                                {field.value
-                                  ? format(field.value, "PPP")
-                                  : "Pick a date"}
-                                <CalendarIcon className="ml-auto h-4 w-4" />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent
-                              className="w-auto p-0"
-                              align="center"
+                          <div className="flex flex-col gap-2">
+                            <Popover
+                              open={openCalendar}
+                              onOpenChange={setOpenCalendar}
                             >
-                              <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={field.onChange}
-                                captionLayout="dropdown"
-                                fromYear={1900}
-                                toYear={new Date().getFullYear()}
-                              />
-                            </PopoverContent>
-                          </Popover>
+                              <PopoverTrigger asChild>
+                                <Button variant="outline">
+                                  {field.value
+                                    ? format(field.value, "PPP")
+                                    : "Pick a date"}
+                                  <CalendarIcon className="ml-auto h-4 w-4" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent
+                                className="w-auto p-0"
+                                align="center"
+                              >
+                                <Calendar
+                                  mode="single"
+                                  selected={field.value}
+                                  onSelect={(date) => {
+                                    // preserve time component
+                                    if (date) {
+                                      const old = field.value instanceof Date ? field.value : new Date();
+                                      const newDate = new Date(date);
+                                      newDate.setHours(old.getHours(), old.getMinutes(), old.getSeconds(), old.getMilliseconds());
+                                      field.onChange(newDate);
+                                    }
+                                  }}
+                                  captionLayout="dropdown"
+                                  fromYear={1900}
+                                  toYear={new Date().getFullYear()}
+                                />
+                              </PopoverContent>
+                            </Popover>
+                            <Input
+                              type="time"
+                              value={
+                                field.value
+                                  ? field.value instanceof Date
+                                    ? field.value
+                                        .toLocaleTimeString("en-GB", {
+                                          hour12: false,
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        })
+                                    : ""
+                                  : ""
+                              }
+                              onChange={e => {
+                                const time = e.target.value;
+                                if (field.value instanceof Date && time) {
+                                  const [hours, minutes] = time.split(":").map(Number);
+                                  const newDate = new Date(field.value);
+                                  newDate.setHours(hours, minutes, 0, 0);
+                                  field.onChange(newDate);
+                                }
+                              }}
+                              className="text-black mt-2"
+                            />
+                          </div>
                         </FormItem>
                       )}
                     />
