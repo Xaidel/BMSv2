@@ -259,10 +259,6 @@ export default function ProgramProjects() {
         <Button
           variant="destructive"
           size="lg"
-          disabled={
-            Object.keys(rowSelection).length === 0 ||
-            parsedUser.user.Role !== "secretary"
-          }
           onClick={() => {
             console.log(parsedUser.user.Role);
             if (selectedProgramProject) {
