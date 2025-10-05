@@ -6,6 +6,7 @@ import AppLayout from "./components/ui/applayout";
 import Dashboard from "./pages/Dashboard";
 import Event from "./pages/Event";
 import ProgramProject from "./pages/ProgramProject";
+import GovDocs from "./pages/GovDocs";
 import Residents from "./pages/Residents";
 import Households from "./pages/Households";
 import Certificate from "./pages/Certificate";
@@ -40,12 +41,13 @@ function App() {
             <Route path="logbook" element={<LogbookPage />} />
             <Route path="event" element={<Event />} />
             <Route path="program-projects" element={<ProgramProject />} />
+            <Route path="govdocs" element={<GovDocs />} />
             <Route path="residents" element={<Residents />} />
             <Route path="households" element={<Households />} />
             <Route path="map" element={<Map />} />
             <Route path="certificates" element={<Certificate />} />
             <Route
-              path="/certificates/template/:template"
+              path="/certiificates/template/:template"
               element={<IssueCertificate />}
             />
             <Route path="income" element={<Income />} />

@@ -239,3 +239,10 @@ export const logbookSchema = z.object({
   Status: z.string().optional(),
   TotalHours: z.number().optional(),
 });
+export const govDocSchema = z.object({
+  Title: z.string().min(2, { message: "Title is too short" }).max(150, { message: "Title is too long" }),
+  Type: z.enum(["Executive Order", "Resolution", "Ordinance"]),
+  Description: z.string().max(1000).optional(),
+  DateIssued: z.date({ required_error: "Date issued is required" }),
+  Image: z.string().optional().or(z.instanceof(File)).nullable(),
+});

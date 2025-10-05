@@ -3,122 +3,71 @@ import { Checkbox } from "@/components/ui/checkbox";
 import DataTable from "@/components/ui/datatable";
 import Filter from "@/components/ui/filter";
 import Searchbar from "@/components/ui/searchbar";
-import AddProgramProjectModal from "@/features/program_project/addProgramProjectModal";
-import ViewProgramProjectModal from "@/features/program_project/viewProgramProjectModal";
-import { sort } from "@/service/program_project/programProjectSort";
-import searchProgramProject from "@/service/program_project/searchProgramProject";
+import AddGovDocsModal from "@/features/gov_docs/addGovDocsModal";
+import ViewGovDocsModal from "@/features/gov_docs/viewGovDocsModal";
+import { sort } from "@/service/gov_docs/govDocsSort";
+import searchGovDocs from "@/service/gov_docs/searchGovDocs";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { Trash, CalendarPlus, CalendarCheck, CalendarX2, CalendarClock, Eye, } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { ProgramProject } from "@/types/apitypes";
+import { GovDoc } from "@/types/apitypes";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { ErrorResponse } from "@/service/api/auth/login";
 import { pdf } from "@react-pdf/renderer";
 import { writeFile, BaseDirectory } from "@tauri-apps/plugin-fs";
-import { useProgramProject } from "@/features/api/program_project/useProgramProject";
-import { useDeleteProgramProject } from "@/features/api/program_project/useDeleteProgramProject";
-import { ProgramProjectPDF } from "@/components/pdf/program_project";
-import SummaryCardProgramProject from "@/components/summary-card/project_program";
+import { useGovDocs } from "@/features/api/gov_docs/useGovDocs";
+import { useDeleteGovDocs } from "@/features/api/gov_docs/useDeleteGovDocs";
+import { GovDocsPDF } from "@/components/pdf/gov_docs";
+import SummaryCardGovDocs from "@/components/summary-card/gov_docs";
 
 
 const filters = [
   "All Records",
-  "Start Date ASC",
-  "Start Date DESC",
-  "End Date ASC",
-  "End Date DESC",
-  "Ongoing",
-  "Completed",
-  "Planned",
-  "Cancelled",
+  "Date Issued ASC",
+  "Date Issued DESC",
+  "Executive Orders",
+  "Resolutions",
+  "Ordinances",
 ];
 
-const columns: ColumnDef<ProgramProject>[] = [
+const columns: ColumnDef<GovDoc>[] = [
   {
-    header: "Name",
-    accessorKey: "Name",
+    header: "Title",
+    accessorKey: "Title",
   },
   {
     header: "Type",
     accessorKey: "Type",
   },
   {
-    header: "Start Date",
-    accessorKey: "StartDate",
+    header: "Date Issued",
+    accessorKey: "DateIssued",
     cell: ({ row }) => {
-      return <div>{format(row.original.StartDate, "MMMM do, yyyy")}</div>;
+      return <div>{format(row.original.DateIssued, "MMMM do, yyyy")}</div>;
     },
   },
   {
-    header: "End Date",
-    accessorKey: "EndDate",
-    cell: ({ row }) => {
-      return <div>{format(row.original.EndDate, "MMMM do, yyyy")}</div>;
-    },
-  },
-  {
-    header: "Location",
-    accessorKey: "Location",
-  },
-  {
-    header: "Project Manager",
-    accessorKey: "ProjectManager",
-  },
-  {
-    header: "Budget",
-    accessorKey: "Budget",
-    cell: ({ row }) => {
-      return <div>₱{row.original.Budget.toLocaleString()}</div>;
-    },
-  },
-  {
-    header: "Status",
-    accessorKey: "Status",
-    cell: ({ row }) => {
-      const status = row.original.Status;
-      let color: string;
-      switch (status) {
-        case "Ongoing": {
-          color = "#BD0000";
-          break;
-        }
-        case "Planned": {
-          color = "#FFB30F";
-          break;
-        }
-        case "Cancelled": {
-          color = "#000000";
-          break;
-        }
-        case "Completed": {
-          color = "#00BD29";
-          break;
-        }
-        default: {
-          color = "#000000";
-        }
-      }
-      return <div style={{ color: color }}>{status}</div>;
-    },
+    header: "Description",
+    accessorKey: "Description",
   },
 ];
 
-export default function ProgramProjects() {
+export default function GovDocs() {
   const user = sessionStorage.getItem("user");
   const parsedUser = JSON.parse(user);
   const [rowSelection, setRowSelection] = useState<Record<number, boolean>>({});
-  const [selectedProgramProject, setSelectedProgramProject] = useState<number[]>([]);
+  const [selectedGovDocs, setSelectedGovDocs] = useState<number[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
-  const { data: programProjectResponse } = useProgramProject();
+  const { data: govDocsResponse } = useGovDocs();
   const queryClient = useQueryClient();
-  const deleteMutation = useDeleteProgramProject();
-  const programProjects = useMemo(() => {
-    return programProjectResponse?.program_projects ?? [];
-  }, [programProjectResponse]);
+  const deleteMutation = useDeleteGovDocs();
+  const govDocs = useMemo(() => {
+    return govDocsResponse?.records ?? [];
+  }, [govDocsResponse]);
 
   const handleSortChange = (sortValue: string) => {
     searchParams.set("sort", sortValue);
@@ -130,114 +79,114 @@ export default function ProgramProjects() {
   };
 
   const filteredData = useMemo(() => {
-    const sortedData = sort(programProjects, searchParams.get("sort") ?? "All Records");
+    const sortedData = sort(govDocs, searchParams.get("sort") ?? "All Records");
 
     if (searchQuery.trim()) {
-      return searchProgramProject(searchQuery, sortedData);
+      return searchGovDocs(searchQuery, sortedData);
     }
 
     return sortedData;
-  }, [searchParams, programProjects, searchQuery]);
-  const total = programProjects.length;
-  const completed = programProjects.filter((d) => d.Status === "Completed").length;
-  const ongoing = programProjects.filter((d) => d.Status === "Ongoing").length;
-  const cancelled = programProjects.filter((d) => d.Status === "Cancelled").length;
-  const [viewProgramProjectId, setViewProgramProjectId] = useState<number | null>(null);
+  }, [searchParams, govDocs, searchQuery]);
+  const total = govDocs.length;
+  const executiveOrders = govDocs.filter((d) => d.Type === "Executive Order").length;
+  const resolutions = govDocs.filter((d) => d.Type === "Resolution").length;
+  const ordinances = govDocs.filter((d) => d.Type === "Ordinance").length;
+  const [viewGovDocsId, setViewGovDocsId] = useState<number | null>(null);
   return (
     <>
       <div className="flex flex-wrap gap-5 justify-around mb-5 mt-1">
-        <SummaryCardProgramProject
+        <SummaryCardGovDocs
           title="Total Records"
           value={total}
           icon={<CalendarClock size={50} />}
           onClick={async () => {
             const blob = await pdf(
-              <ProgramProjectPDF filter="All Records" programProjects={programProjects} />
+              <GovDocsPDF filter="All Records" govDocs={govDocs} />
             ).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
             try {
-              await writeFile("ProgramProjectRecords.pdf", contents, {
+              await writeFile("GovDocsRecords.pdf", contents, {
                 baseDir: BaseDirectory.Document,
               });
-              toast.success("Program/Project Record successfully downloaded", {
+              toast.success("Government Document successfully downloaded", {
                 description: "Record is saved in Documents folder",
               });
             } catch (e) {
               toast.error("Error", {
-                description: "Failed to save the Program/Project record",
+                description: "Failed to save the Government Document record",
               });
             }
           }}
         />
-        <SummaryCardProgramProject
-          title="Ongoing"
-          value={ongoing}
+        <SummaryCardGovDocs
+          title="Executive Orders"
+          value={executiveOrders}
           icon={<CalendarPlus size={50} />}
           onClick={async () => {
             const blob = await pdf(
-              <ProgramProjectPDF filter="Ongoing" programProjects={programProjects.filter((e) => e.Status === "Ongoing")} />
+              <GovDocsPDF filter="Executive Order" govDocs={govDocs.filter((e) => e.Type === "Executive Order")} />
             ).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
             try {
-              await writeFile("OngoingProgramProjects.pdf", contents, {
+              await writeFile("ExecutiveOrders.pdf", contents, {
                 baseDir: BaseDirectory.Document,
               });
-              toast.success("Ongoing Program/Projects PDF saved", {
+              toast.success("Executive Orders PDF saved", {
                 description: "Saved in Documents folder",
               });
             } catch (e) {
               toast.error("Error", {
-                description: "Failed to save Ongoing Program/Projects PDF",
+                description: "Failed to save Executive Orders PDF",
               });
             }
           }}
         />
-        <SummaryCardProgramProject
-          title="Completed"
-          value={completed}
+        <SummaryCardGovDocs
+          title="Resolutions"
+          value={resolutions}
           icon={<CalendarCheck size={50} />}
           onClick={async () => {
             const blob = await pdf(
-              <ProgramProjectPDF filter="Completed" programProjects={programProjects.filter((e) => e.Status === "Completed")} />
+              <GovDocsPDF filter="Resolution" govDocs={govDocs.filter((e) => e.Type === "Resolution")} />
             ).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
             try {
-              await writeFile("CompletedProgramProjects.pdf", contents, {
+              await writeFile("Resolutions.pdf", contents, {
                 baseDir: BaseDirectory.Document,
               });
-              toast.success("Completed Program/Projects PDF saved", {
+              toast.success("Resolutions PDF saved", {
                 description: "Saved in Documents folder",
               });
             } catch (e) {
               toast.error("Error", {
-                description: "Failed to save Completed Program/Projects PDF",
+                description: "Failed to save Resolutions PDF",
               });
             }
           }}
         />
-        <SummaryCardProgramProject
-          title="Cancelled"
-          value={cancelled}
+        <SummaryCardGovDocs
+          title="Ordinances"
+          value={ordinances}
           icon={<CalendarX2 size={50} />}
           onClick={async () => {
             const blob = await pdf(
-              <ProgramProjectPDF filter="Cancelled" programProjects={programProjects.filter((e) => e.Status === "Cancelled")} />
+              <GovDocsPDF filter="Ordinance" govDocs={govDocs.filter((e) => e.Type === "Ordinance")} />
             ).toBlob();
             const buffer = await blob.arrayBuffer();
             const contents = new Uint8Array(buffer);
             try {
-              await writeFile("CancelledProgramProjects.pdf", contents, {
+              await writeFile("Ordinances.pdf", contents, {
                 baseDir: BaseDirectory.Document,
               });
-              toast.success("Cancelled Program/Projects PDF saved", {
+              toast.success("Ordinances PDF saved", {
                 description: "Saved in Documents folder",
               });
             } catch (e) {
               toast.error("Error", {
-                description: "Failed to save Cancelled Program/Projects PDF",
+                description: "Failed to save Ordinances PDF",
               });
             }
           }}
@@ -247,7 +196,7 @@ export default function ProgramProjects() {
       <div className="flex gap-5 w-full items-center justify-center">
         <Searchbar
           onChange={handleSearch}
-          placeholder="Search Program/Project"
+          placeholder="Search Government Document"
           classname="flex flex-5"
         />
         <Filter
@@ -261,27 +210,27 @@ export default function ProgramProjects() {
           size="lg"
           onClick={() => {
             console.log(parsedUser.user.Role);
-            if (selectedProgramProject) {
-              toast.promise(deleteMutation.mutateAsync(selectedProgramProject), {
-                loading: "Deleting program/projects. Please wait",
+            if (selectedGovDocs) {
+              toast.promise(deleteMutation.mutateAsync(selectedGovDocs), {
+                loading: "Deleting government documents. Please wait",
                 success: () => {
-                  queryClient.invalidateQueries({ queryKey: ["programProjects"] });
+                  queryClient.invalidateQueries({ queryKey: ["govDocs"] });
                   setRowSelection((prevSelection) => {
                     const newSelection = { ...prevSelection };
-                    selectedProgramProject.forEach((_, i) => {
+                    selectedGovDocs.forEach((_, i) => {
                       delete newSelection[i];
                     });
                     console.log(newSelection);
                     return newSelection;
                   });
-                  setSelectedProgramProject([]);
+                  setSelectedGovDocs([]);
                   return {
-                    message: "Program/Project successfully deleted",
+                    message: "Government Document successfully deleted",
                   };
                 },
                 error: (error: ErrorResponse) => {
                   return {
-                    message: "Failed to delete program/project",
+                    message: "Failed to delete government document",
                     description: error.error,
                   };
                 },
@@ -292,10 +241,10 @@ export default function ProgramProjects() {
           <Trash />
           Delete Selected
         </Button>
-        <AddProgramProjectModal />
+        <AddGovDocsModal />
       </div>
 
-      <DataTable<ProgramProject>
+      <DataTable<GovDoc>
         classname="py-5"
         height="43.3rem"
         data={filteredData}
@@ -318,9 +267,9 @@ export default function ProgramProjects() {
                     const allVisibleRows = table
                       .getRowModel()
                       .rows.map((row) => row.original.ID);
-                    setSelectedProgramProject(allVisibleRows);
+                    setSelectedGovDocs(allVisibleRows);
                   } else {
-                    setSelectedProgramProject([]);
+                    setSelectedGovDocs([]);
                   }
                 }}
                 aria-label="Select all"
@@ -334,10 +283,10 @@ export default function ProgramProjects() {
                   row.toggleSelected(!!value);
 
                   if (value) {
-                    setSelectedProgramProject((prev) => [...prev, row.original.ID]);
+                    setSelectedGovDocs((prev) => [...prev, row.original.ID]);
                   } else {
-                    setSelectedProgramProject((prev) =>
-                      prev.filter((programProject) => programProject !== row.original.ID)
+                    setSelectedGovDocs((prev) =>
+                      prev.filter((govDoc) => govDoc !== row.original.ID)
                     );
                   }
                 }}
@@ -353,8 +302,8 @@ export default function ProgramProjects() {
             cell: ({ row }) => {
               return (
                 <div className="flex gap-3">
-                  <Button onClick={() => setViewProgramProjectId(row.original.ID)}>
-                    <Eye /> View Program/Project
+                  <Button onClick={() => setViewGovDocsId(row.original.ID)}>
+                    <Eye /> View Government Document
                   </Button>
                 </div>
               );
@@ -364,11 +313,11 @@ export default function ProgramProjects() {
         rowSelection={rowSelection}
         onRowSelectionChange={setRowSelection}
       />
-      {viewProgramProjectId !== null && (
-        <ViewProgramProjectModal
-          programProject={programProjects.find((e) => e.ID === viewProgramProjectId)}
+      {viewGovDocsId !== null && (
+        <ViewGovDocsModal
+          govDoc={govDocs.find((e) => e.ID === viewGovDocsId)}
           open={true}
-          onClose={() => setViewProgramProjectId(null)}
+          onClose={() => setViewGovDocsId(null)}
         />
       )}
     </>

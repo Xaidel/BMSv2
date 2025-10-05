@@ -166,3 +166,13 @@ export type Household = {
   status: "Moved Out" | "Active" | string;
   selected_resident?: string[]; // optional list of selected members
 };
+
+
+export type GovDoc = {
+  ID: number;
+  Title: string;
+  Type: "Executive Order" | "Resolution" | "Ordinance";
+  DateIssued: Date;
+  Description: string;
+  Image: string; // URL or base64
+};
