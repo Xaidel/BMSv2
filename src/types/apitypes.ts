@@ -176,3 +176,40 @@ export type GovDoc = {
   Description: string;
   Image: string; // URL or base64
 };
+
+export type Youth = {
+  ID?: number;
+  Firstname?: string;
+  Middlename?: string | null;
+  Lastname?: string;
+  Suffix?: string | null;
+  CivilStatus?: string;
+  Gender?: "Male" | "Female" | "";
+  Birthday?: Date | null;
+  Zone?: number | null;
+  Address?: string | null;
+  EmailAddress?: string | null;
+  ContactNumber?: string | null;
+  EducationalBackground?:
+    | "Elementary Level"
+    | "Elementary Grad"
+    | "High School Level"
+    | "High School Grad"
+    | "Vocational Grad"
+    | "College Level"
+    | "College Grad"
+    | "";
+  WorkStatus?:
+    | "Employed"
+    | "Unemployed"
+    | "Self-Employed"
+    | "Currently looking for a job"
+    | "Not interested looking for a job"
+    | "";
+  InSchoolYouth?: boolean;
+  OutOfSchoolYouth?: boolean;
+  WorkingYouth?: boolean;
+  YouthWithSpecificNeeds?: boolean;
+  IsSKVoter?: boolean;
+  Image?: File | null;
+};

@@ -8,6 +8,7 @@ import Event from "./pages/Event";
 import ProgramProject from "./pages/ProgramProject";
 import GovDocs from "./pages/GovDocs";
 import Residents from "./pages/Residents";
+import Youth from "./pages/Youth";
 import Households from "./pages/Households";
 import Certificate from "./pages/Certificate";
 import Income from "./pages/Income";
@@ -43,6 +44,7 @@ function App() {
             <Route path="program-projects" element={<ProgramProject />} />
             <Route path="govdocs" element={<GovDocs />} />
             <Route path="residents" element={<Residents />} />
+            <Route path="youth" element={<Youth />} />
             <Route path="households" element={<Households />} />
             <Route path="map" element={<Map />} />
             <Route path="certificates" element={<Certificate />} />

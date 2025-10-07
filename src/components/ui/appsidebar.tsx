@@ -1,4 +1,4 @@
-import { LayoutDashboard, Calendar, Users, House, FileBadge2, TrendingUp, BanknoteArrowUpIcon, Files, Settings, LogOut, Map, ClipboardCheck, FileText, FileBadge } from "lucide-react";
+import { LayoutDashboard, Calendar, Users, House, FileBadge2, TrendingUp, BanknoteArrowUpIcon, Files, Settings, LogOut, Map, ClipboardCheck, FileText, FileBadge, User, Users2, UserCheck } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger } from "./sidebar";
 import { NavLink, useLocation } from "react-router-dom";
 
@@ -37,6 +37,11 @@ const items = [
     title: "Residents",
     url: "/residents",
     icon: Users
+  },
+  {
+    title: "Youth",
+    url: "/youth",
+    icon: User
   },
   {
     title: "Households",
