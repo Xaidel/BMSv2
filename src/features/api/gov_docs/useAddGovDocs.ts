@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 
 export function useAddGovDoc() {
   const mutation = useMutation({
-    mutationFn: (govDoc: GovDoc) => postGovDocs(govDoc)
+    mutationFn: (govDoc: FormData) => postGovDocs(govDoc)
   })
 
   return {

@@ -65,9 +65,9 @@ export default function YouthPage() {
   };
 
   const filteredData = useMemo(() => {
-    if (!youthData?.youth) return [];
+    if (!youthData?.youths) return [];
     const sortValue = searchParams.get("sort") ?? "All Youth";
-    let sorted = youthSort(youthData.youth, sortValue);
+    let sorted = youthSort(youthData.youths, sortValue);
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -77,7 +77,7 @@ export default function YouthPage() {
     return sorted ?? [];
   }, [searchParams, searchQuery, youthData]);
 
-  const res = youthData?.youth || [];
+  const res = youthData?.youths || [];
   const total = res.length;
   const inSchool = res.filter((r) => r.InSchoolYouth).length;
   const outOfSchool = res.filter((r) => r.OutOfSchoolYouth).length;
@@ -210,7 +210,7 @@ export default function YouthPage() {
 
       {viewYouthId !== null && (
         <ViewYouthModal
-          youth={youthData.youth.find((e) => e.ID === viewYouthId)}
+          youth={youthData.youths.find((e) => e.ID === viewYouthId)}
           open={true}
           onClose={() => setViewYouthId(null)}
         />

@@ -8,7 +8,7 @@ export type PatchGovDoc = Partial<{
 }>
 export default async function editGovDocs(ID: number, updated: PatchGovDoc) {
   try {
-    const res = await fetch(`${api}/gov-docs/${ID}`, {
+    const res = await fetch(`${api}/govdocs/${ID}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updated)

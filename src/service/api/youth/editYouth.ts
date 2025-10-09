@@ -3,7 +3,7 @@ import { Youth } from "@/types/apitypes";
 
 export default async function editYouth(youth_id: number, updated: Partial<Youth>) {
   try {
-    const res = await fetch(`${api}/youth/${youth_id}`, {
+    const res = await fetch(`${api}/youths/${youth_id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json"

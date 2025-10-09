@@ -73,14 +73,15 @@ export default function AddGovDocsModal() {
     formData.append("Description", values.Description);
     formData.append("DateIssued", format(values.DateIssued, "yyyy-MM-dd"));
     if (imageFile) {
-      formData.append("Image", imageFile);
+      formData.append("Image", imageFile.name);
     }
+
     toast.promise(addMutation.mutateAsync(formData as any), {
       loading: "Adding Government Document please wait...",
       success: (data) => {
         const e = data.gov_doc;
         setOpenModal(false);
-        queryClient.invalidateQueries({ queryKey: ["gov-docs"] });
+        queryClient.invalidateQueries({ queryKey: ["govdocs"] });
         return {
           message: "Government Document added successfully",
           description: `${e.Title} was added`,

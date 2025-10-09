@@ -66,8 +66,10 @@ export default function GovDocs() {
   const queryClient = useQueryClient();
   const deleteMutation = useDeleteGovDocs();
   const govDocs = useMemo(() => {
-    return govDocsResponse?.records ?? [];
+    return govDocsResponse?.gov_docs ?? [];
   }, [govDocsResponse]);
+
+  console.log(govDocs);
 
   const handleSortChange = (sortValue: string) => {
     searchParams.set("sort", sortValue);
@@ -214,7 +216,7 @@ export default function GovDocs() {
               toast.promise(deleteMutation.mutateAsync(selectedGovDocs), {
                 loading: "Deleting government documents. Please wait",
                 success: () => {
-                  queryClient.invalidateQueries({ queryKey: ["govDocs"] });
+                  queryClient.invalidateQueries({ queryKey: ["govdocs"] });
                   setRowSelection((prevSelection) => {
                     const newSelection = { ...prevSelection };
                     selectedGovDocs.forEach((_, i) => {

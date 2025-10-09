@@ -3,7 +3,7 @@ import { ErrorResponse } from "../auth/login"
 
 export default async function deleteGovDocs(ids: number[]) {
   try {
-    const res = await fetch(`${api}/gov-docs`, {
+    const res = await fetch(`${api}/govdocs`, {
       method: "DELETE",
       headers: {
         Accept: "application/json"

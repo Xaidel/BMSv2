@@ -143,7 +143,7 @@ export default function ViewYouthModal({
       {
         loading: "Editing youth please wait...",
         success: () => {
-          queryClient.invalidateQueries({ queryKey: ["youth"] });
+          queryClient.invalidateQueries({ queryKey: ["youths"] });
           onClose();
           return {
             message: "Youth edited successfully",

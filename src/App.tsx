@@ -49,7 +49,7 @@ function App() {
             <Route path="map" element={<Map />} />
             <Route path="certificates" element={<Certificate />} />
             <Route
-              path="/certiificates/template/:template"
+              path="/certificates/template/:template"
               element={<IssueCertificate />}
             />
             <Route path="income" element={<Income />} />

@@ -132,6 +132,7 @@ export default function AddYouthModal() {
           };
         },
         error: (error: ErrorResponse) => {
+          console.log(error)
           return {
             message: "Adding youth failed",
             description: `${error.error}`,

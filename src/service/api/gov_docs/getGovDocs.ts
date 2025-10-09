@@ -3,12 +3,12 @@ import { ErrorResponse } from "../auth/login";
 import { GovDoc } from "@/types/apitypes";
 
 export interface GovDocsResponse {
-  records: GovDoc[]
+  gov_docs: GovDoc[]
 }
 
 export default async function getGovDocs(ID?: number): Promise<GovDocsResponse> {
   try {
-    const url = ID ? `${api}/gov-docs/${ID}` : `${api}/gov-docs`
+    const url = ID ? `${api}/govdocs/${ID}` : `${api}/govdocs`
     const res = await fetch(url, {
       method: "GET",
       headers: {

@@ -3,12 +3,12 @@ import { Youth } from "@/types/apitypes";
 import { ErrorResponse } from "../auth/login";
 
 export interface YouthResponse {
-  youth: Youth[];
+  youths: Youth[];
 }
 
 export default async function getYouth(id?: number): Promise<YouthResponse> {
   try {
-    const url = id ? `${api}/youth/${id}` : `${api}/youth`;
+    const url = id ? `${api}/youths/${id}` : `${api}/youths`;
     const res = await fetch(url, {
       method: "GET",
       headers: {

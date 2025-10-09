@@ -8,7 +8,7 @@ export interface YouthPostResponse {
 
 export default async function postYouth(youth: Youth): Promise<YouthPostResponse> {
   try {
-    const res = await fetch(`${api}/youth`, {
+    const res = await fetch(`${api}/youths`, {
       method: "POST",
       headers: {
         Accept: "application/json",
