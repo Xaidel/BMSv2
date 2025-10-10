@@ -256,6 +256,7 @@ export const youthSchema = z.object({
   Status: z.string().optional(),
   Gender: z.union([z.enum(["Male", "Female"]), z.literal("")]).optional(),
   Birthday: z.coerce.date().optional(),
+  AgeGroup: z.enum(["", "Child Youth", "Core Youth", "Young Adult"]).optional(),
   Birthplace: z.string().nullable().optional(),
   Nationality: z.string().nullable().optional(),
   Zone: z.coerce.number().optional(),

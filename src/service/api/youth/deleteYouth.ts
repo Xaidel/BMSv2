@@ -2,7 +2,7 @@ import { api } from "@/service/api"
 
 export default async function deleteResident(ids: number[]) {
   try {
-    const res = await fetch(`${api}/residents`, {
+    const res = await fetch(`${api}/youths`, {
       method: "DELETE",
       headers: {
         Accept: "application/json"

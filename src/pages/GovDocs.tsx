@@ -305,7 +305,7 @@ export default function GovDocs() {
               return (
                 <div className="flex gap-3">
                   <Button onClick={() => setViewGovDocsId(row.original.ID)}>
-                    <Eye /> View Government Document
+                    <Eye /> View More
                   </Button>
                 </div>
               );

@@ -60,6 +60,12 @@ const workStatusOptions = [
   "Not interested looking for a job",
 ];
 
+const ageGroupOptions = [
+  { label: "Child Youth (15-17 yrs old)", value: "Child Youth" },
+  { label: "Core Youth (18-24 yrs old)", value: "Core Youth" },
+  { label: "Young Adult (25-30 yrs old)", value: "Young Adult" },
+];
+
 export default function ViewYouthModal({
   youth,
   open,
@@ -93,6 +99,7 @@ export default function ViewYouthModal({
       YouthWithSpecificNeeds: youth.YouthWithSpecificNeeds || false,
       IsSKVoter: youth.IsSKVoter || false,
       Address: youth.Address || "",
+      AgeGroup: youth.AgeGroup || "",
     },
   });
   const editMutation = useEditYouth();
@@ -119,6 +126,7 @@ export default function ViewYouthModal({
       YouthWithSpecificNeeds: "YouthWithSpecificNeeds",
       IsSKVoter: "IsSKVoter",
       Address: "Address",
+      AgeGroup: "AgeGroup",
     };
 
     Object.keys(values).forEach((key) => {
@@ -208,46 +216,6 @@ export default function ViewYouthModal({
                                   className="mt-2 bg-gray-400 text-white file:bg-gray-400 file:text-white file:border-0 file:rounded-md file:px-3 file:py-1"
                                 />
                               </>
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <FormField
-                        control={form.control}
-                        name="EmailAddress"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email Address</FormLabel>
-                            <FormControl>
-                              <Input
-                                id="email_address"
-                                type="email"
-                                placeholder="Enter email address"
-                                {...field}
-                                className="text-black"
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <FormField
-                        control={form.control}
-                        name="ContactNumber"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Contact Number</FormLabel>
-                            <FormControl>
-                              <Input
-                                id="contact_number"
-                                type="text"
-                                placeholder="Enter contact number"
-                                {...field}
-                                className="text-black"
-                              />
                             </FormControl>
                           </FormItem>
                         )}
@@ -403,6 +371,46 @@ export default function ViewYouthModal({
                     <div className="col-span-2">
                       <FormField
                         control={form.control}
+                        name="EmailAddress"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email Address</FormLabel>
+                            <FormControl>
+                              <Input
+                                id="email_address"
+                                type="email"
+                                placeholder="Enter email address"
+                                {...field}
+                                className="text-black"
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <FormField
+                        control={form.control}
+                        name="ContactNumber"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Contact Number</FormLabel>
+                            <FormControl>
+                              <Input
+                                id="contact_number"
+                                type="text"
+                                placeholder="Enter contact number"
+                                {...field}
+                                className="text-black"
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <FormField
+                        control={form.control}
                         name="Birthday"
                         render={({ field }) => (
                           <FormItem>
@@ -426,7 +434,17 @@ export default function ViewYouthModal({
                                 <Calendar
                                   mode="single"
                                   selected={field.value}
-                                  onSelect={field.onChange}
+                                  onSelect={(date) => {
+                                    field.onChange(date);
+                                    if (date) {
+                                      const age = new Date().getFullYear() - date.getFullYear();
+                                      let group: "" | "Child Youth" | "Core Youth" | "Young Adult" = "";
+                                      if (age >= 15 && age <= 17) group = "Child Youth";
+                                      else if (age >= 18 && age <= 24) group = "Core Youth";
+                                      else if (age >= 25 && age <= 30) group = "Young Adult";
+                                      form.setValue("AgeGroup", group);
+                                    }
+                                  }}
                                   captionLayout="dropdown"
                                   fromYear={1900}
                                   toYear={new Date().getFullYear()}
@@ -441,50 +459,22 @@ export default function ViewYouthModal({
                     <div className="col-span-2">
                       <FormField
                         control={form.control}
-                        name="EducationalBackground"
+                        name="AgeGroup"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Educational Background</FormLabel>
+                            <FormLabel>Age Group</FormLabel>
                             <FormControl>
                               <Select
                                 onValueChange={field.onChange}
-                                defaultValue={field.value}
+                                value={field.value}
                               >
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Select Educational Background" />
+                                  <SelectValue placeholder="Select Age Group" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {educationalBackgroundOptions.map((option) => (
-                                    <SelectItem key={option} value={option}>
-                                      {option}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <FormField
-                        control={form.control}
-                        name="WorkStatus"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Work Status</FormLabel>
-                            <FormControl>
-                              <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select Work Status" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {workStatusOptions.map((option) => (
-                                    <SelectItem key={option} value={option}>
-                                      {option}
+                                  {ageGroupOptions.map((option) => (
+                                    <SelectItem key={option.value} value={option.value}>
+                                      {option.label}
                                     </SelectItem>
                                   ))}
                                 </SelectContent>
@@ -595,22 +585,86 @@ export default function ViewYouthModal({
                   <h2 className="text-md font-semibold text-gray-900 mt-2">
                     Present Address
                   </h2>
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="Zone"
+                      render={({ field }) => (
+                        <FormItem className="w-full">
+                          <FormLabel
+                            htmlFor="zone"
+                            className="text-black font-bold text-xs"
+                          >
+                            Zone
+                          </FormLabel>
+                          <Select
+                            onValueChange={(val) => field.onChange(Number(val))}
+                            value={String(field.value)}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="w-full text-black border-black/15">
+                                <SelectValue placeholder="Select zone" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {["1", "2", "3", "4", "5", "6", "7", "8"].map(
+                                (option, i) => (
+                                  <SelectItem value={option} key={i}>
+                                    {option}
+                                  </SelectItem>
+                                )
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="Address"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Address</FormLabel>
+                          <FormControl>
+                            <Input
+                              id="address"
+                              type="text"
+                              placeholder="Enter present address"
+                              {...field}
+                              className="text-black"
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <h2 className="text-md font-semibold text-gray-900 mt-6">
+                    Work Information
+                  </h2>
                   <div className="grid grid-cols-4 gap-4">
-                    <div className="col-span-4">
+                    <div className="col-span-2">
                       <FormField
                         control={form.control}
-                        name="Address"
+                        name="WorkStatus"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Address</FormLabel>
+                            <FormLabel>Work Status</FormLabel>
                             <FormControl>
-                              <Input
-                                id="address"
-                                type="text"
-                                placeholder="Enter present address"
-                                {...field}
-                                className="text-black"
-                              />
+                              <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select Work Status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {workStatusOptions.map((option) => (
+                                    <SelectItem key={option} value={option}>
+                                      {option}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             </FormControl>
                           </FormItem>
                         )}
@@ -619,34 +673,27 @@ export default function ViewYouthModal({
                     <div className="col-span-2">
                       <FormField
                         control={form.control}
-                        name="Zone"
+                        name="EducationalBackground"
                         render={({ field }) => (
-                          <FormItem className="w-full">
-                            <FormLabel
-                              htmlFor="zone"
-                              className="text-black font-bold text-xs"
-                            >
-                              Zone
-                            </FormLabel>
-                            <Select
-                              onValueChange={(val) => field.onChange(Number(val))}
-                              value={String(field.value)}
-                            >
-                              <FormControl>
-                                <SelectTrigger className="w-full text-black border-black/15">
-                                  <SelectValue placeholder="Select zone" />
+                          <FormItem>
+                            <FormLabel>Educational Background</FormLabel>
+                            <FormControl>
+                              <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select Educational Background" />
                                 </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {["1", "2", "3", "4", "5", "6", "7", "8"].map(
-                                  (option, i) => (
-                                    <SelectItem value={option} key={i}>
+                                <SelectContent>
+                 a                 {educationalBackgroundOptions.map((option) => (
+                                    <SelectItem key={option} value={option}>
                                       {option}
                                     </SelectItem>
-                                  )
-                                )}
-                              </SelectContent>
-                            </Select>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </FormControl>
                           </FormItem>
                         )}
                       />

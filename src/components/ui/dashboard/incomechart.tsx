@@ -1,5 +1,5 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./card"
-import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "./chart";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../card"
+import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "../chart";
 import { Pie, PieChart } from "recharts";
 
 type Data = {
@@ -22,12 +22,12 @@ const chartConfig = {
   }
 } satisfies ChartConfig
 
-export default function ExpenseChart({ data }: ChartProps) {
+export default function IncomeChart({ data }: ChartProps) {
   return (
-    <Card className="flex flex-col   ">
+    <Card className="flex flex-col">
       <CardHeader className="m-0">
-        <CardTitle>Expenditures</CardTitle>
-        <CardDescription>Visual Summary of Barangay Expense Sources</CardDescription>
+        <CardTitle>Income Sources</CardTitle>
+        <CardDescription>Visual Summary of Barangay Income Sources</CardDescription>
       </CardHeader>
       <CardContent className="flex  ">
         <div className="hidden xl:block" >
@@ -36,7 +36,7 @@ export default function ExpenseChart({ data }: ChartProps) {
               <div className="w-[1.5rem] h-[3rem] rounded-[4px]" style={{ backgroundColor: d.fill }} />
               <div className="flex flex-col min-w-0">
                 <h2 className="font-bold text-[1rem] leading-5 md:text-red">{d.source}</h2>
-                <p className="text-[0.8rem] font-light ">{d.description}</p>
+                <p className="text-[0.8rem]  font-light ">{d.description}</p>
               </div>
             </div>
           })}

@@ -29,6 +29,9 @@ const filters = [
   "Working Youth",
   "Youth w/ Specific Needs",
   "SK Voters",
+  "Child Youth (15-17 yrs old)",
+  "Core Youth (18-24 yrs old)",
+  "Young Adult (25-30 yrs old)",
 ];
 
 const columns: ColumnDef<Youth>[] = [

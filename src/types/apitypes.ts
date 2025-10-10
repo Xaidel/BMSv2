@@ -212,4 +212,5 @@ export type Youth = {
   YouthWithSpecificNeeds?: boolean;
   IsSKVoter?: boolean;
   Image?: File | null;
+  AgeGroup?: "Child Youth" | "Core Youth" | "Young Adult" | "";
 };

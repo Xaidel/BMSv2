@@ -1,6 +1,6 @@
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./card";
-import { ChartContainer, type ChartConfig } from "./chart";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../card";
+import { ChartContainer, type ChartConfig } from "../chart";
 const chartConfig = {
   population: {
     label: "Population",

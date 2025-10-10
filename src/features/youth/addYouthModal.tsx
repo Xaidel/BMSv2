@@ -63,6 +63,12 @@ const workStatusOptions = [
   "Not interested looking for a job",
 ];
 
+const ageGroupOptions = [
+  { label: "Child Youth (15-17 yrs old)", value: "Child Youth" },
+  { label: "Core Youth (18-24 yrs old)", value: "Core Youth" },
+  { label: "Young Adult (25-30 yrs old)", value: "Young Adult" },
+];
+
 export default function AddYouthModal() {
   const [openCalendar, setOpenCalendar] = useState(false);
   const [openModal, setOpenModal] = useState(false);
@@ -90,6 +96,7 @@ export default function AddYouthModal() {
       OutOfSchoolYouth: false,
       WorkingYouth: false,
       YouthWithSpecificNeeds: false,
+      AgeGroup: "",
     },
   });
 
@@ -119,6 +126,7 @@ export default function AddYouthModal() {
         OutOfSchoolYouth: values.OutOfSchoolYouth,
         WorkingYouth: values.WorkingYouth,
         YouthWithSpecificNeeds: values.YouthWithSpecificNeeds,
+        AgeGroup: values.AgeGroup,
       }),
       {
         loading: "Adding Youth please wait...",
@@ -416,7 +424,17 @@ export default function AddYouthModal() {
                               <Calendar
                                 mode="single"
                                 selected={field.value}
-                                onSelect={field.onChange}
+                                onSelect={(date) => {
+                                  field.onChange(date);
+                                  if (date) {
+                                    const age = new Date().getFullYear() - date.getFullYear();
+                                  let group: "" | "Child Youth" | "Core Youth" | "Young Adult" = "";
+                                    if (age >= 15 && age <= 17) group = "Child Youth";
+                                    else if (age >= 18 && age <= 24) group = "Core Youth";
+                                    else if (age >= 25 && age <= 30) group = "Young Adult";
+                                    form.setValue("AgeGroup", group);
+                                  }
+                                }}
                                 captionLayout="dropdown"
                                 fromYear={1900}
                                 toYear={new Date().getFullYear()}
@@ -431,19 +449,22 @@ export default function AddYouthModal() {
                   <div className="col-span-2">
                     <FormField
                       control={form.control}
-                      name="EducationalBackground"
+                      name="AgeGroup"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Educational Background</FormLabel>
+                          <FormLabel>Age Group</FormLabel>
                           <FormControl>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                            >
                               <SelectTrigger>
-                                <SelectValue placeholder="Select Educational Background" />
+                                <SelectValue placeholder="Select Age Group" />
                               </SelectTrigger>
                               <SelectContent>
-                                {educBackgroundOptions.map((option) => (
-                                  <SelectItem key={option} value={option}>
-                                    {option}
+                                {ageGroupOptions.map((option) => (
+                                  <SelectItem key={option.value} value={option.value}>
+                                    {option.label}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -633,6 +654,31 @@ export default function AddYouthModal() {
                               </SelectTrigger>
                               <SelectContent>
                                 {workStatusOptions.map((option) => (
+                                  <SelectItem key={option} value={option}>
+                                    {option}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <FormField
+                      control={form.control}
+                      name="EducationalBackground"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Educational Background</FormLabel>
+                          <FormControl>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select Educational Background" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {educBackgroundOptions.map((option) => (
                                   <SelectItem key={option} value={option}>
                                     {option}
                                   </SelectItem>
