@@ -53,7 +53,11 @@ export default function IncomeChart({ data }: ChartProps) {
               nameKey="source"
               cy="50%"
               cx="50%"
-              label={({ value }) => `₱${new Intl.NumberFormat("en-PH").format(value)}`}
+              label={({ value }) => {
+                const total = data.reduce((sum, d) => sum + d.value, 0);
+                const percent = total ? Math.round((value / total) * 100) : 0;
+                return `${percent}% (₱${new Intl.NumberFormat("en-PH").format(value)})`;
+              }}
               labelLine={false}
             >
             </Pie>

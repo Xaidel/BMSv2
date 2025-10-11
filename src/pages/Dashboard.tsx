@@ -166,18 +166,6 @@ const palette = [
     { source: "Youth w/ Specific Needs", value: youths.filter((y) => y.YouthWithSpecificNeeds).length, fill: "#9C27B0" },
   ];
 
-  // Education color mapping for educationChartData
-  const educationColorMap: Record<string, string> = {
-    "Elementary Level": "#4CAF50",
-    "Elementary Grad": "#8BC34A",
-    "High School Level": "#FFC107",
-    "High School Grad": "#FF9800",
-    "Vocational Grad": "#9C27B0",
-    "College Level": "#03A9F4",
-    "College Grad": "#2196F3",
-    "Others": "#9E9E9E",
-  };
-
   // Additional youth chart data: Age Category and Work Status
   const ageCategoryChartData = [
     { source: "Child Youth (15-17 yrs old)", value: youths.filter((y) => y.AgeGroup === "Child Youth").length, fill: palette[0] },

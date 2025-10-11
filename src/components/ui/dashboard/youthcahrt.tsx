@@ -44,7 +44,11 @@ export default function YouthChart({ data, title, description }: ChartProps) {
               nameKey="source"
               cy="50%"
               cx="50%"
-              label={({ value }) => `${value}`}
+              label={({ value }) => {
+                const total = data.reduce((sum, d) => sum + d.value, 0);
+                const percent = total ? Math.round((value / total) * 100) : 0;
+                return `${percent}% (${value})`;
+              }}
               labelLine={false}
             />
           </PieChart>
