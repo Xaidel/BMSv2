@@ -1,5 +1,5 @@
 import { LayoutDashboard, Calendar, Users, House, FileBadge2, TrendingUp, BanknoteArrowUpIcon, Files, Settings, LogOut, Map, ClipboardCheck, FileText, FileBadge, User, Users2, UserCheck } from "lucide-react";
-import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger } from "./sidebar";
+import { Sidebar, SidebarContent, SidebarGroup, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger } from "./sidebar";
 import { NavLink, useLocation } from "react-router-dom";
 
 const items = [
@@ -73,6 +73,20 @@ const items = [
     url: "/officials",
     icon: Users
   },
+  {
+    title: "Settings",
+    url: "/settings",
+    icon: Settings
+  },
+  {
+    title: "Logout",
+    url: "#",
+    icon: LogOut,
+    onClick: () => {
+      sessionStorage.clear();
+      window.location.href = "/";
+    }
+  },
 ]
 
 type SidebarProps = {
@@ -108,8 +122,7 @@ export default function AppSidebar({ onHover, onOut }: SidebarProps) {
                   size="lg"
                   isActive={isActive(currentPath, item.url)}
                 >
-                  <NavLink to={item.url}
-                  >
+                  <NavLink to={item.url} onClick={item.onClick ? item.onClick : undefined}>
                     <item.icon className="group-data-[collapsible=icon]:mx-auto" />
                     <span className={"group-data-[collapsible=icon]:hidden"}>{item.title}</span>
                   </NavLink>
@@ -119,34 +132,6 @@ export default function AppSidebar({ onHover, onOut }: SidebarProps) {
           </SidebarMenu>
         </SidebarGroup >
       </SidebarContent >
-      <SidebarFooter className="mb-3">
-        <SidebarMenuItem className="font-redhat text-black max-w-[14rem]"
-        >
-          <SidebarMenuButton asChild
-            className="hover:bg-primary hover:text-foreground "
-            size="lg"
-            isActive={isActive(currentPath, "/settings")}
-          >
-            <NavLink to={"/settings"}>
-              <Settings className="group-data-[collapsible=icon]:mx-auto" />
-              <span
-                className={"group-data-[collapsible=icon]:hidden"}
-              >Settings</span>
-            </NavLink>
-          </SidebarMenuButton>
-          <SidebarMenuButton asChild
-            className="hover:bg-red-500 hover:text-foreground "
-            size="lg"
-          >
-            <a href="/">
-              <LogOut className="group-data-[collapsible=icon]:mx-auto" />
-              <span
-                className={"group-data-[collapsible=icon]:hidden"}
-              >Logout</span>
-            </a>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      </SidebarFooter>
     </Sidebar >
   )
 }

@@ -72,7 +72,7 @@ export default function Dashboard() {
     totals[category] += income.Amount;
   }
 
-  const colorMap: Record<string, string> = {
+  const incomeColorMap: Record<string, string> = {
     "Local Revenue": "#3F51B5",
     "Tax Revenue": "#E91E63",
     "Water System": "#2196F3",
@@ -85,7 +85,7 @@ export default function Dashboard() {
   const incomeChartData = Object.entries(totals).map(([source, value]) => ({
     source,
     value,
-    fill: colorMap[source] || "#ccc",
+    fill: incomeColorMap[source] || "#ccc",
     description: {
       "Local Revenue": "Revenue collected within the barangay",
       "Tax Revenue": "Revenue from various local taxes",

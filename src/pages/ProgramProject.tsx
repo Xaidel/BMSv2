@@ -46,20 +46,6 @@ const columns: ColumnDef<ProgramProject>[] = [
     accessorKey: "Type",
   },
   {
-    header: "Start Date",
-    accessorKey: "StartDate",
-    cell: ({ row }) => {
-      return <div>{format(row.original.StartDate, "MMMM do, yyyy")}</div>;
-    },
-  },
-  {
-    header: "End Date",
-    accessorKey: "EndDate",
-    cell: ({ row }) => {
-      return <div>{format(row.original.EndDate, "MMMM do, yyyy")}</div>;
-    },
-  },
-  {
     header: "Location",
     accessorKey: "Location",
   },
@@ -354,7 +340,7 @@ export default function ProgramProjects() {
               return (
                 <div className="flex gap-3">
                   <Button onClick={() => setViewProgramProjectId(row.original.ID)}>
-                    <Eye /> View Program/Project
+                    <Eye /> View More
                   </Button>
                 </div>
               );

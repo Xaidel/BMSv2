@@ -43,13 +43,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEditProgramProject } from "../api/program_project/useEditProgramProject";
 
 const selectOption: string[] = [
-  "Assembly",
-  "Health and Social Services",
-  "Disater Preparedness and Environmental",
-  "Education and Skill Development",
-  "Cultural, Recreational, and Sports",
-  "Law Enforcement and Community Safety",
-  "Humanitarian Assistance",
+  "Program",
+  "Project",
 ];
 
 export default function ViewProgramProjectModal({

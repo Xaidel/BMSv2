@@ -686,7 +686,7 @@ export default function ViewYouthModal({
                                   <SelectValue placeholder="Select Educational Background" />
                                 </SelectTrigger>
                                 <SelectContent>
-                 a                 {educationalBackgroundOptions.map((option) => (
+                                  {educationalBackgroundOptions.map((option) => (
                                     <SelectItem key={option} value={option}>
                                       {option}
                                     </SelectItem>
