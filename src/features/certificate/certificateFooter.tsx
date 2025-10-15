@@ -25,22 +25,7 @@ export default function CertificateFooter({
         <Text style={[styles.bodyText, { marginBottom: 0 }]}>
           Certifying Officer,
         </Text>
-        <Text
-          style={[
-            styles.bodyText,
-            {
-              marginTop: 10,
-              marginBottom: 4,
-              fontWeight: "bold",
-            },
-          ]}
-        >
-          HON. {captainName || "________________"}
-        </Text>
-        <Text style={[styles.bodyText, { marginBottom: 10 }]}>
-          Punong Barangay
-        </Text>
-        {assignedOfficial && (
+        {assignedOfficial ? (
           <>
             <Text
               style={[
@@ -52,6 +37,39 @@ export default function CertificateFooter({
             </Text>
             <Text style={[styles.bodyText, { marginBottom: 0 }]}>
               Officer in charge of the today
+            </Text>
+            <Text
+              style={[
+                styles.bodyText,
+                {
+                  marginTop: 10,
+                  marginBottom: 4,
+                  fontWeight: "bold",
+                },
+              ]}
+            >
+              HON. {captainName || "________________"}
+            </Text>
+            <Text style={[styles.bodyText, { marginBottom: 10 }]}>
+              Punong Barangay
+            </Text>
+          </>
+        ) : (
+          <>
+            <Text
+              style={[
+                styles.bodyText,
+                {
+                  marginTop: 10,
+                  marginBottom: 4,
+                  fontWeight: "bold",
+                },
+              ]}
+            >
+              HON. {captainName || "________________"}
+            </Text>
+            <Text style={[styles.bodyText, { marginBottom: 10 }]}>
+              Punong Barangay
             </Text>
           </>
         )}
