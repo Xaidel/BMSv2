@@ -1,4 +1,4 @@
-import { LayoutDashboard, Calendar, Users, House, FileBadge2, TrendingUp, BanknoteArrowUpIcon, Files, Settings, LogOut, Map, ClipboardCheck, FileText, FileBadge, User, Users2, UserCheck } from "lucide-react";
+import { LayoutDashboard, Calendar, Users, House, FileBadge2, TrendingUp, BanknoteArrowUpIcon, Files, Settings, LogOut, Map, ClipboardCheck, FileText, FileBadge, User } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger } from "./sidebar";
 import { NavLink, useLocation } from "react-router-dom";
 
