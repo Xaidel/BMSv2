@@ -72,7 +72,6 @@ export default function BusinessPermit() {
   const [businessType, setBusinessType] = useState("");
   const [businessLocation, setBusinessLocation] = useState("");
   const [businessOwner, setBusinessOwner] = useState("");
-  const [amount, setAmount] = useState("100.00");
   const [assignedOfficial, setAssignedOfficial] = useState("");
   const [age, setAge] = useState("");
   const [civilStatus, setCivilStatus] = useState("");
@@ -123,6 +122,10 @@ export default function BusinessPermit() {
   };
 
   const captainName = getOfficialName("barangay captain", "barangay officials");
+
+  // Prepared By state, initialized with secretary's name
+  const secretaryName = getOfficialName("secretary", "barangay officials") || "";
+  const [preparedBy, setPreparedBy] = useState(secretaryName);
   const { mutateAsync: addCertificate } = useAddCertificate();
 
   useEffect(() => {
@@ -325,22 +328,6 @@ export default function BusinessPermit() {
             </div>
             <div className="mt-1">
               <label
-                htmlFor="amount"
-                className="block text-sm font-medium text-gray-700 mb-0.5"
-              >
-                Amount (PHP)
-              </label>
-              <input
-                id="amount"
-                type="text"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="w-full border rounded px-3 py-2 text-sm"
-                placeholder="e.g., 150.00"
-              />
-            </div>
-            <div className="mt-1">
-              <label
                 htmlFor="purpose"
                 className="block text-sm font-medium text-gray-700 mb-0.5"
               >
@@ -401,6 +388,19 @@ export default function BusinessPermit() {
               </Select>
             </div>
           </div>
+          <div className="mt-1">
+            <label htmlFor="preparedBy" className="block text-sm font-medium text-gray-700 mb-0.5">
+              Prepared By
+            </label>
+            <input
+              id="preparedBy"
+              type="text"
+              value={preparedBy}
+              onChange={(e) => setPreparedBy(e.target.value)}
+              className="w-full border rounded px-3 py-2 text-sm"
+              placeholder="Enter preparer's name"
+            />
+          </div>
         </CardContent>
         <CardFooter className="flex justify-between items-center gap-2">
           <Button
@@ -418,7 +418,6 @@ export default function BusinessPermit() {
                       : ""
                   }${selectedResident.Lastname}`,
                   type_: "Barangay Business Permit",
-                  amount: parseFloat(amount),
                   issued_date: new Date().toISOString().split("T")[0],
                   ownership_text: businessOwner || "",
                   civil_status: civilStatus || "",
@@ -551,23 +550,23 @@ export default function BusinessPermit() {
                     : ""}
                 </Text>
                 <Text
-                  style={[styles.bodyText, { marginTop: 10, marginBottom: 8 }]}
+                  style={[styles.bodyText, { marginTop: 0, marginBottom: 8 }]}
                 >
                   Given this{" "}
                   {new Date().toLocaleDateString("en-PH", {
                     day: "numeric",
                     month: "long",
                     year: "numeric",
-                  })}
-                  , at {settings ? settings.Barangay : "________________"},
+                  })}{" "}
+                  at {settings ? settings.Barangay : "________________"},
                   {settings ? settings.Municipality : "________________"},
                   {settings ? settings.Province : "________________"}
                 </Text>
                 <CertificateFooter
                   styles={styles}
                   captainName={captainName ?? ""}
-                  amount={amount}
                   assignedOfficial={assignedOfficial}
+                  preparedBy={preparedBy}
                 />
               </View>
             </Page>

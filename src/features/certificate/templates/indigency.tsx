@@ -62,11 +62,16 @@ export default function Indigency() {
   const [residencyYear, setResidencyYear] = useState("");
   const [purpose, setPurpose] = useState("");
   const [customPurpose, setCustomPurpose] = useState("");
+  // Add new selectedDependent state
+  const [selectedDependent, setSelectedDependent] = useState("");
+  // Update default customBody to remove static name and reference dependent in the PDF section only
+  const [customBody, setCustomBody] = useState(
+    "This certification is being issued upon the request of the above-named person for the purpose of applying for an entrance examination for her daughter"
+  );
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
   const [residents, setResidents] = useState<Resident[]>([]);
-  const [amount, setAmount] = useState("100.00");
   const [age, setAge] = useState("");
   const [civilStatus, setCivilStatus] = useState("");
   const [assignedOfficial, setAssignedOfficial] = useState("");
@@ -127,6 +132,8 @@ export default function Indigency() {
     return found?.Name ?? null;
   };
   const captainName = getOfficialName("barangay captain", "barangay officials");
+  const preparedByDefault = getOfficialName("secretary", "barangay officials");
+  const [preparedBy, setPreparedBy] = useState(preparedByDefault || "");
 
   useEffect(() => {
     getSettings()
@@ -283,6 +290,30 @@ export default function Indigency() {
               </Popover>
             </div>
             <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Select Dependent</label>
+              <Select value={selectedDependent} onValueChange={setSelectedDependent}>
+                <SelectTrigger className="w-full border rounded px-3 py-2 text-sm">
+                  <SelectValue placeholder="-- Select Dependent --" />
+                </SelectTrigger>
+                <SelectContent>
+                  {allResidents.map((res) => (
+                    <SelectItem key={res.value} value={res.label}>
+                      {res.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Custom Paragraph</label>
+              <textarea
+                value={customBody}
+                onChange={(e) => setCustomBody(e.target.value)}
+                className="w-full border rounded px-3 py-2 text-sm"
+                rows={3}
+              />
+            </div>
+            <div className="mt-4">
               <label
                 htmlFor="age"
                 className="block text-sm font-medium text-gray-700 mb-1"
@@ -325,21 +356,14 @@ export default function Indigency() {
               >
                 Residency Year
               </label>
-              <Select value={residencyYear} onValueChange={setResidencyYear}>
-                <SelectTrigger className="w-full border rounded px-3 py-2 text-sm">
-                  <SelectValue placeholder="-- Select Residency Year --" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.from(
-                    { length: new Date().getFullYear() - 1900 + 1 },
-                    (_, i) => (1900 + i).toString()
-                  ).map((year) => (
-                    <SelectItem key={year} value={year}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <input
+                id="residency_year"
+                type="text"
+                value={residencyYear}
+                onChange={(e) => setResidencyYear(e.target.value)}
+                className="w-full border rounded px-3 py-2 text-sm"
+                placeholder="Enter year (e.g., 2016)"
+              />
             </div>
             <div className="mt-4">
               <label
@@ -372,19 +396,6 @@ export default function Indigency() {
               )}
             </div>
             <div className="mt-4">
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                Amount (PHP)
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
-                placeholder="Enter amount"
-              />
-            </div>
-            <div className="mt-4">
               <label
                 htmlFor="assignedOfficial"
                 className="block text-sm font-medium text-gray-700 mb-1"
@@ -415,6 +426,22 @@ export default function Indigency() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="mt-4">
+              <label
+                htmlFor="preparedBy"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Prepared By
+              </label>
+              <input
+                id="preparedBy"
+                type="text"
+                value={preparedBy}
+                onChange={(e) => setPreparedBy(e.target.value)}
+                className="w-full border rounded px-3 py-2 text-sm"
+                placeholder="Enter preparer's name"
+              />
+            </div>
           </CardContent>
           <CardFooter className="flex justify-between items-center gap-4">
             <Button
@@ -432,7 +459,6 @@ export default function Indigency() {
                         : ""
                     }${selectedResident.Lastname}`,
                     type_: "Indigency Certificate",
-                    amount: amount ? parseFloat(amount) : 0,
                     issued_date: new Date().toISOString().split("T")[0],
                     ownership_text: "",
                     civil_status: civilStatus || "",
@@ -524,15 +550,90 @@ export default function Indigency() {
                         sector in this Barangay and is duly recognized as such
                         by the local government unit.
                       </Text>
+                      {/* Display customBody, but replace the relevant sentence if it matches the default */}
                       <Text
                         style={[
                           styles.bodyText,
                           { textAlign: "justify", marginBottom: 8 },
                         ]}
                       >
-                        This certification is issued upon request of the
-                        interested party for whatever legal purpose it may
-                        serve.
+                        {(() => {
+                          const defaultText =
+                            "This certification is being issued upon the request of the above-named person for the purpose of applying for an entrance examination for her daughter.";
+
+                          // Helper: Render text with bold dependent inserted
+                          const renderWithDependent = (text: string) => {
+                            if (!selectedDependent) return text;
+                            const parts = text.split(new RegExp(`(${selectedDependent})`, "gi"));
+                            if (parts.length > 1) {
+                              return parts.map((part, i) =>
+                                part.toLowerCase() === selectedDependent.toLowerCase() ? (
+                                  <Text key={i} style={{ fontWeight: "bold" }}>
+                                    {part}
+                                  </Text>
+                                ) : (
+                                  <Text key={i}>{part}</Text>
+                                )
+                              );
+                            }
+                            // If dependent not in text, append at the end with a period.
+                            return (
+                              <>
+                                {text}{" "}
+                                <Text style={{ fontWeight: "bold" }}>{selectedDependent}</Text>.
+                              </>
+                            );
+                          };
+
+                          // If paragraph starts with dependent name
+                          if (
+                            selectedDependent &&
+                            customBody.trim().toLowerCase().startsWith(
+                              selectedDependent.toLowerCase()
+                            )
+                          ) {
+                            return (
+                              <>
+                                <Text style={{ fontWeight: "bold" }}>{selectedDependent}</Text>{" "}
+                                {customBody.slice(selectedDependent.length)}
+                              </>
+                            );
+                          }
+
+                          // If paragraph ends with dependent name
+                          if (
+                            selectedDependent &&
+                            customBody.trim().toLowerCase().endsWith(
+                              selectedDependent.toLowerCase()
+                            )
+                          ) {
+                            const textWithoutDependent = customBody.slice(
+                              0,
+                              -selectedDependent.length
+                            );
+                            return (
+                              <>
+                                {textWithoutDependent}{" "}
+                                <Text style={{ fontWeight: "bold" }}>{selectedDependent}</Text>
+                              </>
+                            );
+                          }
+
+                          // Default structure if unmodified
+                          if (customBody.trim() === defaultText) {
+                            return (
+                              <>
+                                This certification is being issued upon the request of the above-named person for the purpose of applying for an entrance examination for her daughter{" "}
+                                <Text style={{ fontWeight: "bold" }}>
+                                  {selectedDependent || ""}
+                                </Text>.
+                              </>
+                            );
+                          }
+
+                          // Generic case: ensure dependent is included somewhere
+                          return renderWithDependent(customBody);
+                        })()}
                       </Text>
                       <Text
                         style={[
@@ -551,7 +652,7 @@ export default function Indigency() {
                       <Text
                         style={[
                           styles.bodyText,
-                          { marginTop: 10, marginBottom: 8 },
+                          { marginTop: 6, marginBottom: 8 },
                         ]}
                       >
                         Given this{" "}
@@ -559,8 +660,8 @@ export default function Indigency() {
                           day: "numeric",
                           month: "long",
                           year: "numeric",
-                        })}
-                        , at {settings ? settings.Barangay : "________________"}
+                        })}{" "}
+                         at {settings ? settings.Barangay : "________________"}
                         ,{settings ? settings.Municipality : "________________"}
                         ,{settings ? settings.Province : "________________"}
                       </Text>
@@ -570,11 +671,12 @@ export default function Indigency() {
                       Please select a resident to view certificate.
                     </Text>
                   )}
+
                   <CertificateFooter
                     styles={styles}
                     captainName={captainName}
-                    amount={amount}
                     assignedOfficial={assignedOfficial}
+                    preparedBy={preparedBy}
                   />
                 </View>
               </Page>

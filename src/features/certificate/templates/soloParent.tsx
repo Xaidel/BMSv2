@@ -67,8 +67,8 @@ export default function soloParent() {
   const [value, setValue] = useState("");
   const [residents, setResidents] = useState<Resident[]>([]);
   const [age, setAge] = useState("");
+  const [residencyYear, setResidencyYear] = useState("");
   const [civilStatus, setCivilStatus] = useState("");
-  const [amount, setAmount] = useState("100.00");
   const [soloParentText, setSoloParentText] = useState("");
   const [purpose, setPurpose] = useState("");
   const [customPurpose, setCustomPurpose] = useState("");
@@ -97,6 +97,10 @@ export default function soloParent() {
     return found?.Name ?? null;
   };
   const captainName = getOfficialName("barangay captain", "barangay officials");
+  // Add preparedBy state with default value from secretary
+  const [preparedBy, setPreparedBy] = useState(
+    getOfficialName("secretary", "barangay officials") ?? ""
+  );
 
   /** Same resident picker logic as Fourps */
   const allResidents = useMemo(() => {
@@ -327,6 +331,22 @@ export default function soloParent() {
               </div>
               <div className="mt-4">
                 <label
+                  htmlFor="residency_year"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Residency Year
+                </label>
+                <input
+                  id="residency_year"
+                  type="text"
+                  value={residencyYear}
+                  onChange={(e) => setResidencyYear(e.target.value)}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  placeholder="Enter year (e.g., 2016)"
+                />
+              </div>
+              <div className="mt-4">
+                <label
                   htmlFor="civil_status"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
@@ -390,22 +410,6 @@ export default function soloParent() {
                   />
                 )}
               </div>
-              <div className="mt-4">
-                <label
-                  htmlFor="amount"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Enter Amount (PHP)
-                </label>
-                <input
-                  id="amount"
-                  type="text"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="w-full border rounded px-3 py-2 text-sm"
-                  placeholder="e.g., 10.00"
-                />
-              </div>
               {/* Assigned Official block */}
               <div className="mt-4">
                 <label
@@ -438,6 +442,23 @@ export default function soloParent() {
                   </SelectContent>
                 </Select>
               </div>
+              {/* Prepared By block */}
+              <div className="mt-4">
+                <label
+                  htmlFor="preparedBy"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Prepared By
+                </label>
+                <input
+                  id="preparedBy"
+                  type="text"
+                  value={preparedBy}
+                  onChange={(e) => setPreparedBy(e.target.value)}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  placeholder="Enter preparer's name"
+                />
+              </div>
             </div>
           </CardContent>
           <CardFooter className="flex justify-between items-center gap-4">
@@ -456,7 +477,6 @@ export default function soloParent() {
                         : ""
                     }${selectedResident.last_name}`,
                     type_: "Solo Parent Certificate",
-                    amount: amount ? parseFloat(amount) : 0,
                     issued_date: new Date().toISOString().split("T")[0],
                     ownership_text: "",
                     civil_status: civilStatus || "",
@@ -592,8 +612,8 @@ export default function soloParent() {
                   <CertificateFooter
                     styles={styles}
                     captainName={captainName ?? ""}
-                    amount={amount}
                     assignedOfficial={assignedOfficial}
+                    preparedBy={preparedBy}
                   />
                 </View>
               </Page>

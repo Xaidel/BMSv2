@@ -68,7 +68,8 @@ export default function Birth() {
     return found?.Name ?? null;
   };
   const captainName = getOfficialName("barangay captain", "barangay officials");
-  const preparedBy = getOfficialName("secretary", "barangay officials");
+  const preparedByDefault = getOfficialName("secretary", "barangay officials");
+  const [preparedBy, setPreparedBy] = useState(preparedByDefault || "");
   const navigate = useNavigate();
   // Birth certificate form fields
   const [registryNo, setRegistryNo] = useState("");
@@ -576,22 +577,6 @@ export default function Birth() {
               </div>
               <div className="mt-4">
                 <label
-                  htmlFor="amount"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Enter Amount (PHP)
-                </label>
-                <input
-                  id="amount"
-                  type="text"
-                  value={amount || ""}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="w-full border rounded px-3 py-2 text-sm"
-                  placeholder="e.g. 10.00"
-                />
-              </div>
-              <div className="mt-4">
-                <label
                   htmlFor="assignedOfficial"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
@@ -620,6 +605,22 @@ export default function Birth() {
                       ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="mt-4">
+                <label
+                  htmlFor="preparedBy"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Prepared By
+                </label>
+                <input
+                  id="preparedBy"
+                  type="text"
+                  value={preparedBy}
+                  onChange={(e) => setPreparedBy(e.target.value)}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  placeholder="Enter preparer's name"
+                />
               </div>
             </div>
           </CardContent>
@@ -848,35 +849,12 @@ export default function Birth() {
                           {preparedBy || "________________"}
                         </Text>
                         <Text style={styles.bodyText}>Barangay Secretary</Text>
-                        <View style={{ marginTop: 20 }}>
-                          <Text style={styles.bodyText}>
-                            O.R. No.: ____________________
-                          </Text>
-                          <Text style={styles.bodyText}>
-                            Date: _________________________
-                          </Text>
-                          <Text style={styles.bodyText}>
-                            Amount: PHP {amount}
-                          </Text>
-                        </View>
+                        {/* Removed O.R. No., Date, and Amount fields */}
                       </View>
                       <View>
                         <Text style={[styles.bodyText, { fontWeight: "bold" }]}>
                           Noted:
                         </Text>
-                        <Text
-                          style={[
-                            styles.bodyText,
-                            {
-                              marginTop: 20,
-                              marginBottom: 4,
-                              fontWeight: "bold",
-                            },
-                          ]}
-                        >
-                          HON. {captainName || "________________"}
-                        </Text>
-                        <Text style={styles.bodyText}>Barangay Captain</Text>
                         {assignedOfficial && (
                           <View style={{ marginTop: 20 }}>
                             <Text
@@ -892,6 +870,19 @@ export default function Birth() {
                             </Text>
                           </View>
                         )}
+                        <Text
+                          style={[
+                            styles.bodyText,
+                            {
+                              marginTop: 20,
+                              marginBottom: 4,
+                              fontWeight: "bold",
+                            },
+                          ]}
+                        >
+                          HON. {captainName || "________________"}
+                        </Text>
+                        <Text style={styles.bodyText}>Barangay Captain</Text>
                       </View>
                     </View>
                   </View>

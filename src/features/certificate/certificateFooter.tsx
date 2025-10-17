@@ -3,15 +3,15 @@ import { Text, View } from "@react-pdf/renderer";
 type CertificateFooterProps = {
   styles: any;
   captainName: string | null;
-  amount: string;
   assignedOfficial?: string;
+  preparedBy?: string;
 };
 
 export default function CertificateFooter({
   styles,
   captainName,
-  amount,
   assignedOfficial,
+  preparedBy = "Evamgeline Diesta",
 }: CertificateFooterProps) {
   return (
     <View
@@ -35,7 +35,7 @@ export default function CertificateFooter({
             >
               HON. {assignedOfficial}
             </Text>
-            <Text style={[styles.bodyText, { marginBottom: 0 }]}>
+            <Text style={[styles.bodyText, { marginBottom: 9 }]}>
               Officer in charge of the today
             </Text>
             <Text
@@ -68,7 +68,7 @@ export default function CertificateFooter({
             >
               HON. {captainName || "________________"}
             </Text>
-            <Text style={[styles.bodyText, { marginBottom: 10 }]}>
+            <Text style={[styles.bodyText, { marginBottom: 12 }]}>
               Punong Barangay
             </Text>
           </>
@@ -83,14 +83,11 @@ export default function CertificateFooter({
         >
           Not valid without dry seal
         </Text>
-        <Text style={[styles.bodyText, { marginBottom: 4 }]}>
-          O.R. No.: ____________________
+         <Text style={[styles.bodyText, { fontWeight: "bold" }]}>
+          {preparedBy}
         </Text>
-        <Text style={[styles.bodyText, { marginBottom: 4 }]}>
-          Date: _______________________
-        </Text>
-        <Text style={[styles.bodyText, { marginBottom: 0 }]}>
-          Amount: PHP {amount || "_________"}
+        <Text style={[styles.bodyText, { marginTop: 6 }]}>
+          Prepared by:
         </Text>
       </View>
     </View>

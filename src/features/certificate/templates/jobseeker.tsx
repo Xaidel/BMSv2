@@ -65,7 +65,6 @@ export default function Jobseeker() {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
   const [residents, setResidents] = useState<Resident[]>([]);
-  const [amount, setAmount] = useState("100.00");
   const [age, setAge] = useState("");
   const [civilStatus, setCivilStatus] = useState("");
   const [assignedOfficial, setAssignedOfficial] = useState("");
@@ -123,6 +122,8 @@ export default function Jobseeker() {
     return found?.Name ?? null;
   };
   const captainName = getOfficialName("barangay captain", "barangay officials");
+  const preparedByDefault = getOfficialName("secretary", "barangay officials");
+  const [preparedBy, setPreparedBy] = useState(preparedByDefault || "");
 
   useEffect(() => {
     getSettings()
@@ -319,21 +320,14 @@ export default function Jobseeker() {
               >
                 Residency Year
               </label>
-              <Select value={residencyYear} onValueChange={setResidencyYear}>
-                <SelectTrigger className="w-full border rounded px-3 py-2 text-sm">
-                  <SelectValue placeholder="-- Select Residency Year --" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.from(
-                    { length: new Date().getFullYear() - 1900 + 1 },
-                    (_, i) => (1900 + i).toString()
-                  ).map((year) => (
-                    <SelectItem key={year} value={year}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <input
+                id="residency_year"
+                type="text"
+                value={residencyYear}
+                onChange={(e) => setResidencyYear(e.target.value)}
+                className="w-full border rounded px-3 py-2 text-sm"
+                placeholder="Enter year (e.g., 2016)"
+              />
             </div>
             <div className="mt-4">
               <label
@@ -366,19 +360,6 @@ export default function Jobseeker() {
               )}
             </div>
             <div className="mt-4">
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                Amount (PHP)
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
-                placeholder="Enter amount"
-              />
-            </div>
-            <div className="mt-4">
               <label
                 htmlFor="assignedOfficial"
                 className="block text-sm font-medium text-gray-700 mb-1"
@@ -409,6 +390,22 @@ export default function Jobseeker() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="mt-4">
+              <label
+                htmlFor="preparedBy"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Prepared By
+              </label>
+              <input
+                id="preparedBy"
+                type="text"
+                value={preparedBy}
+                onChange={(e) => setPreparedBy(e.target.value)}
+                className="w-full border rounded px-3 py-2 text-sm"
+                placeholder="Enter preparer's name"
+              />
+            </div>
           </CardContent>
           <CardFooter className="flex justify-between items-center gap-4">
             <Button
@@ -426,7 +423,6 @@ export default function Jobseeker() {
                         : ""
                     }${selectedResident.Lastname}`,
                     type_: "Jobseeker Certificate",
-                    amount: amount ? parseFloat(amount) : 0,
                     issued_date: new Date().toISOString().split("T")[0],
                     ownership_text: "",
                     civil_status: civilStatus || "",
@@ -564,8 +560,8 @@ export default function Jobseeker() {
                           day: "numeric",
                           month: "long",
                           year: "numeric",
-                        })}
-                        , at {settings ? settings.Barangay : "________________"}
+                        })}{" "}
+                        at {settings ? settings.Barangay : "________________"}
                         ,{settings ? settings.Municipality : "________________"}
                         ,{settings ? settings.Province : "________________"}
                       </Text>
@@ -578,8 +574,8 @@ export default function Jobseeker() {
                   <CertificateFooter
                     styles={styles}
                     captainName={captainName}
-                    amount={amount}
                     assignedOfficial={assignedOfficial}
+                    preparedBy={preparedBy}
                   />
                 </View>
               </Page>

@@ -73,10 +73,9 @@ export default function Unemployment() {
   const [civilStatus, setCivilStatus] = useState("");
   const [purpose, setPurpose] = useState("");
   const [customPurpose, setCustomPurpose] = useState("");
-  const [amount, setAmount] = useState("100.00");
   const [assignedOfficial, setAssignedOfficial] = useState("");
-
-  // Fetch officials and get captain name
+  const [residencyYear, setResidencyYear] = useState("");
+  // Prepared By state
   const { data: officials } = useOfficial();
   function getOfficialName(role: string, section: string) {
     if (!officials) return "";
@@ -94,6 +93,11 @@ export default function Unemployment() {
     );
     return found?.Name || found?.name || "";
   }
+  const [preparedBy, setPreparedBy] = useState(
+    () => getOfficialName("Secretary", "Barangay Officials")
+  );
+
+  // Fetch officials and get captain name
   const captainName = getOfficialName("Barangay Captain", "Barangay Officials");
 
   // Fetch settings
@@ -270,6 +274,23 @@ export default function Unemployment() {
                 </PopoverContent>
               </Popover>
               <div className="mt-4">
+              {/* Prepared By */}
+              <div className="mt-4">
+                <label
+                  htmlFor="preparedBy"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Prepared By
+                </label>
+                <input
+                  id="preparedBy"
+                  type="text"
+                  value={preparedBy}
+                  onChange={e => setPreparedBy(e.target.value)}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  placeholder="Enter name of preparer"
+                />
+              </div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Age
                 </label>
@@ -297,6 +318,22 @@ export default function Unemployment() {
                     <SelectItem value="Divorced">Divorced</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="mt-4">
+                <label
+                  htmlFor="residency_year"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Residency Year
+                </label>
+                <input
+                  id="residency_year"
+                  type="text"
+                  value={residencyYear}
+                  onChange={(e) => setResidencyYear(e.target.value)}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  placeholder="Enter year (e.g., 2016)"
+                />
               </div>
               {/* Purpose of Certificate */}
               <div className="mt-4">
@@ -333,22 +370,6 @@ export default function Unemployment() {
                     placeholder="Please specify the purpose"
                   />
                 )}
-              </div>
-              <div className="mt-4">
-                <label
-                  htmlFor="amount"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Enter Amount (PHP)
-                </label>
-                <input
-                  id="amount"
-                  type="text"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="w-full border rounded px-3 py-2 text-sm"
-                  placeholder="e.g., 10.00"
-                />
               </div>
               <div className="mt-4">
                 <label
@@ -399,7 +420,6 @@ export default function Unemployment() {
                         : ""
                     }${selectedResident.Lastname}`,
                     type_: "Unemployment Certificate",
-                    amount: amount ? parseFloat(amount) : 0,
                     issued_date: new Date().toISOString().split("T")[0],
                     ownership_text: "",
                     civil_status: civilStatus || "",
@@ -525,8 +545,8 @@ export default function Unemployment() {
                           day: "numeric",
                           month: "long",
                           year: "numeric",
-                        })}
-                        , at {settings ? settings.Barangay : "________________"}
+                        })}{" "}
+                         at {settings ? settings.Barangay : "________________"}
                         ,{settings ? settings.Municipality : "________________"}
                         ,{settings ? settings.Province : "________________"}
                       </Text>
@@ -539,8 +559,8 @@ export default function Unemployment() {
                   <CertificateFooter
                     styles={styles}
                     captainName={captainName}
-                    amount={amount}
                     assignedOfficial={assignedOfficial}
+                    preparedBy={preparedBy}
                   />
                 </View>
               </Page>

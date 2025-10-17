@@ -99,7 +99,8 @@ export default function Fourps() {
   const selectedResident = useMemo(() => {
     return allResidents.find((res) => res.value === value)?.data;
   }, [allResidents, value]);
-  const [amount, setAmount] = useState("100.00");
+  const preparedByDefault = getOfficialName("secretary", "barangay officials");
+  const [preparedBy, setPreparedBy] = useState(preparedByDefault || "");
   const [, setLogoDataUrl] = useState<string | null>(null);
   const [, setLogoMunicipalityDataUrl] = useState<string | null>(null);
   const [settings, setSettings] = useState<{
@@ -326,21 +327,14 @@ export default function Fourps() {
                 >
                   Residency Year
                 </label>
-                <Select value={residencyYear} onValueChange={setResidencyYear}>
-                  <SelectTrigger className="w-full border rounded px-3 py-2 text-sm">
-                    <SelectValue placeholder="-- Select Residency Year --" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from(
-                      { length: new Date().getFullYear() - 1900 + 1 },
-                      (_, i) => (1900 + i).toString()
-                    ).map((year) => (
-                      <SelectItem key={year} value={year}>
-                        {year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <input
+                  id="residency_year"
+                  type="text"
+                  value={residencyYear}
+                  onChange={(e) => setResidencyYear(e.target.value)}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  placeholder="Enter year (e.g., 2016)"
+                />
               </div>
               <div className="mt-4">
                 <label
@@ -376,22 +370,6 @@ export default function Fourps() {
               </div>
               <div className="mt-4">
                 <label
-                  htmlFor="amount"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Enter Amount (PHP)
-                </label>
-                <input
-                  id="amount"
-                  type="text"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="w-full border rounded px-3 py-2 text-sm"
-                  placeholder="e.g., 10.00"
-                />
-              </div>
-              <div className="mt-4">
-                <label
                   htmlFor="assignedOfficial"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
@@ -421,6 +399,22 @@ export default function Fourps() {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="mt-4">
+                <label
+                  htmlFor="preparedBy"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Prepared By
+                </label>
+                <input
+                  id="preparedBy"
+                  type="text"
+                  value={preparedBy}
+                  onChange={(e) => setPreparedBy(e.target.value)}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  placeholder="Enter preparer's name"
+                />
+              </div>
             </div>
           </CardContent>
           <CardFooter className="flex justify-between items-center gap-4">
@@ -439,7 +433,6 @@ export default function Fourps() {
                         : ""
                     }${selectedResident.Lastname}`,
                     type_: "4Ps Certificate",
-                    amount: amount ? parseFloat(amount) : 0,
                     issued_date: new Date().toISOString().split("T")[0],
                     ownership_text: "",
                     civil_status: civilStatus || "",
@@ -566,10 +559,10 @@ export default function Fourps() {
                           day: "numeric",
                           month: "long",
                           year: "numeric",
-                        })}
-                        , at {settings ? settings.Barangay : "________________"}
-                        ,{settings ? settings.Municipality : "________________"}
-                        ,{settings ? settings.Province : "________________"}
+                        })}{" "}
+                        at {settings ? settings.Barangay : "________________"},
+                        {settings ? settings.Municipality : "________________"},
+                        {settings ? settings.Province : "________________"}
                       </Text>
                     </>
                   ) : (
@@ -580,8 +573,8 @@ export default function Fourps() {
                   <CertificateFooter
                     styles={styles}
                     captainName={captainName ?? ""}
-                    amount={amount}
                     assignedOfficial={assignedOfficial}
+                    preparedBy={preparedBy}
                   />
                 </View>
               </Page>

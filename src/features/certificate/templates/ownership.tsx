@@ -77,7 +77,6 @@ export default function Fourps() {
   const selectedResident = useMemo(() => {
     return allResidents.find((res) => res.value === value)?.data;
   }, [allResidents, value]);
-  const [amount, setAmount] = useState("100.00");
   const [assignedOfficial, setAssignedOfficial] = useState("");
   const [ownershipText, setOwnershipText] = useState("");
   const [settings, setSettings] = useState<{
@@ -85,6 +84,7 @@ export default function Fourps() {
     municipality: string;
     province: string;
   } | null>(null);
+  const [preparedBy, setPreparedBy] = useState("");
 
   const civilStatusOptions = [
     "Single",
@@ -161,6 +161,14 @@ export default function Fourps() {
       })
       .catch(console.error);
   }, []);
+
+  // Set preparedBy to Barangay Secretary after officials are fetched
+  useEffect(() => {
+    if (officials) {
+      const secretaryName = getOfficialName("secretary", "barangay officials");
+      if (secretaryName) setPreparedBy(secretaryName);
+    }
+  }, [officials]);
 
   const styles = StyleSheet.create({
     page: { padding: 30 },
@@ -358,22 +366,6 @@ export default function Fourps() {
               </div>
               <div className="mt-4">
                 <label
-                  htmlFor="amount"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Enter Amount (PHP)
-                </label>
-                <input
-                  id="amount"
-                  type="text"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="w-full border rounded px-3 py-2 text-sm"
-                  placeholder="e.g., 10.00"
-                />
-              </div>
-              <div className="mt-4">
-                <label
                   htmlFor="assignedOfficial"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
@@ -403,6 +395,20 @@ export default function Fourps() {
                   </SelectContent>
                 </Select>
               </div>
+              {/* Prepared By field */}
+              <div className="mt-4">
+                <label htmlFor="preparedBy" className="block text-sm font-medium text-gray-700 mb-1">
+                  Prepared By
+                </label>
+                <input
+                  id="preparedBy"
+                  type="text"
+                  value={preparedBy}
+                  onChange={(e) => setPreparedBy(e.target.value)}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  placeholder="Enter name of preparer"
+                />
+              </div>
             </div>
           </CardContent>
           <CardFooter className="flex justify-between items-center gap-4">
@@ -421,13 +427,13 @@ export default function Fourps() {
                         : ""
                     }${selectedResident.Lastname}`,
                     type_: "Ownership Certificate",
-                    amount: amount ? parseFloat(amount) : 0,
                     issued_date: new Date().toISOString().split("T")[0],
                     ownership_text: ownershipText,
                     civil_status: civilStatus || "",
                     purpose:
                       purpose === "custom" ? customPurpose || "" : purpose,
                     age: age ? parseInt(age) : undefined,
+                    prepared_by: preparedBy,
                   };
                   await addCertificate(cert);
                   toast.success("Certificate saved successfully!", {
@@ -541,8 +547,8 @@ export default function Fourps() {
                   <CertificateFooter
                     styles={styles}
                     captainName={captainName}
-                    amount={amount}
                     assignedOfficial={assignedOfficial}
+                    preparedBy={preparedBy}
                   />
                 </View>
               </Page>

@@ -63,7 +63,6 @@ export default function Marriage() {
   const [value, setValue] = useState("");
   const [value2, setValue2] = useState("");
   const [residents, setResidents] = useState<Resident[]>([]);
-  const [amount, setAmount] = useState("100.00");
   const [assignedOfficial, setAssignedOfficial] = useState("");
   const [ageMale, setAgeMale] = useState("");
   const [civilStatusMale, setCivilStatusMale] = useState("");
@@ -130,6 +129,9 @@ export default function Marriage() {
     return found?.Name ?? null;
   };
   const captainName = getOfficialName("barangay captain", "barangay officials");
+  // Prepared By logic
+  const preparedByDefault = getOfficialName("secretary", "barangay officials");
+  const [preparedBy, setPreparedBy] = useState(preparedByDefault || "");
 
   // Calculate age and civil status for selected residents
   useEffect(() => {
@@ -433,19 +435,6 @@ export default function Marriage() {
               </div>
             </div>
             <div className="mt-4">
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                Amount (PHP)
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
-                placeholder="Enter amount"
-              />
-            </div>
-            <div className="mt-4">
               <label
                 htmlFor="assignedOfficial"
                 className="block text-sm font-medium text-gray-700 mb-1"
@@ -476,6 +465,20 @@ export default function Marriage() {
                 </SelectContent>
               </Select>
             </div>
+            {/* Prepared By input */}
+            <div className="mt-4">
+              <label htmlFor="preparedBy" className="block text-sm font-medium text-gray-700 mb-1">
+                Prepared By
+              </label>
+              <input
+                id="preparedBy"
+                type="text"
+                value={preparedBy}
+                onChange={(e) => setPreparedBy(e.target.value)}
+                className="w-full border rounded px-3 py-2 text-sm"
+                placeholder="Enter preparer's name"
+              />
+            </div>
           </CardContent>
           <CardFooter className="flex justify-between items-center gap-4">
             <Button
@@ -499,7 +502,6 @@ export default function Marriage() {
                         : ""
                     }${selectedResident2?.Lastname ?? ""}`,
                     type_: "Marriage Certificate",
-                    amount: amount ? parseFloat(amount) : 0,
                     issued_date: new Date().toISOString().split("T")[0],
                     ownership_text: "",
                     civil_status: `${civilStatusMale}/${civilStatusFemale}`,
@@ -594,8 +596,8 @@ export default function Marriage() {
                   <CertificateFooter
                     styles={styles}
                     captainName={captainName}
-                    amount={amount}
                     assignedOfficial={assignedOfficial}
+                    preparedBy={preparedBy}
                   />
                 </View>
               </Page>

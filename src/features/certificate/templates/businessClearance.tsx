@@ -85,8 +85,21 @@ export default function BusinessClearance() {
   const [businessType, setBusinessType] = useState("");
   const [businessLocation, setBusinessLocation] = useState("");
   const [businessOwner, setBusinessOwner] = useState("");
-  const [amount, setAmount] = useState("100.00");
   const [assignedOfficial, setAssignedOfficial] = useState("");
+  const { data: officials } = useOfficial();
+  const getOfficialName = (role: string, section: string) => {
+    if (!officials) return null;
+    const list = Array.isArray(officials) ? officials : officials.officials;
+    const found = list.find(
+      (o) =>
+        (o.Section?.toLowerCase() || "").includes(section.toLowerCase()) &&
+        (o.Role?.toLowerCase() || "").includes(role.toLowerCase())
+    );
+    return found?.Name ?? null;
+  };
+  // Prepared By state
+  const preparedByDefault = getOfficialName("secretary", "barangay officials") || "";
+  const [preparedBy, setPreparedBy] = useState(preparedByDefault);
   // Resident selection state
   const [age, setAge] = useState("");
   const [civilStatus, setCivilStatus] = useState("");
@@ -133,17 +146,6 @@ export default function BusinessClearance() {
       .catch(console.error);
   }, []);
 
-  const { data: officials } = useOfficial();
-  const getOfficialName = (role: string, section: string) => {
-    if (!officials) return null;
-    const list = Array.isArray(officials) ? officials : officials.officials;
-    const found = list.find(
-      (o) =>
-        (o.Section?.toLowerCase() || "").includes(section.toLowerCase()) &&
-        (o.Role?.toLowerCase() || "").includes(role.toLowerCase())
-    );
-    return found?.Name ?? null;
-  };
   const captainName = getOfficialName("barangay captain", "barangay officials");
   const { mutateAsync: addCertificate } = useAddCertificate();
   const styles = StyleSheet.create({
@@ -332,22 +334,6 @@ export default function BusinessClearance() {
               </div>
               <div className="mt-4">
                 <label
-                  htmlFor="amount"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Amount (PHP)
-                </label>
-                <input
-                  id="amount"
-                  type="text"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="w-full border rounded px-3 py-2 text-sm"
-                  placeholder="e.g., 150.00"
-                />
-              </div>
-              <div className="mt-4">
-                <label
                   htmlFor="assignedOfficial"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
@@ -376,6 +362,22 @@ export default function BusinessClearance() {
                       ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="mt-4">
+                <label
+                  htmlFor="preparedBy"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Prepared By
+                </label>
+                <input
+                  id="preparedBy"
+                  type="text"
+                  value={preparedBy}
+                  onChange={(e) => setPreparedBy(e.target.value)}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  placeholder="Enter Preparer's Name"
+                />
               </div>
               <div className="mt-4">
                 <label
@@ -430,7 +432,6 @@ export default function BusinessClearance() {
                         : ""
                     }${selectedResident.last_name}`,
                     type_: "Barangay Business Clearance",
-                    amount: parseFloat(amount),
                     issued_date: new Date().toISOString().split("T")[0],
                     ownership_text: businessOwner || "",
                     civil_status: civilStatus || "",
@@ -573,7 +574,7 @@ export default function BusinessClearance() {
                       <Text
                         style={[
                           styles.bodyText,
-                          { marginTop: 0, marginBottom: 4 },
+                          { marginTop: 0, marginBottom: 8 },
                         ]}
                       >
                         Given this{" "}
@@ -581,17 +582,17 @@ export default function BusinessClearance() {
                           day: "numeric",
                           month: "long",
                           year: "numeric",
-                        })}
-                        , at {settings ? settings.barangay : "________________"}
-                        ,{settings ? settings.municipality : "________________"}
-                        ,{settings ? settings.province : "________________"}
+                        })}{" "}
+                        at {settings ? settings.barangay : "________________"},
+                        {settings ? settings.municipality : "________________"},
+                        {settings ? settings.province : "________________"}
                       </Text>
                     </>
                     <CertificateFooter
                       styles={styles}
                       captainName={captainName}
-                      amount={amount}
                       assignedOfficial={assignedOfficial}
+                      preparedBy={preparedBy}
                     />
                   </View>
                 </View>

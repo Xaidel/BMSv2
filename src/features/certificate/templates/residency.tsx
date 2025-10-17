@@ -55,10 +55,22 @@ export default function Residency() {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
   const [residents, setResidents] = useState<Resident[]>([]);
-  const [amount, setAmount] = useState("100.00");
   const [age, setAge] = useState("");
   const [civilStatus, setCivilStatus] = useState("");
   const [assignedOfficial, setAssignedOfficial] = useState("");
+  const { data: officials } = useOfficial();
+  const getOfficialName = (role: string, section: string) => {
+    if (!officials) return null;
+    const list = Array.isArray(officials) ? officials : officials.officials;
+    const found = list.find(
+      (o) =>
+        (o.Section?.toLowerCase() || "").includes(section.toLowerCase()) &&
+        (o.Role?.toLowerCase() || "").includes(role.toLowerCase())
+    );
+    return found?.Name ?? null;
+  };
+  const preparedByDefault = getOfficialName("secretary", "barangay officials");
+  const [preparedBy, setPreparedBy] = useState(preparedByDefault || "");
   const allResidents = useMemo(() => {
     return residents.map((res) => ({
       value: `${res.Firstname} ${
@@ -85,17 +97,6 @@ export default function Residency() {
     Province: string;
   } | null>(null);
   const addCertificate = useAddCertificate();
-  const { data: officials } = useOfficial();
-  const getOfficialName = (role: string, section: string) => {
-    if (!officials) return null;
-    const list = Array.isArray(officials) ? officials : officials.officials;
-    const found = list.find(
-      (o) =>
-        (o.Section?.toLowerCase() || "").includes(section.toLowerCase()) &&
-        (o.Role?.toLowerCase() || "").includes(role.toLowerCase())
-    );
-    return found?.Name ?? null;
-  };
   const captainName = getOfficialName("barangay captain", "barangay officials");
 
   const purposeOptions = [
@@ -292,21 +293,14 @@ export default function Residency() {
               >
                 Residency Year
               </label>
-              <Select value={residencyYear} onValueChange={setResidencyYear}>
-                <SelectTrigger className="w-full border rounded px-3 py-2 text-sm">
-                  <SelectValue placeholder="-- Select Residency Year --" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.from(
-                    { length: new Date().getFullYear() - 1900 + 1 },
-                    (_, i) => (1900 + i).toString()
-                  ).map((year) => (
-                    <SelectItem key={year} value={year}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <input
+                id="residency_year"
+                type="text"
+                value={residencyYear}
+                onChange={(e) => setResidencyYear(e.target.value)}
+                className="w-full border rounded px-3 py-2 text-sm"
+                placeholder="Enter year (e.g., 2016)"
+              />
             </div>
             <div className="mt-4">
               <label
@@ -339,18 +333,6 @@ export default function Residency() {
               )}
             </div>
             <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Enter Amount
-              </label>
-              <input
-                type="number"
-                className="w-full border rounded px-3 py-2 text-black"
-                placeholder="e.g. 10"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
-            </div>
-            <div className="mt-4">
               <label
                 htmlFor="assignedOfficial"
                 className="block text-sm font-medium text-gray-700 mb-1"
@@ -381,6 +363,22 @@ export default function Residency() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="mt-4">
+              <label
+                htmlFor="preparedBy"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Prepared By
+              </label>
+              <input
+                id="preparedBy"
+                type="text"
+                value={preparedBy}
+                onChange={(e) => setPreparedBy(e.target.value)}
+                className="w-full border rounded px-3 py-2 text-sm"
+                placeholder="Enter preparer's name"
+              />
+            </div>
           </CardContent>
           <CardFooter className="flex justify-between items-center gap-4">
             <Button
@@ -398,13 +396,13 @@ export default function Residency() {
                         : ""
                     }${selectedResident.Lastname}`,
                     type_: "Residency Certificate",
-                    amount: amount ? parseFloat(amount) : 0,
                     issued_date: new Date().toISOString().split("T")[0],
                     ownership_text: "",
                     civil_status: civilStatus || "",
                     purpose:
                       purpose === "custom" ? customPurpose || "" : purpose,
                     age: age ? parseInt(age) : undefined,
+                    prepared_by: preparedBy,
                   };
                   await addCertificate.mutateAsync(cert);
                   toast.success("Certificate saved successfully!", {
@@ -503,8 +501,8 @@ export default function Residency() {
                           day: "numeric",
                           month: "long",
                           year: "numeric",
-                        })}
-                        , at {settings ? settings.Barangay : "________________"}
+                        })}{" "}
+                         at {settings ? settings.Barangay : "________________"}
                         ,{settings ? settings.Municipality : "________________"}
                         ,{settings ? settings.Province : "________________"}
                       </Text>
@@ -517,8 +515,8 @@ export default function Residency() {
                   <CertificateFooter
                     styles={styles}
                     captainName={captainName ?? ""}
-                    amount={amount}
                     assignedOfficial={assignedOfficial}
+                    preparedBy={preparedBy}
                   />
                 </View>
               </Page>
