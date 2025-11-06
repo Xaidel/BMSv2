@@ -418,7 +418,7 @@ export default function BusinessPermit() {
                       : ""
                   }${selectedResident.Lastname}`,
                   type_: "Barangay Business Permit",
-                  issued_date: new Date().toISOString().split("T")[0],
+                  issued_date: new Date().toISOString(),
                   ownership_text: businessOwner || "",
                   civil_status: civilStatus || "",
                   purpose: purpose === "custom" ? customPurpose || "" : purpose,

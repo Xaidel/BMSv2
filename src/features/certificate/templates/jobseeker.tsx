@@ -423,7 +423,7 @@ export default function Jobseeker() {
                         : ""
                     }${selectedResident.Lastname}`,
                     type_: "Jobseeker Certificate",
-                    issued_date: new Date().toISOString().split("T")[0],
+                    issued_date: new Date().toISOString(),
                     ownership_text: "",
                     civil_status: civilStatus || "",
                     purpose:

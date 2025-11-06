@@ -443,7 +443,7 @@ export default function Clearance() {
                         : ""
                     }${selectedResident.Lastname}`,
                     type_: "Barangay Clearance",
-                    issued_date: new Date().toISOString().split("T")[0],
+                    issued_date: new Date().toISOString(),
                     ownership_text: "",
                     civil_status: civilStatus || "",
                     purpose:

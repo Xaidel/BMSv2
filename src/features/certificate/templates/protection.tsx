@@ -441,7 +441,7 @@ export default function BarangayProtectionOrder() {
                         : ""
                     }${selectedResident.Lastname}`,
                     type_: "Barangay Protection Order",
-                    issued_date: new Date().toISOString().split("T")[0],
+                    issued_date: new Date().toISOString(),
                     respondent_name: respondentName,
                     respondent_address: respondentAddress,
                     complainant_name: complainantName,

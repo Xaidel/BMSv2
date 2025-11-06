@@ -427,7 +427,7 @@ export default function Fourps() {
                         : ""
                     }${selectedResident.Lastname}`,
                     type_: "Ownership Certificate",
-                    issued_date: new Date().toISOString().split("T")[0],
+                    issued_date: new Date().toISOString(),
                     ownership_text: ownershipText,
                     civil_status: civilStatus || "",
                     purpose:

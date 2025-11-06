@@ -477,7 +477,7 @@ export default function soloParent() {
                         : ""
                     }${selectedResident.last_name}`,
                     type_: "Solo Parent Certificate",
-                    issued_date: new Date().toISOString().split("T")[0],
+                    issued_date: new Date().toISOString(),
                     ownership_text: "",
                     civil_status: civilStatus || "",
                     soloParent_text: soloParentText,

@@ -39,6 +39,9 @@ import { useNavigate } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
 import { toast } from "sonner";
 import { ArrowLeftCircleIcon, ChevronsUpDown, Check } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
 import CertificateHeader from "../certificateHeader";
 import { Buffer } from "buffer";
 if (!window.Buffer) {
@@ -57,6 +60,7 @@ type Resident = {
 
 export default function Birth() {
   const { data: officials } = useOfficial();
+  const { mutateAsync: addCertificate } = useAddCertificate();
   const getOfficialName = (role: string, section: string) => {
     if (!officials) return null;
     const list = Array.isArray(officials) ? officials : officials.officials;
@@ -116,6 +120,8 @@ export default function Birth() {
   const [value, setValue] = useState("");
   const [residents, setResidents] = useState<Resident[]>([]);
   const [search, setSearch] = useState("");
+  const [openCalendarBirth, setOpenCalendarBirth] = useState(false);
+  const [openCalendarChildBirth, setOpenCalendarChildBirth] = useState(false);
   const allResidents = useMemo(() => {
     return residents.map((res) => ({
       value: `${res.first_name} ${res.last_name}`.toLowerCase(),
@@ -287,16 +293,31 @@ export default function Birth() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="birth_date"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Date
                   </label>
-                  <input
-                    type="date"
-                    value={birthDate || ""}
-                    onChange={(e) => setBirthDate(e.target.value)}
-                    className="w-full border rounded px-3 py-2 text-sm"
-                    placeholder="e.g. 2023-01-01"
-                  />
+                  <Popover open={openCalendarBirth} onOpenChange={setOpenCalendarBirth}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full text-black justify-between">
+                        {birthDate ? format(new Date(birthDate), "PPP") : "Pick a date"}
+                        <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="center">
+                      <Calendar
+                        mode="single"
+                        selected={birthDate ? new Date(birthDate) : undefined}
+                        onSelect={(date) => {
+                          if (date) setBirthDate(date.toISOString().split("T")[0]);
+                          setOpenCalendarBirth(false);
+                        }}
+                        captionLayout="dropdown"
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -347,16 +368,31 @@ export default function Birth() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="child_date_of_birth"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Date of Birth
                   </label>
-                  <input
-                    type="date"
-                    value={childDateOfBirth || ""}
-                    onChange={(e) => setChildDateOfBirth(e.target.value)}
-                    className="w-full border rounded px-3 py-2 text-sm"
-                    placeholder="e.g. 2023-01-01"
-                  />
+                  <Popover open={openCalendarChildBirth} onOpenChange={setOpenCalendarChildBirth}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full text-black justify-between">
+                        {childDateOfBirth ? format(new Date(childDateOfBirth), "PPP") : "Pick a birth date"}
+                        <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="center">
+                      <Calendar
+                        mode="single"
+                        selected={childDateOfBirth ? new Date(childDateOfBirth) : undefined}
+                        onSelect={(date) => {
+                          if (date) setChildDateOfBirth(date.toISOString().split("T")[0]);
+                          setOpenCalendarChildBirth(false);
+                        }}
+                        captionLayout="dropdown"
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -632,21 +668,22 @@ export default function Birth() {
                   return;
                 }
                 try {
-                  const { mutateAsync: addCertificate } = useAddCertificate();
-                  await addCertificate({
-                    ResidentID: selectedResident.id,
-                    ResidentName: `${selectedResident.first_name} ${
+                  const cert: any = {
+                    resident_id: selectedResident.id,
+                    resident_name: `${selectedResident.first_name} ${
                       selectedResident.middle_name
                         ? selectedResident.middle_name.charAt(0) + ". "
                         : ""
                     }${selectedResident.last_name}`,
-                    Type: "Birth Certificate",
-                    IssuedDate: new Date().toISOString().split("T")[0],
-                    Age: selectedResident?.age ?? undefined,
-                    CivilStatus: civilStatus || "",
-                    OwnershipText: "",
-                    Amount: amount ? parseFloat(amount) : 0,
-                  });
+                    type_: "Birth Certificate",
+                    issued_date: new Date().toISOString(),
+                    purpose: "Birth Registration",
+                    ownership_text: "",
+                    civil_status: civilStatus || "",
+                    amount: amount ? parseFloat(amount) : 0,
+                    age: selectedResident?.age ?? undefined,
+                  };
+                  await addCertificate(cert);
                   toast.success("Certificate saved successfully!", {
                     description: `${selectedResident.first_name} ${
                       selectedResident.middle_name

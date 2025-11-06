@@ -396,7 +396,7 @@ export default function Residency() {
                         : ""
                     }${selectedResident.Lastname}`,
                     type_: "Residency Certificate",
-                    issued_date: new Date().toISOString().split("T")[0],
+                    issued_date: new Date().toISOString(),
                     ownership_text: "",
                     civil_status: civilStatus || "",
                     purpose:

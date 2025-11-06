@@ -502,7 +502,7 @@ export default function Marriage() {
                         : ""
                     }${selectedResident2?.Lastname ?? ""}`,
                     type_: "Marriage Certificate",
-                    issued_date: new Date().toISOString().split("T")[0],
+                    issued_date: new Date().toISOString(),
                     ownership_text: "",
                     civil_status: `${civilStatusMale}/${civilStatusFemale}`,
                     age: ageMale ? parseInt(ageMale, 10) : undefined,

@@ -433,7 +433,7 @@ export default function Fourps() {
                         : ""
                     }${selectedResident.Lastname}`,
                     type_: "4Ps Certificate",
-                    issued_date: new Date().toISOString().split("T")[0],
+                    issued_date: new Date().toISOString(),
                     ownership_text: "",
                     civil_status: civilStatus || "",
                     purpose:

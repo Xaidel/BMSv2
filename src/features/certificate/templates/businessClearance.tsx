@@ -432,7 +432,7 @@ export default function BusinessClearance() {
                         : ""
                     }${selectedResident.last_name}`,
                     type_: "Barangay Business Clearance",
-                    issued_date: new Date().toISOString().split("T")[0],
+                    issued_date: new Date().toISOString(),
                     ownership_text: businessOwner || "",
                     civil_status: civilStatus || "",
                     purpose:
