@@ -103,7 +103,7 @@ export default function Birth() {
   const [dateOfMarriage, setDateOfMarriage] = useState("");
   const [placeOfMarriage, setPlaceOfMarriage] = useState("");
   const [attendantAtBirth, setAttendantAtBirth] = useState("");
-  const [amount, setAmount] = useState("100.00");
+  const amount = "100.00";
   const [assignedOfficial, setAssignedOfficial] = useState("");
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
   const [logoMunicipalityDataUrl, setLogoMunicipalityDataUrl] = useState<
