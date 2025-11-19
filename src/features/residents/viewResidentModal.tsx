@@ -45,13 +45,13 @@ const statusOption = ["Active", "Dead", "Missing", "Moved Out"];
 const genderOptions = ["Male", "Female"];
 const suffixOptions = ["Jr.", "Sr.", "II", "III"];
 const educAttainment = [
-  "No Education Attainment",
-  "Elementary Graduate",
-  "Highschool Graduate",
-  "Senior Highschool Graduate",
-  "College Graduate",
-  "Masteral Degree",
-  "Doctorate Degree",
+   "Elementary Level",
+  "Elementary Grad",
+  "High School Level",
+  "High School Grad",
+  "Vocational Grad",
+  "College Level",
+  "College Grad",
 ];
 const religionOptions = [
   "Roman Catholic",

@@ -1,25 +1,21 @@
-import { Blotter } from "@/types/apitypes"
-import { Document, Page, Text, View } from "@react-pdf/renderer"
-import { styles } from "./Stylesheet"
-import { format } from "date-fns"
-import PDFHeader from "./pdfheader"
+import { Document, Page, Text, View } from "@react-pdf/renderer";
+import { styles } from "./Stylesheet";
+import { format } from "date-fns";
+import { Blotter } from "@/types/apitypes";
+import PDFHeader from "./pdfheader";
 
 type Props = {
-  filter: string
-  blotters: Blotter[]
-}
+  filter: string;
+  blotters: Blotter[];
+};
 
 export const BlotterPDF = ({ filter, blotters }: Props) => {
   return (
     <Document>
-      <Page
-        orientation="landscape"
-        size="A4"
-        wrap={false}
-      >
-        <View style={{ margin: "20px" }}>
-          <PDFHeader/>
-          <View style={{ margin: "40px" }}>
+      <Page orientation="landscape" size="A4" wrap style={{ paddingTop: 10, paddingBottom: 10, paddingHorizontal: 10 }}>
+        <View style={{ margin: "2px" }}>
+          <PDFHeader />
+          <View style={{ margin: "0px" }}>
             <View style={{ marginBottom: 10 }}>
               <Text style={{ fontSize: 14 }}>{filter}</Text>
             </View>
@@ -33,7 +29,6 @@ export const BlotterPDF = ({ filter, blotters }: Props) => {
               <View style={styles.headerCell}><Text>Zone</Text></View>
               <View style={styles.headerCell}><Text>Status</Text></View>
             </View>
-
             <View style={styles.table}>
               {blotters.map((blotter, index) => (
                 <View
@@ -48,7 +43,7 @@ export const BlotterPDF = ({ filter, blotters }: Props) => {
                   <View style={styles.tableCell}><Text>{blotter.ReportedBy}</Text></View>
                   <View style={styles.tableCell}><Text>{blotter.Involved}</Text></View>
                   <View style={styles.tableCell}>
-                    <Text>{format(blotter.IncidentDate, "MMMM do, yyyy")}</Text>
+                    <Text>{format(new Date(blotter.IncidentDate), "MMMM do, yyyy")}</Text>
                   </View>
                   <View style={styles.tableCell}><Text>{`Brgy. ${blotter.Location}`}</Text></View>
                   <View style={styles.tableCell}><Text>{blotter.Zone}</Text></View>
@@ -59,6 +54,6 @@ export const BlotterPDF = ({ filter, blotters }: Props) => {
           </View>
         </View>
       </Page>
-    </Document >
-  )
-}
+    </Document>
+  );
+};

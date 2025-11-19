@@ -12,10 +12,10 @@ type Props = {
 export const ResidentPDF = ({ filter, residents }: Props) => {
   return (
     <Document>
-      <Page orientation="landscape" size="A4" wrap={false}>
-        <View style={{ margin: "20px" }}>
+      <Page orientation="landscape" size="A4" wrap style={{ paddingTop: 10, paddingBottom: 10, paddingHorizontal: 10 }}>
+        <View style={{ margin: "2px" }}>
           <PDFHeader/>
-          <View style={{ margin: "40px" }}>
+          <View style={{ margin: "0px" }}>
             <View style={{ marginBottom: 10 }}>
               <Text style={{ fontSize: 14 }}>{filter}</Text>
             </View>
